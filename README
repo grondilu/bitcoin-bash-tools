@@ -1,5 +1,5 @@
 
 This is a set of bash tools to manipulate bitcoin addresses.
 
-Most of important functions dealing with base59 coding are implemented,
+Most of important functions dealing with base58 coding are implemented,
 especially the "checkBitcoinAddress", which deals with checksums and stuffs.
