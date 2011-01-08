@@ -1,0 +1,4 @@
+
+This is a set of bash tools to manipulate bitcoin addresses.
+
+Most of important functions dealing with base59 coding are implement, especially the "checkBitcoinAddress", which deals with checksums and stuffs.
