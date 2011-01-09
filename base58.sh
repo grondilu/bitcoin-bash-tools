@@ -59,3 +59,8 @@ publicKeyToAddress() {
     hash160
     )
 }
+
+timestamp() {
+    hash160ToAddress "$(hash160)"
+}
+
