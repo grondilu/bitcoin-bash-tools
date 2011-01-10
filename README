@@ -1,5 +1,8 @@
 
 This is a set of bash tools to manipulate bitcoin addresses.
 
-Most of important functions dealing with base58 coding are implemented,
-especially the "checkBitcoinAddress", which deals with checksums and stuffs.
+One of the most important function is "checkBitcoinAddress", which deals with checksums and stuffs.
+
+There is also a CGI script designed to be used as a stock exchange plateform.
+
+
