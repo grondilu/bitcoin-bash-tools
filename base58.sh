@@ -21,14 +21,14 @@ checksum() {
     perl -we "print pack 'H*', '$1'" |
     openssl dgst -sha256 -binary |
     openssl dgst -sha256 -binary |
-    perl -we "print unpack 'H8', <>"
+    perl -we "print unpack 'H8', join '', <>"
 }
 
 checkBitcoinAddress() {
     if [[ "$1" =~ ^[$(IFS= ; echo "${base58[*]}")]+$ ]]
     then
 	# a bitcoin address should be 25 bytes long:
-	# - 20 bytes for the hash160 (16/8 = 2, right?);
+	# - 20 bytes for the hash160 (160/8 = 20, right?);
 	# -  1 byte  for the version number;
 	# -  4 bytes for the checksum.
 	# shorter addresses can only occur with standard 00 version number
@@ -36,8 +36,7 @@ checkBitcoinAddress() {
 	# Of course, in hex you must mutiply these numbers by 2
 	# to get the number of nybbles (hex digits)
 	h="$(printf "%50s" $(decodeBase58 "$1")| sed 's/ /0/g')"
-        checksum "${h::${#h}-8}" |
-        grep -qi "^${h: -8}$"
+        checksum "${h::${#h}-8}" | grep -qi "^${h: -8}$"
     else return 2
     fi
 }
@@ -69,11 +68,6 @@ privateKeyToWIF() {
     sed -n '3,5s/[: ]//gp' |
     while read l; do echo -n "$l"; done
     )" 80 256
-}
-
-WIFtoDER() {
-    printf "%64s\n" "$(dc -e "16dio $(decodeBase58 $1) 100 4^ / 80 100 20^*-p")" |
-    sed 's/ /0/g'
 }
 
 vanityAddress() {

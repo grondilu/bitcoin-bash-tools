@@ -3,6 +3,4 @@ This is a set of bash tools to manipulate bitcoin addresses.
 
 One of the most important function is "checkBitcoinAddress", which deals with checksums and stuffs.
 
-There is also a CGI script designed to be used as a stock exchange plateform.
-
 
