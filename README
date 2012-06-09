@@ -3,4 +3,9 @@ This is a set of bash tools to manipulate bitcoin addresses.
 
 One of the most important function is "checkBitcoinAddress", which deals with checksums and stuffs.
 
+Recent addition:
+
+- new-bitcoin-key:  creates a brand new key and output its WIF, its bitcoin address and its public key.  All in YAML.
+- vanityFromPublicPoint:  allows searching for a vanity address from a public point.
+
 
