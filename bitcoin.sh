@@ -27,11 +27,11 @@ lDxs.lLx]dSLxs#LPs#LQs#]sM
 
 decodeBase58() {
     dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
-    { read -r n; echo $n; }
+    while read n; do echo -n ${n/\\/}; done
 }
 encodeBase58() {
     dc -e "16i ${1^^} [3A ~r d0<x]dsxx +f" |
-    while read n; do echo -n "${base58[n]}"; done
+    while read -r n; do echo -n "${base58[n]}"; done
 }
 
 checksum() {
@@ -76,10 +76,12 @@ new-bitcoin-key() {
 	public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
 	h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
 	addr="$(hexToAddress "$h")"
-	echo ---
-	echo WIF:              $wif
-	echo bitcoin address:  $addr
-	echo public key:       $public_key
+	cat <<-...
+	---
+	WIF:              $wif
+	bitcoin address:  $addr
+	public key:       $public_key
+	...
     }
 }
     
