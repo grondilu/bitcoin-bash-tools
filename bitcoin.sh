@@ -67,12 +67,11 @@ hexToAddress() {
     }
 }
 
-new-bitcoin-key() {
+newBitcoinKey() {
     if [[ "$1" =~ ^5 ]] && checkBitcoinAddress "$1";
     then
-	local wif="$1"
-	[[ "$(decodeBase58 "$(wif)")" =~ ^80([0-9A-F]){64}[0-9A-F]{8}$ ]] || return 1
-	$FUNCNAME ${BASH_REMATCH[1]}
+	[[ "$(decodeBase58 "$1")" =~ ^80([0-9A-F]{64})[0-9A-F]{8}$ ]] || return 1
+	$FUNCNAME "0x${BASH_REMATCH[1]}"
     elif [[ "$1" =~ ^[0-9]+$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
     elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
@@ -92,17 +91,19 @@ new-bitcoin-key() {
 	}
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
+    elif [[ "$1" =~ ^[$(IFS= ; echo "${base58[*]}")]+$ ]]
+    then $FUNCNAME "0x$(dc -e "16o$(decodeBase58 "$1") 2 256^%p")"
     else
-	echo unknow argument format "$1" >&2
+	echo unknown argument format "$1" >&2
 	return 2
     fi
 }
-    
+
 vanityAddressFromPublicPoint() {
     if [[ "$1" =~ ^04([0-9A-F]{64})([0-9A-F]{64})$ ]]
     then
 	dc <<<"$ec_dc 16o
-	0 ${BASH_REMATCH[0]} ${BASH_REMATCH[1]} rlp*+ 
+	0 ${BASH_REMATCH[1]} ${BASH_REMATCH[2]} rlp*+ 
 	[lGlAxdlm~rn[ ]nn[ ]nr1+prlLx]dsLx
 	" |
 	while read -r x y n
