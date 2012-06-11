@@ -68,21 +68,34 @@ hexToAddress() {
 }
 
 new-bitcoin-key() {
-    local exponant="$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
-    local wif="$(hexToAddress "$exponant" 80 64)"
-    dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
-    {
-	read -r y x
-	public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
-	h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
-	addr="$(hexToAddress "$h")"
-	cat <<-...
-	---
-	WIF:              $wif
-	bitcoin address:  $addr
-	public key:       $public_key
-	...
-    }
+    if [[ "$1" =~ ^5 ]] && checkBitcoinAddress "$1";
+    then
+	local wif="$1"
+	[[ "$(decodeBase58 "$(wif)")" =~ ^80([0-9A-F]){64}[0-9A-F]{8}$ ]] || return 1
+	$FUNCNAME ${BASH_REMATCH[1]}
+    elif [[ "$1" =~ ^[0-9]+$ ]]
+    then $FUNCNAME "0x$(dc -e "16o$1p")"
+    elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
+    then 
+	local exponant="${BASH_REMATCH[1]}"
+	local wif="$(hexToAddress "$exponant" 80 64)"
+	dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
+	{
+	    read y x
+	    public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
+	    h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
+	    addr="$(hexToAddress "$h")"
+	    echo ---
+	    echo WIF:              $wif
+	    echo bitcoin address:  $addr
+	    echo public key:       $public_key
+	}
+    elif test -z "$1"
+    then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
+    else
+	echo unknow argument format "$1" >&2
+	return 2
+    fi
 }
     
 vanityAddressFromPublicPoint() {
