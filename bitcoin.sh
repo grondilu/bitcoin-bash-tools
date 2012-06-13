@@ -11,18 +11,18 @@ declare -a base58=(
 )
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58[i]}"; done
 declare ec_dc='
-I16iFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2Fsp
-7sb0sa483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798lp*+sG
-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141soilpsm
-[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[Smdd
-l%x-lm/rl%xLms#]s~[l%xsclmsd1su0sv0sr1st[q]SQ[lc0=Qldlcl~xlcsdscsqlrlq
-lu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lrl%x]sI[lpSm[+q]S0d0=0lpl~xsy
-dsxd*3*lal+x2ly*lIx*l%xdsld*2lx*l-xdlxrl-xlll*xlyl-xrlp*+Lms#L0s#]sD[lp
-Sm[+q]S0[2;AlDxq]Sdd0=0rd0=0d2:Alp~1:A0:Ad2:Blp~1:B0:B2;A2;B=d[0q]Sx2;A
-0;B1;Bl_xrlm*+=x0;A0;Bl-xlIxdsi1;A1;Bl-xl*xdsld*0;Al-x0;Bl-xd0;Arl-xll
-l*x1;Al-xrlp*+L0s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.
-lDxs.lLx]dSLxs#LPs#LQs#]sM
+I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
+483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+2 100^d14551231950B75FC4402DA1732FC9BEBF-so1000003D1-ddspsm*+sGi
+[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc
+0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lr
+l%x]sI[lpSm[+q]S0d0=0lpl~xsydsxd*3*lal+x2ly*lIx*l%xdsld*2lx*l-xd
+lxrl-xlll*xlyl-xrlp*+Lms#L0s#]sD[lpSm[+q]S0[2;AlDxq]Sdd0=0rd0=0d
+2:Alp~1:A0:Ad2:Blp~1:B0:B2;A2;B=d[0q]Sx2;A0;B1;Bl_xrlm*+=x0;A0;B
+l-xlIxdsi1;A1;Bl-xl*xdsld*0;Al-x0;Bl-xd0;Arl-xlll*x1;Al-xrlp*+L0
+s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]
+dSLxs#LPs#LQs#]sM
 ';
 
 decodeBase58() {
@@ -122,4 +122,44 @@ vanityAddressFromPublicPoint() {
 	echo unexpected format for public point >&2
 	return 1
     fi
+}
+
+insertBlock() {
+    perl -wE '
+    use Bitcoin::Block;
+    use DBI;
+    my $dbh = DBI->connect(q{dbi:mysql:bitcoin}, undef, undef);
+    my $sth = $dbh->prepare(qq{
+    insert into block (hash, version, hashPrev, hashMerkleRoot, nTime, nBits, nNonce)
+    values                   (   ?,       ?,        ?,              ?,     ?,     ?,      ?)
+    });
+    my $b = new Bitcoin::Block q{'"$1"'};
+    $sth->bind_param(1, $b->get_hash);
+    $sth->bind_param(2, $b->version);
+    $sth->bind_param(3, $b->hashPrev);
+    $sth->bind_param(4, $b->hashMerkleRoot);
+    $sth->bind_param(5, $b->nTime);
+    $sth->bind_param(6, $b->nBits);
+    $sth->bind_param(7, $b->nNonce);
+    ';
+}
+
+
+viewBlock() {
+    if [[ "$1" =~ ^[0-9]{,10}$ ]]
+    then where="depth = $1"
+    elif [[ "$1" =~ ^[0-9A-F]{64}$ ]]
+    then where="hex(hash) = $1"
+    fi
+    mysql bitcoin <<<"
+    select
+	hex(hash) as hash,
+	version,
+	hex(hashPrev) as hashPrev,
+	hex(hashMerkleRoot) as hashMerkleRoot,
+	from_unixtime(nTime) as nTime,
+	work,
+	depth
+    from block
+    "
 }
