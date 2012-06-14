@@ -91,10 +91,8 @@ newBitcoinKey() {
 	}
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
-    elif [[ "$1" =~ ^[$(IFS= ; echo "${base58[*]}")]+$ ]]
-    then $FUNCNAME "0x$(dc -e "16o$(decodeBase58 "$1") 2 256^%p")"
     else
-	echo unknown argument format "$1" >&2
+	echo unknown key format "$1" >&2
 	return 2
     fi
 }
@@ -131,35 +129,42 @@ insertBlock() {
     my $dbh = DBI->connect(q{dbi:mysql:bitcoin}, undef, undef);
     my $sth = $dbh->prepare(qq{
     insert into block (hash, version, hashPrev, hashMerkleRoot, nTime, nBits, nNonce)
-    values                   (   ?,       ?,        ?,              ?,     ?,     ?,      ?)
+    values            (   ?,       ?,        ?,              ?,     ?,     ?,      ?)
     });
     my $b = new Bitcoin::Block q{'"$1"'};
-    $sth->bind_param(1, $b->get_hash);
-    $sth->bind_param(2, $b->version);
-    $sth->bind_param(3, $b->hashPrev);
-    $sth->bind_param(4, $b->hashMerkleRoot);
-    $sth->bind_param(5, $b->nTime);
-    $sth->bind_param(6, $b->nBits);
-    $sth->bind_param(7, $b->nNonce);
+    my $h = $b->header;
+    $sth->bind_param(1, $h->get_hash);
+    $sth->bind_param(2, $h->version);
+    $sth->bind_param(3, $h->hashPrev);
+    $sth->bind_param(4, $h->hashMerkleRoot);
+    $sth->bind_param(5, $h->nTime);
+    $sth->bind_param(6, $h->nBits);
+    $sth->bind_param(7, $h->nNonce);
+    $sth->execute;
     ';
 }
 
-
 viewBlock() {
-    if [[ "$1" =~ ^[0-9]{,10}$ ]]
+    if [[ -z "$1" ]]
+    then return
+    elif [[ "$1" =~ ^[0-9]{,10}$ ]]
     then where="depth = $1"
     elif [[ "$1" =~ ^[0-9A-F]{64}$ ]]
-    then where="hex(hash) = $1"
+    then where="hash = unhex('$1')"
     fi
     mysql bitcoin <<<"
     select
-	hex(hash) as hash,
+	hex(hash),
 	version,
 	hex(hashPrev) as hashPrev,
 	hex(hashMerkleRoot) as hashMerkleRoot,
 	from_unixtime(nTime) as nTime,
+	nBits as nBits,
+	nNonce as nNonce,
 	work,
 	depth
     from block
+    where $where
+    \G
     "
 }
