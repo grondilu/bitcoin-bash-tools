@@ -77,17 +77,29 @@ newBitcoinKey() {
     elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
     then 
 	local exponant="${BASH_REMATCH[1]}"
-	local wif="$(hexToAddress "$exponant" 80 64)"
+	local uncompressed_wif="$(hexToAddress "$exponant" 80 64)"
+	local compressed_wif="$(hexToAddress "${exponant}01" 80 66)"
 	dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
 	{
 	    read y x
-	    public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
-	    h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
-	    addr="$(hexToAddress "$h")"
+	    uncompressed_public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
+	    if [[ "$y" =~ [02468ACE]$ ]]
+	    then y_parity="02"
+	    else y_parity="03"
+	    fi
+	    compressed_public_key="$(printf "03%64s$y_parity" $x | sed 's/ /0/g')"
+	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($uncompressed_public_key)" | hash160)")"
+	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($compressed_public_key)" | hash160)")"
 	    echo ---
-	    echo WIF:              $wif
-	    echo bitcoin address:  $addr
-	    echo public key:       $public_key
+            echo "secret exponant:          0x$exponant"
+            echo "compressed:"
+            echo "    WIF:                  $compressed_wif"
+            echo "    bitcoin address:      $compressed_addr"
+            echo "    public key:           $compressed_public_key"
+            echo "uncompressed:"
+            echo "    WIF:                  $uncompressed_wif"
+            echo "    bitcoin address:      $uncompressed_addr"
+            echo "    public key:           $uncompressed_public_key"
 	}
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
