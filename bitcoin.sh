@@ -22,7 +22,7 @@ lxrl-xlll*xlyl-xrlp*+Lms#L0s#]sD[lpSm[+q]S0[2;AlDxq]Sdd0=0rd0=0d
 2:Alp~1:A0:Ad2:Blp~1:B0:B2;A2;B=d[0q]Sx2;A0;B1;Bl_xrlm*+=x0;A0;B
 l-xlIxdsi1;A1;Bl-xl*xdsld*0;Al-x0;Bl-xd0;Arl-xlll*x1;Al-xrlp*+L0
 s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]
-dSLxs#LPs#LQs#]sM
+dSLxs#LPs#LQs#]sM[lm1+4/lp|]sS
 ';
 
 decodeBase58() {
@@ -68,10 +68,12 @@ hexToAddress() {
 }
 
 newBitcoinKey() {
-    if [[ "$1" =~ ^5 ]] && checkBitcoinAddress "$1";
+    if [[ "$1" =~ ^5 ]] && checkBitcoinAddress "$1" || checkBitcoinAddress "$1" 80 33;
     then
-	[[ "$(decodeBase58 "$1")" =~ ^80([0-9A-F]{64})[0-9A-F]{8}$ ]] || return 1
-	$FUNCNAME "0x${BASH_REMATCH[1]}"
+	decoded="$(decodeBase58 "$1")"
+	if [[ "$decoded" =~ ^80([0-9A-F]{64})(01)?[0-9A-F]{8}$ ]]
+	then $FUNCNAME "0x${BASH_REMATCH[1]}"
+	fi
     elif [[ "$1" =~ ^[0-9]+$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
     elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
