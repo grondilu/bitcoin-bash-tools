@@ -68,7 +68,7 @@ hexToAddress() {
 }
 
 newBitcoinKey() {
-    if [[ "$1" =~ ^5 ]] && checkBitcoinAddress "$1" || checkBitcoinAddress "$1" 80 33;
+    if [[ "$1" =~ ^[5KL] ]] && checkBitcoinAddress "$1"
     then
 	decoded="$(decodeBase58 "$1")"
 	if [[ "$decoded" =~ ^80([0-9A-F]{64})(01)?[0-9A-F]{8}$ ]]
