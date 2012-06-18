@@ -22,7 +22,7 @@ lxrl-xlll*xlyl-xrlp*+Lms#L0s#]sD[lpSm[+q]S0[2;AlDxq]Sdd0=0rd0=0d
 2:Alp~1:A0:Ad2:Blp~1:B0:B2;A2;B=d[0q]Sx2;A0;B1;Bl_xrlm*+=x0;A0;B
 l-xlIxdsi1;A1;Bl-xl*xdsld*0;Al-x0;Bl-xd0;Arl-xlll*x1;Al-xrlp*+L0
 s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]
-dSLxs#LPs#LQs#]sM[lm1+4/lp|]sS
+dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
 ';
 
 decodeBase58() {
@@ -84,24 +84,25 @@ newBitcoinKey() {
 	dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
 	{
 	    read y x
-	    uncompressed_public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
+	    X="$(printf "%64s" $x| sed 's/ /0/g')"
+	    Y="$(printf "%64s" $y| sed 's/ /0/g')"
 	    if [[ "$y" =~ [02468ACE]$ ]]
 	    then y_parity="02"
 	    else y_parity="03"
 	    fi
-	    compressed_public_key="$(printf "03%64s$y_parity" $x | sed 's/ /0/g')"
-	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($uncompressed_public_key)" | hash160)")"
-	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($compressed_public_key)" | hash160)")"
+	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(04$X$Y)" | hash160)")"
+	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(03$X$y_parity)" | hash160)")"
 	    echo ---
             echo "secret exponant:          0x$exponant"
+	    echo "public key:"
+	    echo "    X:                    $X"
+	    echo "    Y:                    $Y"
             echo "compressed:"
             echo "    WIF:                  $compressed_wif"
             echo "    bitcoin address:      $compressed_addr"
-            echo "    public key:           $compressed_public_key"
             echo "uncompressed:"
             echo "    WIF:                  $uncompressed_wif"
             echo "    bitcoin address:      $uncompressed_addr"
-            echo "    public key:           $uncompressed_public_key"
 	}
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
@@ -136,35 +137,17 @@ vanityAddressFromPublicPoint() {
     fi
 }
 
-insertBlock() {
-    perl -wE '
-    use Bitcoin::Block;
-    use DBI;
-    my $dbh = DBI->connect(q{dbi:mysql:bitcoin}, undef, undef);
-    my $sth = $dbh->prepare(qq{
-    insert into block (hash, version, hashPrev, hashMerkleRoot, nTime, nBits, nNonce)
-    values            (   ?,       ?,        ?,              ?,     ?,     ?,      ?)
-    });
-    my $b = new Bitcoin::Block q{'"$1"'};
-    my $h = $b->header;
-    $sth->bind_param(1, $h->get_hash);
-    $sth->bind_param(2, $h->version);
-    $sth->bind_param(3, $h->hashPrev);
-    $sth->bind_param(4, $h->hashMerkleRoot);
-    $sth->bind_param(5, $h->nTime);
-    $sth->bind_param(6, $h->nBits);
-    $sth->bind_param(7, $h->nNonce);
-    $sth->execute;
-    ';
-}
-
 viewBlock() {
-    if [[ -z "$1" ]]
+    arg="${1^^}"
+    if [[ -z "$arg" ]]
     then return
-    elif [[ "$1" =~ ^[0-9]{,10}$ ]]
-    then where="depth = $1"
-    elif [[ "$1" =~ ^[0-9A-F]{64}$ ]]
-    then where="hash = unhex('$1')"
+    elif [[ "$arg" =~ ^[0-9]{,10}$ ]]
+    then where="depth = $arg"
+    elif [[ "$arg" =~ ^[0-9A-F]{64}$ ]]
+    then where="hash = unhex('$arg')"
+    else
+	echo 'unknown format' >&2
+	return 1
     fi
     mysql bitcoin <<<"
     select
