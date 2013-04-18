@@ -136,32 +136,3 @@ vanityAddressFromPublicPoint() {
 	return 1
     fi
 }
-
-viewBlock() {
-    arg="${1^^}"
-    if [[ -z "$arg" ]]
-    then return
-    elif [[ "$arg" =~ ^[0-9]{,10}$ ]]
-    then where="depth = $arg"
-    elif [[ "$arg" =~ ^[0-9A-F]{64}$ ]]
-    then where="hash = unhex('$arg')"
-    else
-	echo 'unknown format' >&2
-	return 1
-    fi
-    mysql bitcoin <<<"
-    select
-	hex(hash),
-	version,
-	hex(hashPrev) as hashPrev,
-	hex(hashMerkleRoot) as hashMerkleRoot,
-	from_unixtime(nTime) as nTime,
-	nBits as nBits,
-	nNonce as nNonce,
-	work,
-	depth
-    from block
-    where $where
-    \G
-    "
-}
