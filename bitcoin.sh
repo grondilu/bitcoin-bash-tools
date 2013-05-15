@@ -91,7 +91,7 @@ newBitcoinKey() {
 	    else y_parity="03"
 	    fi
 	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(04$X$Y)" | hash160)")"
-	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(03$X$y_parity)" | hash160)")"
+	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($y_parity$X)" | hash160)")"
 	    echo ---
             echo "secret exponant:          0x$exponant"
 	    echo "public key:"
