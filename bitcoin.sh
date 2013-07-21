@@ -29,8 +29,9 @@ decodeBase58() {
     dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
     while read n; do echo -n ${n/\\/}; done
 }
+
 encodeBase58() {
-    dc -e "16i ${1^^} [3A ~r d0<x]dsxx +f" |
+    dc -e "16i $(echo $1 | tr '[:lower:]' '[:upper:]') [3A ~r d0<x]dsxx +f" |
     while read -r n; do echo -n "${base58[n]}"; done
 }
 
@@ -61,7 +62,7 @@ hexToAddress() {
     printf "%34s\n" "$(encodeBase58 "$version$x$(checksum "$version$x")")" |
     {
 	if ((version == 0))
-	then sed -r 's/ +/1/'
+	then sed 's/  */1/'
 	else cat
 	fi
     }
@@ -76,12 +77,12 @@ newBitcoinKey() {
 	fi
     elif [[ "$1" =~ ^[0-9]+$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
-    elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
+    elif [[ "$(echo $1 | tr '[:lower:]' '[:upper:]')" =~ ^0X([0-9A-F]+)$ ]]
     then 
-	local exponant="${BASH_REMATCH[1]}"
-	local uncompressed_wif="$(hexToAddress "$exponant" 80 64)"
-	local compressed_wif="$(hexToAddress "${exponant}01" 80 66)"
-	dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
+	local exponent="${BASH_REMATCH[1]}"
+	local uncompressed_wif="$(hexToAddress "$exponent" 80 64)"
+	local compressed_wif="$(hexToAddress "${exponent}01" 80 66)"
+	dc -e "$ec_dc lG I16i$(echo $exponent | tr '[:lower:]' '[:upper:]')ri lMx 16olm~ n[ ]nn" |
 	{
 	    read y x
 	    X="$(printf "%64s" $x| sed 's/ /0/g')"
@@ -93,7 +94,7 @@ newBitcoinKey() {
 	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(04$X$Y)" | hash160)")"
 	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($y_parity$X)" | hash160)")"
 	    echo ---
-            echo "secret exponant:          0x$exponant"
+            echo "secret exponent:          0x$exponent"
 	    echo "public key:"
 	    echo "    X:                    $X"
 	    echo "    Y:                    $Y"
