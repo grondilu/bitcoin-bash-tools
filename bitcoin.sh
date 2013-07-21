@@ -3,6 +3,22 @@
 #
 # requires dc, the unix desktop calculator (which should be included in the
 # 'bc' package)
+#
+# This script requires bash version 4 or above.  Known imcompatibilities with
+# previous versions are:
+# - use of the ^^ capitalization operator introduced in version 4.
+#
+# This script uses GNU tools.  It is therefore not guaranted to work on a POSIX
+# system.
+#
+# See https://github.com/sowbug/bitcoin-bash-tools for a POSIX, all bash
+# versions compatible version.
+
+if ((BASH_VERSINFO[0] < 4))
+then
+    echo "This script requires bash version 4 or above." >&2
+    return 10
+fi
 
 declare -a base58=(
       1 2 3 4 5 6 7 8 9
@@ -78,10 +94,10 @@ newBitcoinKey() {
     then $FUNCNAME "0x$(dc -e "16o$1p")"
     elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
     then 
-	local exponant="${BASH_REMATCH[1]}"
-	local uncompressed_wif="$(hexToAddress "$exponant" 80 64)"
-	local compressed_wif="$(hexToAddress "${exponant}01" 80 66)"
-	dc -e "$ec_dc lG I16i${exponant^^}ri lMx 16olm~ n[ ]nn" |
+	local exponent="${BASH_REMATCH[1]}"
+	local uncompressed_wif="$(hexToAddress "$exponent" 80 64)"
+	local compressed_wif="$(hexToAddress "${exponent}01" 80 66)"
+	dc -e "$ec_dc lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
 	{
 	    read y x
 	    X="$(printf "%64s" $x| sed 's/ /0/g')"
@@ -93,7 +109,7 @@ newBitcoinKey() {
 	    uncompressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q(04$X$Y)" | hash160)")"
 	    compressed_addr="$(hexToAddress "$(perl -e "print pack q(H*), q($y_parity$X)" | hash160)")"
 	    echo ---
-            echo "secret exponant:          0x$exponant"
+            echo "secret exponent:          0x$exponent"
 	    echo "public key:"
 	    echo "    X:                    $X"
 	    echo "    Y:                    $Y"
