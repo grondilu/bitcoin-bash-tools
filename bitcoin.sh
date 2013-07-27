@@ -17,7 +17,7 @@
 if ((BASH_VERSINFO[0] < 4))
 then
     echo "This script requires bash version 4 or above." >&2
-    return 10
+    return 538510
 fi
 
 declare -a base58=(
