@@ -92,7 +92,7 @@ newBitcoinKey() {
 	fi
     elif [[ "$1" =~ ^[0-9]+$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
-    elif [[ "${1^^}" =~ ^0X([0-9A-F]+)$ ]]
+    elif [[ "${1^^}" =~ ^0X([0-9A-F]{1,64})$ ]]
     then 
 	local exponent="${BASH_REMATCH[1]}"
 	local uncompressed_wif="$(hexToAddress "$exponent" 80 64)"
