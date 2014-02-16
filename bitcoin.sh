@@ -46,6 +46,7 @@ decodeBase58() {
     while read n; do echo -n ${n/\\/}; done
 }
 encodeBase58() {
+    echo -n "$1" | sed -e's/^\(\(00\)*\).*/\1/' -e's/00/1/g'
     dc -e "16i ${1^^} [3A ~r d0<x]dsxx +f" |
     while read -r n; do echo -n "${base58[n]}"; done
 }
@@ -73,14 +74,9 @@ hash160() {
 }
 
 hexToAddress() {
-    local version=${2:-00} x="$(printf "%${3:-40}s" $1 | sed 's/ /0/g')"
-    printf "%34s\n" "$(encodeBase58 "$version$x$(checksum "$version$x")")" |
-    {
-	if ((version == 0))
-	then sed -r 's/ +/1/'
-	else cat
-	fi
-    }
+    local x="$(printf "%2s%${3:-40}s" ${2:-00} $1 | sed 's/ /0/g')"
+    encodeBase58 "$x$(checksum "$x")"
+    echo
 }
 
 newBitcoinKey() {
