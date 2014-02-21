@@ -4,15 +4,31 @@
 # requires dc, the unix desktop calculator (which should be included in the
 # 'bc' package)
 #
-# This script requires bash version 4 or above.  Known imcompatibilities with
-# previous versions are:
-# - use of the ^^ capitalization operator introduced in version 4.
+# This script requires bash version 4 or above.
 #
 # This script uses GNU tools.  It is therefore not guaranted to work on a POSIX
 # system.
-#
-# See https://github.com/sowbug/bitcoin-bash-tools for a POSIX, all bash
-# versions compatible version.
+# 
+# Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 
 if ((BASH_VERSINFO[0] < 4))
 then
