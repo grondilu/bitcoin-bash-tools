@@ -77,7 +77,7 @@ checksum() {
 checkBitcoinAddress() {
     if [[ "$1" =~ ^[$(IFS= ; echo "${base58[*]}")]+$ ]]
     then
-	h="$(printf "%50s" $(decodeBase58 "$1")| sed 's/ /0/g')"
+	local h="$(printf "%50s" $(decodeBase58 "$1")| sed 's/ /0/g')"
         checksum "${h:0:-8}" | grep -qi "^${h:${#h}-8}$"
     else return 2
     fi
@@ -98,7 +98,7 @@ hexToAddress() {
 newBitcoinKey() {
     if [[ "$1" =~ ^[5KL] ]] && checkBitcoinAddress "$1"
     then
-	decoded="$(decodeBase58 "$1")"
+	local decoded="$(decodeBase58 "$1")"
 	if [[ "$decoded" =~ ^80([0-9A-F]{64})(01)?[0-9A-F]{8}$ ]]
 	then $FUNCNAME "0x${BASH_REMATCH[1]}"
 	fi
@@ -149,9 +149,9 @@ vanityAddressFromPublicPoint() {
 	" |
 	while read -r x y n
 	do
-	    public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
-	    h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
-	    addr="$(hexToAddress "$h")"
+	    local public_key="$(printf "04%64s%64s" $x $y | sed 's/ /0/g')"
+	    local h="$(perl -e "print pack q(H*), q($public_key)" | hash160)"
+	    local addr="$(hexToAddress "$h")"
 	    if [[ "$addr" =~ "$2" ]]
 	    then
 		echo "FOUND! $n: $addr"
