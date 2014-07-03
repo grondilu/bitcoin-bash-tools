@@ -58,6 +58,7 @@ dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
 ';
 
 decodeBase58() {
+    echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g'
     dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
     while read n; do echo -n ${n/\\/}; done
 }
@@ -77,7 +78,7 @@ checksum() {
 checkBitcoinAddress() {
     if [[ "$1" =~ ^[$(IFS= ; echo "${base58[*]}")]+$ ]]
     then
-	local h="$(printf "%50s" $(decodeBase58 "$1")| sed 's/ /0/g')"
+        local h="$(decodeBase58 "$1")"
         checksum "${h:0:-8}" | grep -qi "^${h:${#h}-8}$"
     else return 2
     fi
