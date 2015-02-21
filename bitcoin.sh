@@ -58,12 +58,12 @@ dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
 ';
 
 decodeBase58() {
-    echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g'
+    echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g' | tr -d '\n'
     dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
     while read n; do echo -n ${n/\\/}; done
 }
 encodeBase58() {
-    echo -n "$1" | sed -e's/^\(\(00\)*\).*/\1/' -e's/00/1/g'
+    echo -n "$1" | sed -e's/^\(\(00\)*\).*/\1/' -e's/00/1/g' | tr -d '\n'
     dc -e "16i ${1^^} [3A ~r d0<x]dsxx +f" |
     while read -r n; do echo -n "${base58[n]}"; done
 }
