@@ -33,7 +33,7 @@
 if ((BASH_VERSINFO[0] < 4))
 then
     echo "This script requires bash version 4 or above." >&2
-    exit 538510
+    exit 1
 fi
 
 declare -a base58=(
