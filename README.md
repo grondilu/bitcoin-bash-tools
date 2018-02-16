@@ -6,7 +6,7 @@ This is a set of bash tools to manipulate bitcoin addresses.
     $ . bitcoin.sh
     $ newBitcoinKey
 
-## LICENSE:
+## LICENSE
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
 
