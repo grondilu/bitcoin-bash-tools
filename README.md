@@ -2,8 +2,8 @@ This is a set of bash tools to manipulate bitcoin addresses.
 
 ## SYNOPSIS
 
-    $ wget https://github.com/grondilu/bitcoin-bash-tools.git
-    $ . bitcoin.sh
+    $ gir clone https://github.com/grondilu/bitcoin-bash-tools.git
+    $ . ./bitcoin-bash-tools/bitcoin.sh
     $ newBitcoinKey
 
 ## LICENSE
