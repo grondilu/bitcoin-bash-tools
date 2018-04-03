@@ -2,7 +2,7 @@ This is a set of bash tools to manipulate bitcoin addresses.
 
 ## SYNOPSIS
 
-    $ gir clone https://github.com/grondilu/bitcoin-bash-tools.git
+    $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
     $ . ./bitcoin-bash-tools/bitcoin.sh
     $ newBitcoinKey
 
