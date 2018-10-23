@@ -72,6 +72,7 @@ decodeBase58() {
     dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
     while read line; do echo -n ${line/\\/}; done
 }
+
 encodeBase58() {
     local n
     echo -n "$1" | sed -e's/^\(\(00\)*\).*/\1/' -e's/00/1/g' | tr -d '\n'
@@ -85,6 +86,20 @@ checksum() {
     openssl dgst -sha256 -binary |
     unpack |
     head -c 8
+}
+
+toEthereumAddressWithChecksum() {
+    local addrLower=$(sed -r -e 's/[[:upper:]]/\l&/g' <<< "$1")
+    local addrHash=$(echo -n "$addrLower" | sha3-256 | xxd -p -c32)
+    local addrChecksum=""
+    local i c x
+    for i in {0..39}; do
+        c=${addrLower:i:1}
+        x=${addrHash:i:1}
+        [[ $c =~ [a-f] ]] && [[ $x =~ [9a-f] ]] && c=${c^^}
+        addrChecksum+=$c
+    done
+    echo -n $addrChecksum
 }
 
 checkBitcoinAddress() {
@@ -102,6 +117,16 @@ hash160() {
     unpack
 }
 
+sha3-256() {
+    python3 -c "
+import sys
+import sha3
+data = sys.stdin.buffer.read()
+hash = sha3.keccak_256(data).digest()
+sys.stdout.buffer.write(hash)
+"
+}
+
 hexToAddress() {
     local x="$(printf "%2s%${3:-40}s" ${2:-00} $1 | sed 's/ /0/g')"
     encodeBase58 "$x$(checksum "$x")"
@@ -117,7 +142,7 @@ newBitcoinKey() {
         fi
     elif [[ "$1" =~ ^[0-9]+$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
-    elif [[ "${1^^}" =~ ^0X([0-9A-F]{1,64})$ ]]
+    elif [[ "${1^^}" =~ ^0X([0-9A-F]{1,})$ ]]
     then
         local exponent="${BASH_REMATCH[1]}"
         local uncompressed_wif="$(hexToAddress "$exponent" 80 64)"
@@ -133,6 +158,9 @@ newBitcoinKey() {
             fi
             uncompressed_addr="$(hexToAddress "$(pack "04$X$Y" | hash160)")"
             compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)")"
+            qtum_compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)" 3a)"
+            ethereum_addr="$(pack "$X$Y" | sha3-256 | unpack | tail -c 40)"
+            tron_addr="$(hexToAddress "$ethereum_addr" 41)"
             echo ---
             echo "secret exponent:          0x$exponent"
             echo "public key:"
@@ -140,10 +168,13 @@ newBitcoinKey() {
             echo "    Y:                    $Y"
             echo "compressed:"
             echo "    WIF:                  $compressed_wif"
-            echo "    bitcoin address:      $compressed_addr"
+            echo "    Bitcoin address:      $compressed_addr"
+            echo "    Qtum address:         $qtum_compressed_addr"
             echo "uncompressed:"
             echo "    WIF:                  $uncompressed_wif"
-            echo "    bitcoin address:      $uncompressed_addr"
+            echo "    Bitcoin address:      $uncompressed_addr"
+            echo "    Ethereum address:     0x$(toEthereumAddressWithChecksum $ethereum_addr)"
+            echo "    Tron address:         $tron_addr"
         }
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
