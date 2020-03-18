@@ -145,22 +145,25 @@ newBitcoinKey() {
     elif [[ "${1^^}" =~ ^0X([0-9A-F]{1,})$ ]]
     then
         local exponent="${BASH_REMATCH[1]}"
-        local uncompressed_wif="$(hexToAddress "$exponent" 80 64)"
-        local compressed_wif="$(hexToAddress "${exponent}01" 80 66)"
+        local full_wif="$(hexToAddress "$exponent" 80 64)"
+        local comp_wif="$(hexToAddress "${exponent}01" 80 66)"
         dc -e "$ec_dc lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
-            X="$(printf "%64s" $x| sed 's/ /0/g')"
-            Y="$(printf "%64s" $y| sed 's/ /0/g')"
-            if [[ "$y" =~ [02468ACE]$ ]]
-            then y_parity="02"
-            else y_parity="03"
-            fi
-            uncompressed_addr="$(hexToAddress "$(pack "04$X$Y" | hash160)")"
-            compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)")"
-            uncompressed_multisig_1_of_1_addr="$(hexToAddress "$(pack "514104${X}${Y}51AE" | hash160)" 05)"
-            compressed_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${y_parity}${X}51AE" | hash160)" 05)"
-            qtum_compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)" 3a)"
+            X="$(printf "%64s" $x | sed 's/ /0/g')"
+            Y="$(printf "%64s" $y | sed 's/ /0/g')"
+            [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
+            full_pubkey="04${X}${Y}"
+            comp_pubkey="${y_parity}${X}"
+            full_p2pkh_addr="$(hexToAddress "$(pack "$full_pubkey" | hash160)")"
+            comp_p2pkh_addr="$(hexToAddress "$(pack "$comp_pubkey" | hash160)")"
+            full_p2sh_addr="$(hexToAddress "$(pack "41${full_pubkey}AC" | hash160)" 05)"
+            comp_p2sh_addr="$(hexToAddress "$(pack "21${comp_pubkey}AC" | hash160)" 05)"
+            # Note: Witness uses only compressed public key
+            comp_p2wpkh_addr="$(hexToAddress "$(pack "0014$(pack "$comp_pubkey" | hash160)" | hash160)" 05)"
+            full_multisig_1_of_1_addr="$(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)"
+            comp_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)"
+            qtum_addr="$(hexToAddress "$(pack "${comp_pubkey}" | hash160)" 3a)"
             ethereum_addr="$(pack "$X$Y" | sha3-256 | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
             echo ---
@@ -168,17 +171,25 @@ newBitcoinKey() {
             echo "public key:"
             echo "    X:                    $X"
             echo "    Y:                    $Y"
-            echo "compressed:"
-            echo "    WIF:                  $compressed_wif"
-            echo "    Bitcoin address:      $compressed_addr"
-            echo "    Bitcoin (1-of-1):     $compressed_multisig_1_of_1_addr"
-            echo "    Qtum address:         $qtum_compressed_addr"
-            echo "uncompressed:"
-            echo "    WIF:                  $uncompressed_wif"
-            echo "    Bitcoin address:      $uncompressed_addr"
-            echo "    Bitcoin (1-of-1):     $uncompressed_multisig_1_of_1_addr"
-            echo "    Ethereum address:     0x$(toEthereumAddressWithChecksum $ethereum_addr)"
-            echo "    Tron address:         $tron_addr"
+            echo
+            echo "compressed addresses:"
+            echo "    WIF:                  $comp_wif"
+            echo "    Bitcoin (P2PKH):      $comp_p2pkh_addr"
+            echo "    Bitcoin (P2SH [PKH]): $comp_p2sh_addr"
+            echo "    Bitcoin (P2WPKH):     $comp_p2wpkh_addr"
+            echo "    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr"
+            echo " ---- other networks ----"
+            echo "    Qtum:                 $qtum_addr"
+            echo
+            echo "uncompressed addresses:"
+            echo "    WIF:                  $full_wif"
+            echo "    Bitcoin (P2PKH):      $full_p2pkh_addr"
+            echo "    Bitcoin (P2SH [PKH]): $full_p2sh_addr"
+            echo "    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr"
+            echo " ---- other networks ----"
+            echo "    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)"
+            echo "    Tron:                 $tron_addr"
+            echo
         }
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
