@@ -158,7 +158,8 @@ newBitcoinKey() {
             fi
             uncompressed_addr="$(hexToAddress "$(pack "04$X$Y" | hash160)")"
             compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)")"
-            multisig_1_of_1_addr="$(hexToAddress "$(pack "514104${X}${Y}51AE" | hash160)" 05)"
+            uncompressed_multisig_1_of_1_addr="$(hexToAddress "$(pack "514104${X}${Y}51AE" | hash160)" 05)"
+            compressed_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${y_parity}${X}51AE" | hash160)" 05)"
             qtum_compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)" 3a)"
             ethereum_addr="$(pack "$X$Y" | sha3-256 | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
@@ -170,11 +171,12 @@ newBitcoinKey() {
             echo "compressed:"
             echo "    WIF:                  $compressed_wif"
             echo "    Bitcoin address:      $compressed_addr"
+            echo "    Bitcoin (1-of-1):     $compressed_multisig_1_of_1_addr"
             echo "    Qtum address:         $qtum_compressed_addr"
             echo "uncompressed:"
             echo "    WIF:                  $uncompressed_wif"
             echo "    Bitcoin address:      $uncompressed_addr"
-            echo "    Bitcoin (1-of-1):     $multisig_1_of_1_addr"
+            echo "    Bitcoin (1-of-1):     $uncompressed_multisig_1_of_1_addr"
             echo "    Ethereum address:     0x$(toEthereumAddressWithChecksum $ethereum_addr)"
             echo "    Tron address:         $tron_addr"
         }
