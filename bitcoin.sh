@@ -1,6 +1,6 @@
 #!/bin/bash
 # Various bash bitcoin tools
-#
+# somechange
 # requires dc, the unix desktop calculator (which should be included in the
 # 'bc' package)
 #
