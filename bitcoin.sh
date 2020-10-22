@@ -96,7 +96,7 @@ toEthereumAddressWithChecksum() {
     for i in {0..39}; do
         c=${addrLower:i:1}
         x=${addrHash:i:1}
-        [[ $c =~ [a-f] ]] && [[ $x =~ [9a-f] ]] && c=${c^^}
+        [[ $c =~ [a-f] ]] && [[ $x =~ [89a-f] ]] && c=${c^^}
         addrChecksum+=$c
     done
     echo -n $addrChecksum
@@ -120,10 +120,10 @@ hash160() {
 sha3-256() {
     python3 -c "
 import sys
-import sha3
+from Crypto.Hash import keccak
 data = sys.stdin.buffer.read()
-hash = sha3.keccak_256(data).digest()
-sys.stdout.buffer.write(hash)
+hash = keccak.new(digest_bits=256).update(data)
+sys.stdout.buffer.write(hash.digest())
 "
 }
 
