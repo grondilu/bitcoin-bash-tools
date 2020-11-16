@@ -14,7 +14,7 @@ done
 bech32_polymod() {
   declare -ia GEN=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
   declare -i  chk=1 b i v
-  for v
+  while read v
   do
     b=$((chk >> 25))
     chk=$(( (chk & 0x1ffffff) << 5^v ))
@@ -26,41 +26,37 @@ bech32_polymod() {
 }
 ord() { LC_CTYPE=C printf '%d' "'$1"; }
 bech32_hrp_expand() {
-  declare -i x
-  for x
+  mapfile -t values
+  for x in ${values[@]}
   do echo $(( x >> 5 ))
   done
   echo 0
-  for x
+  for x in ${values[@]}
   do echo $(( x & 31 ))
   done
 }
+bech32_decode() {
+    echo -n "${1%1*}" |
+    while read -n 1 c
+    do ord $c; echo
+    done |
+    bech32_hrp_expand
+    echo -n "${1##*1}" |
+    while read -n 1 c
+    do echo ${bech32A[$c]}
+    done
+}
 bech32_verify_checksum() {
-  mapfile -t hrp  < <(echo -n "${1%1*}"  |while read -n 1 c; do ord $c; echo; done)
-  mapfile -t data < <(echo -n "${1##*1}" |while read -n 1 c; do echo ${bech32A[$c]}; done)
-
-  test $(
-    bech32_polymod $(
-      bech32_hrp_expand "${hrp[@]}"
-      for x in "${data[@]}"
-      do echo $x
-      done
-    )
-  ) -eq 1
+  bech32_decode "$1" | bech32_polymod | grep -q '^1$'
 }
 bech32_create_checksum() {
-  mapfile -t hrp  < <(echo -n "${1%1*}"  |while read -n 1 c; do ord $c; echo; done)
-  mapfile -t data < <(echo -n "${1##*1}" |while read -n 1 c; do echo ${bech32A[$c]}; done)
-  declare -i polymod=$(( $(bech32_polymod $(bech32_hrp_expand ${hrp[@]}) ${data[@]} 0 0 0 0 0 0) ^ 1))
+  declare -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
   declare -a checksum
   for i in {0..5}
   do checksum[$i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
   done
-  for c in ${hrp[@]}
-  do printf "\x$(printf "%x" $c)"
-  done
-  echo -n 1
-  for c in ${data[@]} ${checksum[@]}
+  echo -n "$1"
+  for c in ${checksum[@]}
   do echo -n ${bech32[$c]}
   done
   echo
