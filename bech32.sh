@@ -36,8 +36,8 @@ bech32_hrp_expand() {
   done
 }
 bech32_verify_checksum() {
-  mapfile -t hrp  < <(echo -n "${1%1*}"  |grep -o . |while read c; do ord $c; echo; done)
-  mapfile -t data < <(echo -n "${1##*1}"|grep -o . |while read c; do echo ${bech32A[$c]}; done)
+  mapfile -t hrp  < <(echo -n "${1%1*}"  |while read -n 1 c; do ord $c; echo; done)
+  mapfile -t data < <(echo -n "${1##*1}" |while read -n 1 c; do echo ${bech32A[$c]}; done)
 
   test $(
     bech32_polymod $(
@@ -49,8 +49,8 @@ bech32_verify_checksum() {
   ) -eq 1
 }
 bech32_create_checksum() {
-  mapfile -t hrp  < <(echo -n "${1%1*}"  |grep -o . |while read c; do ord $c; echo; done)
-  mapfile -t data < <(echo -n "${1##*1}"|grep -o . |while read c; do echo ${bech32A[$c]}; done)
+  mapfile -t hrp  < <(echo -n "${1%1*}"  |while read -n 1 c; do ord $c; echo; done)
+  mapfile -t data < <(echo -n "${1##*1}" |while read -n 1 c; do echo ${bech32A[$c]}; done)
   declare -i polymod=$(( $(bech32_polymod $(bech32_hrp_expand ${hrp[@]}) ${data[@]} 0 0 0 0 0 0) ^ 1))
   declare -a checksum
   for i in {0..5}
@@ -73,9 +73,9 @@ declare -a valid_checksum=(
   11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j
   split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w
 )
-
 for t in "${valid_checksum[@]}"
-do bech32_verify_checksum $t || echo wrong checksum
+do bech32_verify_checksum $t
 done
 
 bech32_verify_checksum $(bech32_create_checksum foo1zzzzzzzzzz)
+bech32_verify_checksum tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx
