@@ -47,7 +47,7 @@ bech32_decode() {
     done
 }
 bech32_verify_checksum() {
-  bech32_decode "$1" | bech32_polymod | grep -q '^1$'
+  bech32_decode "$1" | bech32_polymod | grep -q '^1$' || return 1
 }
 bech32_create_checksum() {
   declare -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
@@ -69,9 +69,6 @@ declare -a valid_checksum=(
   11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j
   split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w
 )
-for t in "${valid_checksum[@]}"
-do bech32_verify_checksum $t
+for t in "${valid_checksum[@]}" $(bech32_create_checksum foo1zzzzzzzzzz) tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx 
+do bech32_verify_checksum $t || echo "$t : wrong checksum"
 done
-
-bech32_verify_checksum $(bech32_create_checksum foo1zzzzzzzzzz)
-bech32_verify_checksum tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx
