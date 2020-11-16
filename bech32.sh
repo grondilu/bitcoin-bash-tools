@@ -28,11 +28,11 @@ ord() { LC_CTYPE=C printf '%d' "'$1"; }
 bech32_hrp_expand() {
   declare -i x
   for x
-  do echo $(( $x >> 5 ))
+  do echo $(( x >> 5 ))
   done
   echo 0
   for x
-  do echo $(( $x & 31 ))
+  do echo $(( x & 31 ))
   done
 }
 bech32_verify_checksum() {
