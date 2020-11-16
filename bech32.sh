@@ -24,7 +24,6 @@ bech32_polymod() {
   done
   echo $chk
 }
-ord() { LC_CTYPE=C printf '%d' "'$1"; }
 bech32_hrp_expand() {
   mapfile -t values
   for x in ${values[@]}
@@ -36,15 +35,15 @@ bech32_hrp_expand() {
   done
 }
 bech32_decode() {
-    echo -n "${1%1*}" |
-    while read -n 1 c
-    do ord $c; echo
-    done |
-    bech32_hrp_expand
-    echo -n "${1##*1}" |
-    while read -n 1 c
-    do echo ${bech32A[$c]}
-    done
+  echo -n "${1%1*}" |
+  while read -n 1 c
+  do LC_CTYPE=C printf '%d\n' "'$c"
+  done |
+  bech32_hrp_expand
+  echo -n "${1##*1}" |
+  while read -n 1 c
+  do echo ${bech32A[$c]}
+  done
 }
 bech32_verify_checksum() {
   bech32_decode "$1" | bech32_polymod | grep -q '^1$' || return 1
