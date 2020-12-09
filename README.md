@@ -6,6 +6,11 @@ This is a set of bash tools to manipulate bitcoin addresses.
     $ . ./bitcoin-bash-tools/bitcoin.sh
     $ newBitcoinKey
 
+## TODO
+
+- generate bech32 addresses.
+- create a test suite
+
 ## LICENSE
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
