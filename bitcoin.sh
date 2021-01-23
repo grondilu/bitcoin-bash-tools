@@ -169,30 +169,32 @@ newBitcoinKey() {
             qtum_addr="$(hexToAddress "$(pack "${comp_pubkey}" | hash160)" 3a)"
             ethereum_addr="$(pack "$X$Y" | sha3-256 | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
-            echo ---
-            echo "secret exponent:          0x$exponent"
-            echo "public key:"
-            echo "    X:                    $X"
-            echo "    Y:                    $Y"
-            echo
-            echo "compressed addresses:"
-            echo "    WIF:                  $comp_wif"
-            echo "    Bitcoin (P2PKH):      $comp_p2pkh_addr"
-            echo "    Bitcoin (P2SH [PKH]): $comp_p2sh_addr"
-            echo "    Bitcoin (P2WPKH):     $comp_p2wpkh_addr"
-            echo "    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr"
-            echo " ---- other networks ----"
-            echo "    Qtum:                 $qtum_addr"
-            echo
-            echo "uncompressed addresses:"
-            echo "    WIF:                  $full_wif"
-            echo "    Bitcoin (P2PKH):      $full_p2pkh_addr"
-            echo "    Bitcoin (P2SH [PKH]): $full_p2sh_addr"
-            echo "    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr"
-            echo " ---- other networks ----"
-            echo "    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)"
-            echo "    Tron:                 $tron_addr"
-            echo
+            cat <<EOF
+            ---
+            secret exponent:          0x$exponent
+            public key:
+                X:                    $X
+                Y:                    $Y
+            
+            compressed addresses:
+                WIF:                  $comp_wif
+                Bitcoin (P2PKH):      $comp_p2pkh_addr
+                Bitcoin (P2SH [PKH]): $comp_p2sh_addr
+                Bitcoin (P2WPKH):     $comp_p2wpkh_addr
+                Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
+             ---- other networks ----
+                Qtum:                 $qtum_addr
+            
+            uncompressed addresses:
+                WIF:                  $full_wif
+                Bitcoin (P2PKH):      $full_p2pkh_addr
+                Bitcoin (P2SH [PKH]): $full_p2sh_addr
+                Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
+             ---- other networks ----
+                Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
+                Tron:                 $tron_addr
+           
+EOF
         }
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
