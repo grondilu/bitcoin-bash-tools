@@ -68,12 +68,12 @@ decodeBase58() {
   echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g' | tr -d '\n'
   echo "$1" |
   {
-    echo "$dcr 16o 0"
+    echo "$dcr 0"
     sed 's/./ 58*l&+/g'
     echo "[256 ~r d0<x]dsxx +f"
   } | dc |
-  while read -r n
-  do printf "%02x" "0x$n"
+  while read n
+  do printf "%02x" "$n"
   done
 }
 
