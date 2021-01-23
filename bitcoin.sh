@@ -40,9 +40,7 @@ pack() {
     xxd -r -p
 }
 unpack() {
-    local line
-    xxd -p |
-    while read line; do echo -n ${line/\\/}; done
+  xxd -p | tr -d '\n'
 }
 
 declare -a base58=(
@@ -67,10 +65,16 @@ dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
 ';
 
 decodeBase58() {
-    local line
-    echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g' | tr -d '\n'
-    dc -e "$dcr 16o0$(sed 's/./ 58*l&+/g' <<<$1)p" |
-    while read line; do echo -n ${line/\\/}; done
+  echo -n "$1" | sed -e's/^\(1*\).*/\1/' -e's/1/00/g' | tr -d '\n'
+  echo "$1" |
+  {
+    echo "$dcr 16o 0"
+    sed 's/./ 58*l&+/g'
+    echo "[256 ~r d0<x]dsxx +f"
+  } | dc |
+  while read -r n
+  do printf "%02x" "0x$n"
+  done
 }
 
 encodeBase58() {
