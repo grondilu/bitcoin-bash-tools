@@ -94,7 +94,7 @@ checksum() {
 
 toEthereumAddressWithChecksum() {
     local addrLower=$(sed -r -e 's/[[:upper:]]/\l&/g' <<< "$1")
-    local addrHash=$(echo -n "$addrLower" | sha3-256 | xxd -p -c32)
+    local addrHash=$(echo -n "$addrLower" | openssl dgst -sha3-256 -binary | xxd -p -c32)
     local addrChecksum=""
     local i c x
     for i in {0..39}; do
@@ -119,15 +119,6 @@ hash160() {
     openssl dgst -sha256 -binary |
     openssl dgst -rmd160 -binary |
     unpack
-}
-
-sha3-256() {
-   openssl list --digest-commands |
-     grep -q "sha3-256" || {
-       echo 'your version of openssl does not support sha3-256'
-       exit 1
-     }
-   openssl dgst -sha3-256 -binary
 }
 
 hexToAddress() {
@@ -167,7 +158,7 @@ newBitcoinKey() {
             full_multisig_1_of_1_addr="$(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)"
             comp_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)"
             qtum_addr="$(hexToAddress "$(pack "${comp_pubkey}" | hash160)" 3a)"
-            ethereum_addr="$(pack "$X$Y" | sha3-256 | unpack | tail -c 40)"
+            ethereum_addr="$(pack "$X$Y" | openssl dgst -sha3-256 -binary | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
             cat <<EOF
             ---
