@@ -73,7 +73,7 @@ decodeBase58() {
     echo "[256 ~r d0<x]dsxx +f"
   } | dc |
   while read n
-  do printf "%02x" "$n"
+  do printf "%02X" "$n"
   done
 }
 
