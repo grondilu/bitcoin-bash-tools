@@ -35,6 +35,8 @@ then
     exit 1
 fi
 
+. bech32.sh
+
 pack() {
     echo -n "$1" |
     xxd -r -p
@@ -144,47 +146,50 @@ newBitcoinKey() {
         dc -e "$ec_dc lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
-            X="$(printf "%64s" $x | sed 's/ /0/g')"
-            Y="$(printf "%64s" $y | sed 's/ /0/g')"
+            X="$(printf "%064s" $x)"
+            Y="$(printf "%064s" $y)"
             [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
-            full_pubkey="04${X}${Y}"
-            comp_pubkey="${y_parity}${X}"
+            full_pubkey="04$X$Y"
+            comp_pubkey="$y_parity$X"
             full_p2pkh_addr="$(hexToAddress "$(pack "$full_pubkey" | hash160)")"
             comp_p2pkh_addr="$(hexToAddress "$(pack "$comp_pubkey" | hash160)")"
             full_p2sh_addr="$(hexToAddress "$(pack "41${full_pubkey}AC" | hash160)" 05)"
             comp_p2sh_addr="$(hexToAddress "$(pack "21${comp_pubkey}AC" | hash160)" 05)"
             # Note: Witness uses only compressed public key
-            comp_p2wpkh_addr="$(hexToAddress "$(pack "0014$(pack "$comp_pubkey" | hash160)" | hash160)" 05)"
+            pkh="$(pack "$comp_pubkey" | hash160)"
+            comp_p2wpkh_addr="$(hexToAddress "$(pack "0014$pkh" | hash160)" 05)"
+            bech32_addr="$(bech32_encode bc "$(pack "00$pkh" | hash160)")"
             full_multisig_1_of_1_addr="$(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)"
             comp_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)"
-            qtum_addr="$(hexToAddress "$(pack "${comp_pubkey}" | hash160)" 3a)"
+            qtum_addr="$(hexToAddress "$pkh" 3a)"
             ethereum_addr="$(pack "$X$Y" | openssl dgst -sha3-256 -binary | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
             cat <<EOF
-            ---
-            secret exponent:          0x$exponent
-            public key:
-                X:                    $X
-                Y:                    $Y
-            
-            compressed addresses:
-                WIF:                  $comp_wif
-                Bitcoin (P2PKH):      $comp_p2pkh_addr
-                Bitcoin (P2SH [PKH]): $comp_p2sh_addr
-                Bitcoin (P2WPKH):     $comp_p2wpkh_addr
-                Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
-             ---- other networks ----
-                Qtum:                 $qtum_addr
-            
-            uncompressed addresses:
-                WIF:                  $full_wif
-                Bitcoin (P2PKH):      $full_p2pkh_addr
-                Bitcoin (P2SH [PKH]): $full_p2sh_addr
-                Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
-             ---- other networks ----
-                Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
-                Tron:                 $tron_addr
-           
+---
+secret exponent:          0x$exponent
+public key:
+    X:                    $X
+    Y:                    $Y
+
+compressed addresses:
+    WIF:                  $comp_wif
+    Bitcoin (P2PKH):      $comp_p2pkh_addr
+    Bitcoin (P2SH [PKH]): $comp_p2sh_addr
+    Bitcoin (P2WPKH):     $comp_p2wpkh_addr
+    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
+ ---- other networks ----
+    Qtum:                 $qtum_addr
+
+uncompressed addresses:
+    WIF:                  $full_wif
+    Bitcoin (P2PKH):      $full_p2pkh_addr
+    Bitcoin (P2SH [PKH]): $full_p2sh_addr
+    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
+    Bech32 (EXPERIMENTAL!! DO NOT USE YET): $bech32_addr
+ ---- other networks ----
+    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
+    Tron:                 $tron_addr
+
 EOF
         }
     elif test -z "$1"

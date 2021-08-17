@@ -34,6 +34,26 @@ bech32_hrp_expand() {
   do echo $(( x & 31 ))
   done
 }
+bech32_encode() {
+  local hrp="$1" data="$2"
+  [[ "$hrp" =~ ^([[:alnum:][:punct:]]{1,83})$ ]] || return 1 # unexpected format for hrp
+  [[ "$data" =~ ^[[:xdigit:]]+$ ]]               || return 2 # unexpected format for data
+  (( ${#data} & 1 ))                             && return 3 # unexpected length for data
+  local -i i n=$((${#data}*4/5))
+  {
+  echo -n "${hrp}1"
+  dc -e "$n sn 16i ${data^^} [20 ~r ln1-dsn0<x]dsxx +f" |
+  while read i
+  do echo -n ${bech32[i]}
+  done
+  } |
+  {
+     read hrp1data
+     echo -n "$hrp1data"
+     bech32_checksum "$_"
+     echo
+  }
+}
 bech32_decode() {
   echo -n "${1%1*}" |
   while read -n 1 c
@@ -46,28 +66,23 @@ bech32_decode() {
   done
 }
 bech32_verify_checksum() {
-  bech32_decode "$1" | bech32_polymod | grep -q '^1$' || return 1
+  bech32_decode "${1,,}" | bech32_polymod | grep -q '^1$'
 }
-bech32_create_checksum() {
+bech32_verify() {
+  local s="${1,,}"
+  (( ${#s} > 90 )) && return 1
+  # hrp character set is only approximated here
+  # data character set is more rigorous
+  [[ "${s,,}" =~ ^([[:alnum:][:punct:]]{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
+  bech32_verify_checksum "$s" || return 3
+}
+bech32_checksum() {
   declare -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
   declare -a checksum
   for i in {0..5}
   do checksum[$i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
   done
-  echo -n "$1"
   for c in ${checksum[@]}
   do echo -n ${bech32[$c]}
   done
-  echo
 }
-
-declare -a valid_checksum=(
-  a12uel5l
-  an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1tt5tgs
-  abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw
-  11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j
-  split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w
-)
-for t in "${valid_checksum[@]}" $(bech32_create_checksum foo1zzzzzzzzzz) tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx 
-do bech32_verify_checksum $t || echo "$t : wrong checksum"
-done
