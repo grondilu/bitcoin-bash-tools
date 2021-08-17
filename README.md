@@ -8,8 +8,8 @@ This is a set of bash tools to manipulate bitcoin addresses.
 
 ## TODO
 
-- generate bech32 addresses.
-- create a test suite
+- generate bech32 addresses (currently implemented, but not tested nearly enough).
+- create a test suite (in progress)
 
 ## LICENSE
 
