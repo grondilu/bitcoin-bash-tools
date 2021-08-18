@@ -45,13 +45,13 @@ unpack() {
   xxd -p | tr -d '\n'
 }
 
-declare -a base58=(
+readonly -a base58=(
       1 2 3 4 5 6 7 8 9
     A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
     a b c d e f g h i j k   m n o p q r s t u v w x y z
 )
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58[i]}"; done
-declare secp256k1='
+readonly secp256k1='
 I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
 483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
