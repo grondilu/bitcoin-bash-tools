@@ -13,10 +13,9 @@ readonly HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
 convert_bits() {
   local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i
   readonly maxv=$(((1 << outbits) - 1))
-  mapfile -t values
-  for ((i=0;i<${#values[@]};i++))
+  while read 
   do
-    val=$(((val<<inbits)|${values[i]}))
+    val=$(((val<<inbits)|$REPLY))
     ((bits+=inbits))
     while ((bits >= outbits))
     do
