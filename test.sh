@@ -28,4 +28,6 @@ for v in "${incorrect_bech32[@]}"
 do ! bech32_verify "$v" || echo "$v is seen as correct while it shouldn't"
 done
 
-
+segwit_encode bc 0 751e76e8199196d454941c45d1b3a323f1433bd6 |
+grep -q -i "^BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4$" ||
+echo segwit address encoding failed for pkh 751e76e8199196d454941c45d1b3a323f1433bd6
