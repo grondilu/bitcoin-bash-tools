@@ -25,7 +25,7 @@ do bech32_verify "$v" || echo "$v is seen as incorrect (error code $?) and it sh
 done
 
 for v in "${incorrect_bech32[@]}"
-do bech32_verify "$v" && echo "$v is seen as correct while it shouldn't"
+do ! bech32_verify "$v" || echo "$v is seen as correct while it shouldn't"
 done
 
-:
+
