@@ -12,7 +12,7 @@ readonly HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
 
 bech32_polymod() {
   readonly -a GEN=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
-  declare -i  chk=1 b i v
+  local    -i chk=1 b i v
   while read v
   do
     b=$((chk >> 25))
@@ -78,10 +78,10 @@ bech32_verify() {
   bech32_verify_checksum "$s" || return 3
 }
 bech32_checksum() {
-  declare -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
-  declare -a checksum
+  local -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
+  local -a checksum
   for i in {0..5}
-  do checksum[$i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
+  do checksum[i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
   done
   for c in ${checksum[@]}
   do echo -n ${bech32[$c]}
