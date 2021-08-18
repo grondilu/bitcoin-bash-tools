@@ -95,7 +95,7 @@ bech32_checksum() {
 segwit_encode() {
   local hrp="$1" version="$2" data="${3^^}"
   [[ "$hrp"     =~ ^$HRP_CHAR_CLASS{1,83}$ ]] || return 1 # unexpected format for hrp
-  [[ "$version" =~ ^0|[1-9][[:digit:]]*$   ]] || return 2 # unexpected format for hrp
+  [[ "$version" =~ ^0|[1-9][[:digit:]]*$   ]] || return 2 # unexpected format for version
   [[ "$data"    =~ ^[[:xdigit:]]{2}+$      ]] || return 3 # unexpected format for data
   if ((version == 0))
   then
