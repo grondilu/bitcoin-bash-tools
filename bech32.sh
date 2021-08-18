@@ -11,6 +11,10 @@ for i in {0..31}
 do bech32A[${bech32[$i]}]=$i
 done
 
+# character class allowed for human readable part
+# hopefully this should match the ASCII range 33 .. 126
+declare HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
+
 bech32_polymod() {
   declare -ia GEN=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
   declare -i  chk=1 b i v
@@ -36,9 +40,9 @@ bech32_hrp_expand() {
 }
 bech32_encode() {
   local hrp="$1" data="$2"
-  [[ "$hrp" =~ ^([[:alnum:][:punct:]$+<=>^\`|~]{1,83})$ ]] || return 1 # unexpected format for hrp
-  [[ "$data" =~ ^[[:xdigit:]]+$ ]]               || return 2 # unexpected format for data
-  (( ${#data} & 1 ))                             && return 3 # unexpected length for data
+  [[ "$hrp" =~ ^($HRP_CHAR_CLASS{1,83})$ ]] || return 1 # unexpected format for hrp
+  [[ "$data" =~ ^[[:xdigit:]]+$ ]]          || return 2 # unexpected format for data
+  (( ${#data} & 1 ))                        && return 3 # unexpected length for data
   local -i i n=$((${#data}*4/5))
   {
   echo -n "${hrp}1"
@@ -73,7 +77,7 @@ bech32_verify() {
   (( ${#s} > 90 )) && return 1
   # hrp character set is only approximated here
   # data character set is more rigorous
-  [[ "${s,,}" =~ ^([[:alnum:][:punct:]$+<=>^\`|~]{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
+  [[ "${s,,}" =~ ^($HRP_CHAR_CLASS{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
   bech32_verify_checksum "$s" || return 3
 }
 bech32_checksum() {
