@@ -177,7 +177,7 @@ compressed addresses:
     Bitcoin (P2SH [PKH]): $comp_p2sh_addr
     Bitcoin (P2WPKH):     $comp_p2wpkh_addr
     Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
- ---- other networks ----
+    # other networks
     Qtum:                 $qtum_addr
 
 uncompressed addresses:
@@ -186,7 +186,7 @@ uncompressed addresses:
     Bitcoin (P2SH [PKH]): $full_p2sh_addr
     Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
     Bech32 (EXPERIMENTAL!! DO NOT USE YET): $bech32_addr
- ---- other networks ----
+    # other networks
     Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
     Tron:                 $tron_addr
 
