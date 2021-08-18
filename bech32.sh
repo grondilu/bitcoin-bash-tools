@@ -10,6 +10,31 @@ readonly -a bech32=(
 # hopefully this should match the ASCII range 33 .. 126
 readonly HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
 
+convert_bits() {
+  local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i
+  readonly maxv=$(((1 << outbits) - 1))
+  mapfile -t values
+  for ((i=0;i<${#values[@]};i++))
+  do
+    val=$(((val<<inbits)|${values[i]}))
+    ((bits+=inbits))
+    while ((bits >= outbits))
+    do
+      (( bits-=outbits ))
+      echo $(( (val >> bits) & maxv ))
+    done
+  done
+  if test -n "$pad"
+  then
+    if ((bits))
+    then echo $(( (val << (outbits - bits)) & maxv ))
+    fi
+  elif (( ((val << (outbits - bits)) & maxv ) || bits >= inbits))
+  then 
+    1>&2 echo unexpected outcome
+    return 1
+  fi
+}
 bech32_polymod() {
   readonly -a GEN=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
   local    -i chk=1 b i v
@@ -32,25 +57,6 @@ bech32_hrp_expand() {
   for x in ${values[@]}
   do echo $(( x & 31 ))
   done
-}
-bech32_encode() {
-  local hrp="$1" data="$2"
-  [[ "$hrp" =~ ^($HRP_CHAR_CLASS{1,83})$ ]] || return 1 # unexpected format for hrp
-  [[ "$data" =~ ^[[:xdigit:]]{2}+$ ]]       || return 2 # unexpected format for data
-  local -i i n=$((${#data}*4/5))
-  {
-  echo -n "${hrp}1"
-  dc -e "$n sn 16i ${data^^} [20 ~r ln1-dsn0<x]dsxx +f" |
-  while read i
-  do echo -n ${bech32[i]}
-  done
-  } |
-  {
-     read hrp1data
-     echo -n "$hrp1data"
-     bech32_checksum "$_"
-     echo
-  }
 }
 bech32_decode() {
   local -A bech32A
@@ -85,4 +91,45 @@ bech32_checksum() {
   for c in ${checksum[@]}
   do echo -n ${bech32[$c]}
   done
+}
+segwit_encode() {
+  local hrp="$1" version="$2" data="${3^^}"
+  [[ "$hrp"     =~ ^$HRP_CHAR_CLASS{1,83}$ ]] || return 1 # unexpected format for hrp
+  [[ "$version" =~ ^0|[1-9][[:digit:]]*$   ]] || return 2 # unexpected format for hrp
+  [[ "$data"    =~ ^[[:xdigit:]]{2}+$      ]] || return 3 # unexpected format for data
+  if ((version == 0))
+  then
+    local -i length=$((${#data}/2))
+    if ((length == 20))
+    then
+      # P2WPKH
+      {
+        echo -n "${hrp}1${bech32[version]}"
+        echo -n "$data" |
+        while read -n 2
+        do printf "%d\n" 0x$REPLY
+        done |
+        convert_bits 8 5 |
+        while read i
+        do echo -n ${bech32[i]}
+        done
+      } |
+      {
+         read
+         echo -n "$REPLY"
+         bech32_checksum "$REPLY"
+         echo
+      }
+    elif ((length == 32))
+    then
+       1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
+       return 4
+    else
+       1>&2 echo For version 0, the witness program must be either 20 or 32 bytes long.
+       return 5
+    fi
+  else
+    1>&2 echo witness version NYI
+    return 6
+  fi
 }

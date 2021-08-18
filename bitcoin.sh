@@ -158,7 +158,7 @@ newBitcoinKey() {
             # Note: Witness uses only compressed public key
             pkh="$(pack "$comp_pubkey" | hash160)"
             comp_p2wpkh_addr="$(hexToAddress "$(pack "0014$pkh" | hash160)" 05)"
-            bech32_addr="$(bech32_encode bc "$(pack "00$pkh" | hash160)")"
+            bech32_addr="$(segwit_encode bc 0 "$(pack "00$pkh" | hash160)")"
             full_multisig_1_of_1_addr="$(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)"
             comp_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)"
             qtum_addr="$(hexToAddress "$pkh" 3a)"
