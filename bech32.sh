@@ -36,8 +36,7 @@ bech32_hrp_expand() {
 bech32_encode() {
   local hrp="$1" data="$2"
   [[ "$hrp" =~ ^($HRP_CHAR_CLASS{1,83})$ ]] || return 1 # unexpected format for hrp
-  [[ "$data" =~ ^[[:xdigit:]]+$ ]]          || return 2 # unexpected format for data
-  (( ${#data} & 1 ))                        && return 3 # unexpected length for data
+  [[ "$data" =~ ^[[:xdigit:]]{2}+$ ]]       || return 2 # unexpected format for data
   local -i i n=$((${#data}*4/5))
   {
   echo -n "${hrp}1"
