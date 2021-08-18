@@ -51,7 +51,7 @@ declare -a base58=(
     a b c d e f g h i j k   m n o p q r s t u v w x y z
 )
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58[i]}"; done
-declare ec_dc='
+declare secp256k1='
 I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
 483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
@@ -143,7 +143,7 @@ newBitcoinKey() {
         local exponent="${BASH_REMATCH[1]}"
         local full_wif="$(hexToAddress "$exponent" 80 64)"
         local comp_wif="$(hexToAddress "${exponent}01" 80 66)"
-        dc -e "$ec_dc lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
+        dc -e "$secp256k1 lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
             X="$(printf "%064s" $x)"
@@ -203,7 +203,7 @@ EOF
 vanityAddressFromPublicPoint() {
     if [[ "$1" =~ ^04([0-9A-F]{64})([0-9A-F]{64})$ ]]
     then
-        dc <<<"$ec_dc 16o
+        dc <<<"$secp256k1 16o
         0 ${BASH_REMATCH[1]} ${BASH_REMATCH[2]} rlp*+
         [lGlAxdlm~rn[ ]nn[ ]nr1+prlLx]dsLx
         " |
