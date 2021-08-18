@@ -36,7 +36,7 @@ bech32_hrp_expand() {
 }
 bech32_encode() {
   local hrp="$1" data="$2"
-  [[ "$hrp" =~ ^([[:alnum:][:punct:]]{1,83})$ ]] || return 1 # unexpected format for hrp
+  [[ "$hrp" =~ ^([[:alnum:][:punct:]$+<=>^\`|~]{1,83})$ ]] || return 1 # unexpected format for hrp
   [[ "$data" =~ ^[[:xdigit:]]+$ ]]               || return 2 # unexpected format for data
   (( ${#data} & 1 ))                             && return 3 # unexpected length for data
   local -i i n=$((${#data}*4/5))
@@ -73,7 +73,7 @@ bech32_verify() {
   (( ${#s} > 90 )) && return 1
   # hrp character set is only approximated here
   # data character set is more rigorous
-  [[ "${s,,}" =~ ^([[:alnum:][:punct:]]{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
+  [[ "${s,,}" =~ ^([[:alnum:][:punct:]$+<=>^\`|~]{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
   bech32_verify_checksum "$s" || return 3
 }
 bech32_checksum() {
