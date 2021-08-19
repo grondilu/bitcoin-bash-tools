@@ -146,8 +146,8 @@ newBitcoinKey() {
         dc -e "$secp256k1 lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
-            X="$(printf "%64s" $x|sed s/ /0/g)"
-            Y="$(printf "%64s" $y|sed s/ /0/g)"
+            X="$(printf "%64s" $x|sed 's/ /0/g')"
+            Y="$(printf "%64s" $y|sed 's/ /0/g')"
             [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
             full_pubkey="04$X$Y"
             comp_pubkey="$y_parity$X"
