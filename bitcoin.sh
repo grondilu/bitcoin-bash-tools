@@ -164,33 +164,32 @@ newBitcoinKey() {
             qtum_addr="$(hexToAddress "$pkh" 3a)"
             ethereum_addr="$(pack "$X$Y" | openssl dgst -sha3-256 -binary | unpack | tail -c 40)"
             tron_addr="$(hexToAddress "$ethereum_addr" 41)"
-            cat <<EOF
----
-secret exponent:          0x$exponent
-public key:
-    X:                    $X
-    Y:                    $Y
+            cat <<-EOF
+		---
+		secret exponent:          0x$exponent
+		    public key:
+		        X:                $X
+		        Y:                $Y
 
-compressed addresses:
-    WIF:                  $comp_wif
-    Bitcoin (P2PKH):      $comp_p2pkh_addr
-    Bitcoin (P2SH [PKH]): $comp_p2sh_addr
-    Bitcoin (P2WPKH):     $comp_p2wpkh_addr
-    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
-    # other networks
-    Qtum:                 $qtum_addr
+		compressed addresses:
+		    WIF:                  $comp_wif
+		    Bitcoin (P2PKH):      $comp_p2pkh_addr
+		    Bitcoin (P2SH [PKH]): $comp_p2sh_addr
+		    Bitcoin (P2WPKH):     $comp_p2wpkh_addr
+		    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
+		    # other networks
+		    Qtum:                 $qtum_addr
 
-uncompressed addresses:
-    WIF:                  $full_wif
-    Bitcoin (P2PKH):      $full_p2pkh_addr
-    Bitcoin (P2SH [PKH]): $full_p2sh_addr
-    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
-    Bech32 (EXPERIMENTAL!! DO NOT USE YET): $bech32_addr
-    # other networks
-    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
-    Tron:                 $tron_addr
-
-EOF
+		uncompressed addresses:
+		    WIF:                  $full_wif
+		    Bitcoin (P2PKH):      $full_p2pkh_addr
+		    Bitcoin (P2SH [PKH]): $full_p2sh_addr
+		    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
+		    Bech32 (EXPERIMENTAL!! DO NOT USE YET): $bech32_addr
+		    # other networks
+		    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
+		    Tron:                 $tron_addr
+		EOF
         }
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -rand <(date +%s%N; ps -ef) -hex 32 2>&-)"
