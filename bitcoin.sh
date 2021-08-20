@@ -141,29 +141,19 @@ newBitcoinKey() {
     elif [[ "${1^^}" =~ ^0X([0-9A-F]{1,})$ ]]
     then
         local exponent="${BASH_REMATCH[1]}"
-        local full_wif="$(hexToAddress "$exponent" 80 64)"
-        local comp_wif="$(hexToAddress "${exponent}01" 80 66)"
         dc -e "$secp256k1 lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
-            X="$(printf "%64s" $x|sed 's/ /0/g')"
-            Y="$(printf "%64s" $y|sed 's/ /0/g')"
+            printf -v x "%64s" $x
+            printf -v y "%64s" $y
+            x="${x// /0}"
+            y="${y// /0}"
             [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
             full_pubkey="04$X$Y"
             comp_pubkey="$y_parity$X"
-            full_p2pkh_addr="$(hexToAddress "$(pack "$full_pubkey" | hash160)")"
-            comp_p2pkh_addr="$(hexToAddress "$(pack "$comp_pubkey" | hash160)")"
-            full_p2sh_addr="$(hexToAddress "$(pack "41${full_pubkey}AC" | hash160)" 05)"
-            comp_p2sh_addr="$(hexToAddress "$(pack "21${comp_pubkey}AC" | hash160)" 05)"
             # Note: Witness uses only compressed public key
             pkh="$(pack "$comp_pubkey" | hash160)"
-            comp_p2wpkh_addr="$(hexToAddress "$(pack "0014$pkh" | hash160)" 05)"
-            bech32_addr="$(segwit_encode bc 0 "$(pack "00$pkh" | hash160)")"
-            full_multisig_1_of_1_addr="$(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)"
-            comp_multisig_1_of_1_addr="$(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)"
-            qtum_addr="$(hexToAddress "$pkh" 3a)"
             ethereum_addr="$(pack "$X$Y" | openssl dgst -sha3-256 -binary | unpack | tail -c 40)"
-            tron_addr="$(hexToAddress "$ethereum_addr" 41)"
             cat <<-EOF
 		---
 		secret exponent:          0x$exponent
@@ -172,23 +162,23 @@ newBitcoinKey() {
 		        Y:                $Y
 
 		compressed addresses:
-		    WIF:                  $comp_wif
-		    Bitcoin (P2PKH):      $comp_p2pkh_addr
-		    Bitcoin (P2SH [PKH]): $comp_p2sh_addr
-		    Bitcoin (P2WPKH):     $comp_p2wpkh_addr
-		    Bitcoin (1-of-1):     $comp_multisig_1_of_1_addr
+		    WIF:                  $(hexToAddress "${exponent}01" 80 66)
+		    Bitcoin (P2PKH):      $(hexToAddress "$(pack "$comp_pubkey" | hash160)")
+		    Bitcoin (P2SH [PKH]): $(hexToAddress "$(pack "21${comp_pubkey}AC" | hash160)" 05)
+		    Bitcoin (P2WPKH):     $(hexToAddress "$(pack "0014$pkh" | hash160)" 05)
+		    Bitcoin (1-of-1):     $(hexToAddress "$(pack "5121${comp_pubkey}51AE" | hash160)" 05)
 		    # other networks
-		    Qtum:                 $qtum_addr
+		    Qtum:                 $(hexToAddress "$pkh" 3a)
 
 		uncompressed addresses:
-		    WIF:                  $full_wif
-		    Bitcoin (P2PKH):      $full_p2pkh_addr
-		    Bitcoin (P2SH [PKH]): $full_p2sh_addr
-		    Bitcoin (1-of-1):     $full_multisig_1_of_1_addr
-		    Bech32 (EXPERIMENTAL!! DO NOT USE YET): $bech32_addr
+		    WIF:                  $(hexToAddress "$exponent" 80 64)
+		    Bitcoin (P2PKH):      $(hexToAddress "$(pack "$full_pubkey" | hash160)")
+		    Bitcoin (P2SH [PKH]): $(hexToAddress "$(pack "41${full_pubkey}AC" | hash160)" 05)
+		    Bitcoin (1-of-1):     $(hexToAddress "$(pack "5141${full_pubkey}51AE" | hash160)" 05)
+		    Bech32 (EXPERIMENTAL!! DO NOT USE YET): $(segwit_encode bc 0 "$pkh")
 		    # other networks
 		    Ethereum:             0x$(toEthereumAddressWithChecksum $ethereum_addr)
-		    Tron:                 $tron_addr
+		    Tron:                 $(hexToAddress "$ethereum_addr" 41)
 		EOF
         }
     elif test -z "$1"
