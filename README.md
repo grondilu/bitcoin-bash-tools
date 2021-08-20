@@ -11,6 +11,7 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
 - generate bech32 addresses (currently implemented, but not tested nearly enough).
 - create a test suite (in progress)
 - [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
+- [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
 
 ## LICENSE
 
