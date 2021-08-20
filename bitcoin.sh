@@ -146,8 +146,7 @@ newBitcoinKey() {
             read y x
             printf -v x "%64s" $x
             printf -v y "%64s" $y
-            x="${x// /0}"
-            y="${y// /0}"
+            local X="${x// /0}" Y="${y// /0}"
             [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
             full_pubkey="04$X$Y"
             comp_pubkey="$y_parity$X"
