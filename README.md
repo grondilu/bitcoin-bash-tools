@@ -6,6 +6,12 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     $ . ./bitcoin-bash-tools/bitcoin.sh
     $ newBitcoinKey
 
+## REQUIREMENTS
+
+- [bash]() version 4 or above
+- [jq](https://stedolan.github.io/jq/), a command-line JSON processor
+- xxd, dc, openssl and possibly others.
+
 ## TODO
 
 - generate bech32 addresses (currently implemented, but not tested nearly enough).
