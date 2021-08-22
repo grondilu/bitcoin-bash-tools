@@ -15,23 +15,34 @@ point()
   then
     local e="${BASH_REMATCH[1]^^}"
     dc -f secp256k1.dc -e "16doi$e dlGrlMxlm~f" |
-    {
-      local x y c
-      read y
-      read x
-      x="$(ser256 "$x" |xxd -p -c64)"
-      y="$(ser256 "$y" |xxd -p -c64)"
-      if [[ "$y" =~ [02468ACE]$ ]]
-      then c=02
-      else c=03
-      fi
-      jq -n "{ X: \"$x\", Y: \"$y\", compressed: \"$c$x\", exponent: \"0x${e,,}\" }"
-    }
+    $FUNCNAME - |
+    jq ". + { exponent: \"0x$e\" }"
+  elif [[ "$1" = '-' ]]
+  then
+    local x y c
+    read y
+    read x
+    x="$(ser256 "$x" |xxd -u -p -c64)"
+    y="$(ser256 "$y" |xxd -u -p -c64)"
+    jq -n "{ X: \"$x\", Y: \"$y\" }" |
+    compressPoint
   else
     1>&2 echo wrong argument format
     return 1
   fi
 
+compressPoint() {
+  jq '. + { compressed: (if .Y[-1:]|test("[02468ACE]") then "02" else "03" end + .X) }'
+}
+add() {
+  {
+    echo 16doi0
+    jq -r '"\(.X) \(.Y) rlm*+lAx"'
+    echo 'lm~f'
+  } |
+  dc -f secp256k1.dc - |
+  point -
+}
 ser32()
   if
     local -i i=$1
