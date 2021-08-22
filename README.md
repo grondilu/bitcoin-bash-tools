@@ -3,12 +3,13 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
 ## SYNOPSIS
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
-    $ . ./bitcoin-bash-tools/bitcoin.sh
+    $ cd ./bitcoin-bash-tools/bitcoin.sh
+    $ . bitcoin.sh
     $ newBitcoinKey
 
 ## REQUIREMENTS
 
-- [bash]() version 4 or above
+- [bash](https://www.gnu.org/software/bash/) version 4 or above
 - [jq](https://stedolan.github.io/jq/), a command-line JSON processor
 - xxd, dc, openssl and possibly others.
 
