@@ -13,20 +13,32 @@ s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]
 dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
 '
 
-exponent()
-  if (( $# == 0 ))
-  then $FUNCNAME "$(openssl rand -hex 32)"
-  elif [[ "$1" =~ ^[[:xdigit:]]+$ ]]
-  then jq -n "{ \"exponent\": \"${1^^}\" }"
+point()
+  if   (( $# == 0 ))
+  then $FUNCNAME "0x$(openssl rand -hex 32)"
+  elif [[ "$1" =~ ^[[:digit:]]+$ ]]
+  then $FUNCNAME "0x$(dc -e "$1 16on")"
+  elif [[ "$1" =~ ^0([23])([[:xdigit:]]{64})$ ]]
+  then
+    dc -e "${secp256k1}16doi 
+    ${BASH_REMATCH[1]} ${BASH_REMATCH[2]^^}
+    dsxd3lp|rla*+lb+lRx
+    [d2%1=_]s2 [d2%0=_]s3
+    rd2=2 3=3 lx f" |
+    jq -R --slurp './"\n"|{ "X": .[0], "Y": .[1] }'
+  elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
+  then
+    local e="${BASH_REMATCH[1]^^}"
+    dc -e "$secp256k1 16doi$e dlGrlMxlm~f" |
+    {
+      read y
+      read x
+      jq -n "{ X: \"$x\", Y: \"$y\", exponent: \"0x${e,,}\" }"
+    }
   else
     1>&2 echo wrong argument format
     return 1
   fi
-
-point() {
-  dc -e "$secp256k1 $(jq -r .exponent)d lGr lMx 16olm~ f" |
-  jq -R --slurp './"\n"|{ "exponent": .[2], "point": { "X": .[1], "Y": .[0] } }'
-}
 
 ser32()
   if
@@ -50,14 +62,6 @@ serP() {
   }
 }
 parseP() {
-  {
-    echo "${secp256k1}16doi"
-    xxd -u -p -c33 |
-    jq -R -r .[0:2],.[2:]
-    echo 'dsxd3lp|rla*+lb+lRx
-    [d2%1=_]s2 [d2%0=_]s3
-    rd2=2 3=3 lx f'
-  } | dc |
-  jq -R --slurp './"\n"|{ "X": .[0], "Y": .[1] }'
+  point "$(xxd -u -p -c33)"
 }
 
