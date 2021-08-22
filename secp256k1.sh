@@ -5,12 +5,12 @@ point()
   then $FUNCNAME "0x$(dc -e "$1 16on")"
   elif [[ "$1" =~ ^0([23])([[:xdigit:]]{64})$ ]]
   then
-    dc -f secp256k1.dc -e "16doi [${1^^}]
+    dc -f secp256k1.dc -e "16doi
     ${BASH_REMATCH[1]} ${BASH_REMATCH[2]^^}
     dsxd3lp|rla*+lb+lRx
     [d2%1=_]s2 [d2%0=_]s3
-    rd2=2 3=3 lx f" |
-    jq -R --slurp './"\n"|{ X: .[0], Y: .[1], compressed: .[2] }'
+    rd2=2 3=3 lxr f" |
+    $FUNCNAME -
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
   then
     local e="${BASH_REMATCH[1]^^}"
