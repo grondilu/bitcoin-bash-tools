@@ -1,18 +1,3 @@
-declare secp256k1='
-I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
-483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-2 100^d14551231950B75FC4402DA1732FC9BEBF-so1000003D1-ddspsm*+sGi
-[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc
-0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lr
-l%x]sI[lpSm[+q]S0d0=0lpl~xsydsxd*3*lal+x2ly*lIx*l%xdsld*2lx*l-xd
-lxrl-xlll*xlyl-xrlp*+Lms#L0s#]sD[lpSm[+q]S0[2;AlDxq]Sdd0=0rd0=0d
-2:Alp~1:A0:Ad2:Blp~1:B0:B2;A2;B=d[0q]Sx2;A0;B1;Bl_xrlm*+=x0;A0;B
-l-xlIxdsi1;A1;Bl-xl*xdsld*0;Al-x0;Bl-xd0;Arl-xlll*x1;Al-xrlp*+L0
-s#Lds#Lxs#Lms#]sA[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]
-dSLxs#LPs#LQs#]sM[lpd1+4/r|]sR
-'
-
 point()
   if   (( $# == 0 ))
   then $FUNCNAME "0x$(openssl rand -hex 32)"
@@ -20,20 +5,27 @@ point()
   then $FUNCNAME "0x$(dc -e "$1 16on")"
   elif [[ "$1" =~ ^0([23])([[:xdigit:]]{64})$ ]]
   then
-    dc -e "${secp256k1}16doi 
+    dc -f secp256k1.dc -e "16doi [${1^^}]
     ${BASH_REMATCH[1]} ${BASH_REMATCH[2]^^}
     dsxd3lp|rla*+lb+lRx
     [d2%1=_]s2 [d2%0=_]s3
     rd2=2 3=3 lx f" |
-    jq -R --slurp './"\n"|{ "X": .[0], "Y": .[1] }'
+    jq -R --slurp './"\n"|{ X: .[0], Y: .[1], compressed: .[2] }'
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
   then
     local e="${BASH_REMATCH[1]^^}"
-    dc -e "$secp256k1 16doi$e dlGrlMxlm~f" |
+    dc -f secp256k1.dc -e "16doi$e dlGrlMxlm~f" |
     {
+      local x y c
       read y
       read x
-      jq -n "{ X: \"$x\", Y: \"$y\", exponent: \"0x${e,,}\" }"
+      x="$(ser256 "$x" |xxd -p -c64)"
+      y="$(ser256 "$y" |xxd -p -c64)"
+      if [[ "$y" =~ [02468ACE]$ ]]
+      then c=02
+      else c=03
+      fi
+      jq -n "{ X: \"$x\", Y: \"$y\", compressed: \"$c$x\", exponent: \"0x${e,,}\" }"
     }
   else
     1>&2 echo wrong argument format
@@ -54,12 +46,8 @@ ser256()
 
 parse256() { xxd -u -p -c32; }
 serP() {
-  jq -r '[.X,.Y]|join(" ")' |
-  {
-    read x y
-    dc -e "16i[2Pq]sp $y 2%0=p 3P"
-    ser256 $x
-  }
+  jq -r .compressed |
+  xxd -r -p -c66
 }
 parseP() {
   point "$(xxd -u -p -c33)"
