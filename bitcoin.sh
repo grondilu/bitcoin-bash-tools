@@ -31,8 +31,8 @@
 
 if ((BASH_VERSINFO[0] < 4))
 then
-    echo "This script requires bash version 4 or above." >&2
-    exit 1
+  echo "This script requires bash version 4 or above." >&2
+  exit 1
 elif [[ ! -f secp256k1.dc ]]
 then
   1>&2 echo "This script requires the secp256k1 DC file"
@@ -128,12 +128,15 @@ newBitcoinKey() {
         dc -f secp256k1.dc -e "$secp256k1 lG I16i${exponent^^}ri lMx 16olm~ n[ ]nn" |
         {
             read y x
+            local full_pubkey comp_pubkey
             printf -v x "%64s" $x
             printf -v y "%64s" $y
             local X="${x// /0}" Y="${y// /0}"
-            [[ "$y" =~ [02468ACE]$ ]] && y_parity="02" || y_parity="03"
             full_pubkey="04$X$Y"
-            comp_pubkey="$y_parity$X"
+            if [[ "$y" =~ [02468ACE]$ ]] 
+            then comp_pubkey="02$X"
+            else comp_pubkey="03$X"
+            fi
             # Note: Witness uses only compressed public key
             pkh="$(pack "$comp_pubkey" | hash160)"
             ethereum_addr="$(pack "$X$Y" | openssl dgst -sha3-256 -binary | unpack | tail -c 40)"
