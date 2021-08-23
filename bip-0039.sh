@@ -1,7 +1,6 @@
 
 function pbkdf2() {
-  readonly key=$1 salt=$2 iterations=$3 dkLen=$4 hLen=64
-
+  : TODO
 }
 function bip39() {
   if [ ! -L wordlist.txt ]
@@ -50,6 +49,7 @@ function bip39() {
     done
   elif [[ $# =~ ^(12|15|18|21|24)$ ]]
   then 
+    local -a words=($@)
     {
       echo 16o0
       for word in $@
@@ -70,7 +70,7 @@ function bip39() {
     } |
     tail -n1 |
     if read
-    [[ "$REPLY" != "${@: -1}" ]]
+    [[ "$REPLY" != "${words[-1]}" ]]
     then
       1>&2 echo wrong checksum
       return 5
