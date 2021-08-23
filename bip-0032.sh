@@ -12,11 +12,9 @@ CKDpriv() {
     {
       if ((index >= 1<<31))
       then
-        1>&2 echo "creating hardened child"
 	printf "\0"
 	ser256 "$k_par"
       else 
-        1>&2 echo "creating normal child"
 	point "$k_par" |serP
       fi
       ser32 "$index"
@@ -64,5 +62,5 @@ CKDpub() {
 }
 
 Neuter() {
-  jq '{ key: { X: .key.X, Y: .key.Y }, chainCode }'
+  jq '{ key: { point: .key.point }, chainCode }'
 }

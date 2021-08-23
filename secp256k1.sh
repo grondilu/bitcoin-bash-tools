@@ -3,14 +3,8 @@ point()
   then $FUNCNAME "0x$(openssl rand -hex 32)"
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
-  elif [[ "$1" =~ ^0([23])([[:xdigit:]]{64})$ ]]
-  then
-    dc -f secp256k1.dc -e "16doi
-    ${BASH_REMATCH[1]} ${BASH_REMATCH[2]^^}
-    dsxd3lp|rla*+lb+lRx
-    [d2%1=_]s2 [d2%0=_]s3
-    rd2=2 3=3 lxr f" |
-    $FUNCNAME -
+  elif [[ "$1" =~ ^0[23][[:xdigit:]]{64}$ ]]
+  then jq -n "{ point: \"$1\" }"
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
   then
     local e="${BASH_REMATCH[1]^^}"
@@ -19,25 +13,24 @@ point()
     jq ". + { exponent: \"0x$e\" }"
   elif [[ "$1" = '-' ]]
   then
-    local x y c
+    local x y
     read y
     read x
     x="$(ser256 "$x" |xxd -u -p -c64)"
     y="$(ser256 "$y" |xxd -u -p -c64)"
-    jq -n "{ X: \"$x\", Y: \"$y\" }" |
-    compressPoint
+    if [[ "$y" =~ [02468ACE]$ ]]
+    then $FUNCNAME "02$x"
+    else $FUNCNAME "03$x"
+    fi
   else
     1>&2 echo wrong argument format
     return 1
   fi
 
-compressPoint() {
-  jq '. + { compressed: (if .Y[-1:]|test("[02468ACE]") then "02" else "03" end + .X) }'
-}
 add() {
   {
     echo 16doi0
-    jq -r '"\(.X) \(.Y) rlm*+lAx"'
+    jq -r '"\(.point)lYxlm*+lAx"'
     echo 'lm~f'
   } |
   dc -f secp256k1.dc - |
@@ -57,7 +50,7 @@ ser256()
 
 parse256() { xxd -u -p -c32; }
 serP() {
-  jq -r .compressed |
+  jq -r .point |
   xxd -r -p -c66
 }
 parseP() {
