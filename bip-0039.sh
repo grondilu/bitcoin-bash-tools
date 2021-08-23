@@ -41,7 +41,6 @@ function bip39() {
       xxd -p -u
       echo "0k 2 8 $CS -^/+"
       echo "[800 ~r ln1-dsn0<x]dsxx Aof"
-     #  3sn [1      ln1-dsn0<x]dsxx f
     } |
     dc |
     while read
@@ -49,7 +48,6 @@ function bip39() {
     done
   elif [[ $# =~ ^(12|15|18|21|24)$ ]]
   then 
-    local -a words=($@)
     {
       echo 16o0
       for word in $@
@@ -70,7 +68,7 @@ function bip39() {
     } |
     tail -n1 |
     if read
-    [[ "$REPLY" != "${words[-1]}" ]]
+    [[ "$REPLY" != "${@: -1}" ]]
     then
       1>&2 echo wrong checksum
       return 5
