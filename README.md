@@ -8,6 +8,10 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     $ newBitcoinKey                # single, random key
     $ newBitcoinKey $e             # key from exponent
     $ newBitcoinKey -m < entropy   # BIP-0032 master key generation from stdin
+    $ echo 000102030405060708090a0b0c0d0e0f |  # first test vector in BIP-0032
+    > xxd -p -r |
+    > newBitcoinKey -m  
+    xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
 
 ## REQUIREMENTS
 
