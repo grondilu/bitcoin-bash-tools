@@ -9,9 +9,11 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
 
 ## REQUIREMENTS
 
-- [bash](https://www.gnu.org/software/bash/) version 4 or above
-- [jq](https://stedolan.github.io/jq/), a command-line JSON processor
-- xxd, dc, openssl and possibly others.
+- [bash](https://www.gnu.org/software/bash/) version 4 or above;
+- [jq](https://stedolan.github.io/jq/), a command-line JSON processor;
+- [dc](https://en.wikipedia.org/wiki/Dc_\(computer_program\)), the Unix desktop calculator;
+- xxd, an [hex dump](https://en.wikipedia.org/wiki/Hex_dump) utility;
+- openssl, the [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) command line tool.
 
 ## TODO
 
