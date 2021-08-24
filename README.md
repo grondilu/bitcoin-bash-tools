@@ -5,7 +5,9 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
     $ cd ./bitcoin-bash-tools/
     $ . bitcoin.sh
-    $ newBitcoinKey
+    $ newBitcoinKey           # single, random key
+    $ newBitcoinKey $e        # key from exponent
+    $ newBitcoinKey -m        # BIP-0032 master key generation from stdin
 
 ## REQUIREMENTS
 
