@@ -64,26 +64,46 @@ newBitcoinKey() {
     then
         local exponent="$1"
         local pubkey="$(point "$exponent")"
+        local pubkey_uncompressed="$(uncompressPoint "$pubkey")"
         jq . <<-ENDJSON
 	{
-	  "WIF": "$({
-	    printf "\x80"
-	    ser256 "$exponent"
-	    } | encodeBase58Check)",
-	  "addresses": [
-	    "$({
-	      printf "\0"
-	      echo "$pubkey" | xxd -p -r | hash160
-	    } | encodeBase58Check)",
-	    "$({
-	      printf "\x05"
-	      echo "21${pubkey}AC" | xxd -p -r | hash160
-	    } | encodeBase58Check)",
-	    "$(
-	      echo "$pubkey" | xxd -p -r | hash160 |
-	      segwit_encode bc 0
-	    )"
-	  ]
+	  "compressed": {
+	    "WIF": "$({
+	      printf "\x80"
+	      ser256 "$exponent"
+              printf "\x01"
+	      } | encodeBase58Check)",
+	    "addresses": [
+	      "$({
+	        printf "\0"
+	        echo "$pubkey" | xxd -p -r | hash160
+	      } | encodeBase58Check)",
+	      "$({
+	        printf "\x05"
+	        echo "21${pubkey}AC" | xxd -p -r | hash160
+	      } | encodeBase58Check)",
+	      "$(
+	        echo "$pubkey" | xxd -p -r | hash160 |
+	        segwit_encode bc 0
+	      )"
+	    ]
+	  },
+	  "uncompressed": {
+	    "WIF": "$({
+	      printf "\x80"
+	      ser256 "$exponent"
+	      } | encodeBase58Check)",
+	    "addresses": [
+	      "$({
+	        printf "\0"
+	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
+	      } | encodeBase58Check)",
+	      "$({
+	        printf "\x05"
+	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
+	      } | encodeBase58Check)"
+	    ]
+	  }
 	}
 	ENDJSON
     elif test -z "$1"
