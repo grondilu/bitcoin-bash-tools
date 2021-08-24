@@ -5,6 +5,18 @@ BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
+parseExtendedKey() {
+  xxd -u -p -c 82 |
+  jq -R '{
+    version: ("0x"+.[0:8]),
+    depth:   ("0x"+.[8:10]),
+    parentFP: ("0x"+.[10:18]),
+    childIndex: ("0x"+.[18:26]),
+    chainCode: ("0x"+.[26:90]),
+    key: ("0x"+.[90:156]),
+    checksum: ("0x"+.[156:]),
+  }'
+}
 extendKey() {
   jq "{ key: ., chainCode: \"${1:-$(openssl rand -hex 32)}\" }"
 }
