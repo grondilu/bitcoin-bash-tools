@@ -66,7 +66,7 @@ newBitcoinKey() {
         local pubkey="$(point "$exponent")"
         jq . <<-ENDJSON
 	{
-	  "wif": "$({
+	  "WIF": "$({
 	    printf "\x80"
 	    ser256 "$exponent"
 	    } | encodeBase58Check)",
