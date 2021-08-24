@@ -1,13 +1,10 @@
 #!/bin/bash
 # Various bash bitcoin tools
 #
-# requires dc, the unix desktop calculator (which should be included in the
-# 'bc' package)
-#
-# This script requires bash version 4 or above.
-#
 # This script uses GNU tools.  It is therefore not guaranted to work on a POSIX
 # system.
+#
+# Requirements are detailed in the accompanying README file.
 #
 # Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
 #
