@@ -8,7 +8,9 @@ point()
   if [[ "$1" =~ ^-h|--help$ ]]
   then
     cat <<-EOF
-	Usage: point [exponent] point -h|--help
+	Usage:
+	  point [exponent]
+	  point -h|--help
 	
 	Display the compressed coordinates of a point on the secp256k1 curve
 	given an exponent.
