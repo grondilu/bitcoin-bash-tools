@@ -1,7 +1,29 @@
 . secp256k1.sh
 
+masterKey() {
+  openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+  xxd -p -u -c64 |
+  {
+    read
+    local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
+    jq -n "{
+	  exponent:  \"${REPLY:0 :64}\",
+	  chainCode: \"${REPLY:64:64}\"
+    }"
+  }
+}
+     
+  
+
 extendKey() {
   jq "{ key: ., chainCode: \"${1:-$(openssl rand -hex 32)}\" }"
+}
+
+fingerPrint() {
+  jq .key |
+  serP |
+  head -c4 |
+  xxd -p -c8
 }
 
 CKDpriv() {

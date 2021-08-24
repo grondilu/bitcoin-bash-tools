@@ -1,40 +1,69 @@
+if [[ ! -f secp256k1.dc ]]
+then
+  1>&2 echo "could not find dc script file"
+  exit 1
+fi
+
 point()
-  if   (( $# == 0 ))
+  if [[ "$1" =~ ^-h|--help$ ]]
+  then
+    cat <<-EOF
+	Usage: point [exponent] point -h|--help
+	
+	Display the compressed coordinates of a point on the secp256k1 curve
+	given an exponent.
+	
+	Exponent is a natural integer in either decimal or hexadecimal format
+	(with the 0x prefix for hexadecimal.
+	
+	If no exponent is given, a random one will be generated with 'openssl
+	rand -hex 32'
+	EOF
+  elif (( $# == 0 ))
   then $FUNCNAME "0x$(openssl rand -hex 32)"
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
-  elif [[ "$1" =~ ^0[23][[:xdigit:]]{64}$ ]]
-  then jq -n "{ point: \"$1\" }"
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
   then
-    local e="${BASH_REMATCH[1]^^}"
-    dc -f secp256k1.dc -e "16doi$e dlGrlMxlm~f" |
-    $FUNCNAME - |
-    jq ". + { exponent: \"0x$e\" }"
-  elif [[ "$1" = '-' ]]
-  then
-    local x y
-    read y
-    read x
-    x="$(ser256 "$x" |xxd -u -p -c64)"
-    y="$(ser256 "$y" |xxd -u -p -c64)"
-    if [[ "$y" =~ [02468ACE]$ ]]
-    then $FUNCNAME "02$x"
-    else $FUNCNAME "03$x"
-    fi
+    dc -f secp256k1.dc -e "16doi${BASH_REMATCH[1]^^}dlGrlMxlm~rf" |
+    compressPoint
   else
     1>&2 echo wrong argument format
     return 1
   fi
 
+uncompressPoint() {
+  dc -f secp256k1.dc -e "16doi$1dlYxr2 2 8^^%f"
+}
+compressPoint() {
+  local x y
+  read x
+  read y
+  x="$(ser256 "$x" |xxd -u -p -c64)"
+  y="$(ser256 "$y" |xxd -u -p -c64)"
+  if [[ "$y" =~ [02468ACE]$ ]]
+  then echo "02$x"
+  else echo "03$x"
+  fi
+}
 add() {
-  {
-    echo 16doi0
-    jq -r '"\(.point)lYxlm*+lAx"'
-    echo 'lm~f'
-  } |
-  dc -f secp256k1.dc - |
-  point -
+  if [[ "$1" =~ ^-h|--help$ ]]
+  then
+    cat <<-END
+	Usage: add [-h|--help]
+	
+	Read compressed secp256k1 point coordinates on stdin and outputs the
+	compressed coordinates of the sum of the corresponding points.
+	END
+  else
+    {
+      echo 16doi0
+      sed 's/.*/&dlYxr2 2 8^^%lm*+lAx/'
+      echo 'lm~rf'
+    } |
+    dc -f secp256k1.dc - |
+    compressPoint
+  fi
 }
 ser32()
   if

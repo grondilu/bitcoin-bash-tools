@@ -21,14 +21,19 @@ declare -a incorrect_bech32=(
 )
 
 for v in "${correct_bech32[@]}"
-do bech32_verify "$v" || echo "$v is seen as incorrect (error code $?) and it shouldn't"
+do
+  echo -n testing $v...
+  bech32_verify "$v" && echo ok || echo "seen as incorrect (error code $?) and it shouldn't"
 done
 
 for v in "${incorrect_bech32[@]}"
-do ! bech32_verify "$v" || echo "$v is seen as correct while it shouldn't"
+do
+  echo -n testing $v...
+  ! bech32_verify "$v" && echo ok || echo "seen as correct while it shouldn't"
 done
 
-segwit_encode bc 0 751e76e8199196d454941c45d1b3a323f1433bd6 |
+xxd -p -r <<<751e76e8199196d454941c45d1b3a323f1433bd6 |
+segwit_encode bc 0 |
 grep -q -i "^bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4$" ||
 echo segwit address encoding failed for pkh 751e76e8199196d454941c45d1b3a323f1433bd6
 
@@ -41,6 +46,3 @@ fmt -w1000 |
 grep -q \"\(.[1])\" || 1>&2 echo wrong mnemonic produced for \(.[0])" )
 ' |bash
 
-. bitcoin.sh
-newBitcoinKey 0xE9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262 |
-grep -q 1CC3X2gu58d6wXUWMffpuzN9JAfTUWu4Kj || 1>&2 echo cannot decode sample private key
