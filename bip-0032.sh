@@ -1,5 +1,7 @@
 . secp256k1.sh
 
+BIP32_MAINTEST_PRIVATE_VERSION_CODE=0x0488ADE4
+
 masterKey() {
   openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
   xxd -p -u -c64 |

@@ -31,7 +31,7 @@ then
   echo "This script requires bash version 4 or above." >&2
   exit 1
 else
-  for script in {secp256k1,base58,bip-0173}.sh
+  for script in {secp256k1,base58,bip-{0173,0032}}.sh
   do 
     if ! . "$script"
     then
@@ -103,6 +103,20 @@ newBitcoinKey() {
 	  }
 	}
 	ENDJSON
+    elif [[ "$1" = '-m' ]]
+    then
+      openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+      xxd -p -u -c64 |
+      {
+	read
+	local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
+	ser32 $BIP32_MAINTEST_PRIVATE_VERSION_CODE
+        printf "\x00"      # depth
+        ser32 0            # parent's fingerprint is zero for master keys
+        ser32 0            # child number is zero for master keys
+        ser256 "$chainCode"
+        printf "\x00"; ser256 "$exponent"
+      } | encodeBase58Check
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -hex 32)"
     else
