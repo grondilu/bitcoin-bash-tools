@@ -35,7 +35,12 @@ point()
   fi
 
 uncompressPoint() {
-  dc -f secp256k1.dc -e "16doi$1dlYxr2 2 8^^%f"
+  echo -n "04"
+  dc -f secp256k1.dc -e "16doi$1dlYxr2 2 8^^%f" |
+  while read
+  do ser256 "$REPLY"
+  done |
+  xxd -p -u -c 128
 }
 compressPoint() {
   local x y
@@ -70,8 +75,11 @@ add() {
 ser32()
   if
     local -i i=$1
-    ((i > 0 && i < 1<<32)) 
+    ((i >= 0 && i < 1<<32)) 
   then dc -e "2 32^ $i+ P" |tail -c 4
+  else
+    1>&2 echo index out of range
+    return 1
   fi
 
 ser256()
