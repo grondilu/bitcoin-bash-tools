@@ -54,6 +54,8 @@ hash160() {
   openssl dgst -rmd160 -binary
 }
 
+bitcoin_test() [[ "$BITCOIN_NET" = 'TEST' ]]
+
 newBitcoinKey() {
     if [[ "$1" =~ ^[1-9][0-9]*$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
@@ -62,41 +64,54 @@ newBitcoinKey() {
         local exponent="$1"
         local pubkey="$(point "$exponent")"
         local pubkey_uncompressed="$(uncompressPoint "$pubkey")"
+        declare -A prefixes
+        if bitcoin_test
+        then
+           prefixes[wif]="\xEF"
+           prefixes[p2pkh]="\x6F"
+           prefixes[p2sh]="\xC4"
+           prefixes[bech32]="tb"
+        else
+           prefixes[wif]="\x80"
+           prefixes[p2pkh]="\x00"
+           prefixes[p2sh]="\x05"
+           prefixes[bech32]="bc"
+        fi
         jq . <<-ENDJSON
 	{
 	  "compressed": {
 	    "WIF": "$({
-	      printf "\x80"
+	      printf "${prefixes[wif]}"
 	      ser256 "$exponent"
               printf "\x01"
 	      } | encodeBase58Check)",
 	    "addresses": {
 	      "p2pkh": "$({
-	        printf "\0"
+	        printf "${prefixes[p2pkh]}"
 	        echo "$pubkey" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "p2sh":  "$({
-	        printf "\x05"
+	        printf "${prefixes[p2sh]}"
 	        echo "21${pubkey}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "bech32": "$(
 	        echo "$pubkey" | xxd -p -r | hash160 |
-	        segwit_encode bc 0
+	        segwit_encode "${prefixes[bech32]}" 0
 	      )"
 	    }
 	  },
 	  "uncompressed": {
 	    "WIF": "$({
-	      printf "\x80"
+	      printf "${prefixes[wif]}"
 	      ser256 "$exponent"
 	      } | encodeBase58Check)",
 	    "addresses": {
 	      "p2pkh": "$({
-	        printf "\0"
+	        printf "${prefixes[p2pkh]}"
 	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "p2sh": "$({
-	        printf "\x05"
+	        printf "${prefixes[p2sh]}"
 	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)"
 	    }
@@ -110,7 +125,7 @@ newBitcoinKey() {
       {
 	read
 	local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
-        if [[ "$BITCOIN_NET" = 'TEST' ]]
+        if bitcoin_test
         then ser32 $BIP32_TESTNET_PRIVATE_VERSION_CODE
         else ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
         fi
