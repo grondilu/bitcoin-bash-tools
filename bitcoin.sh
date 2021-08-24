@@ -42,6 +42,14 @@ else
       exit 2
     fi
   done
+  for prog in dc jq openssl
+  do
+    if ! which $prog >/dev/null
+    then
+      1>&2 echo "This script requires the $prog program."
+      exit 3
+    fi
+  done
 fi
 
 hash160() {
