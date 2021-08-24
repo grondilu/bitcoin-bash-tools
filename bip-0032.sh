@@ -5,21 +5,6 @@ BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
-masterKey() {
-  openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-  xxd -p -u -c64 |
-  {
-    read
-    local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
-    jq -n "{
-	  exponent:  \"${REPLY:0 :64}\",
-	  chainCode: \"${REPLY:64:64}\"
-    }"
-  }
-}
-     
-  
-
 extendKey() {
   jq "{ key: ., chainCode: \"${1:-$(openssl rand -hex 32)}\" }"
 }
