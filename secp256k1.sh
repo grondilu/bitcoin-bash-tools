@@ -16,7 +16,7 @@ point()
 	given an exponent.
 	
 	Exponent is a natural integer in either decimal or hexadecimal format
-	(with the 0x prefix for hexadecimal.
+	(with the 0x prefix for hexadecimal).
 	
 	If no exponent is given, a random one will be generated with 'openssl
 	rand -hex 32'
