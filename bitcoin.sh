@@ -73,36 +73,36 @@ newBitcoinKey() {
 	      ser256 "$exponent"
               printf "\x01"
 	      } | encodeBase58Check)",
-	    "addresses": [
-	      "$({
+	    "addresses": {
+	      "p2pkh": "$({
 	        printf "\0"
 	        echo "$pubkey" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
-	      "$({
+	      "p2sh":  "$({
 	        printf "\x05"
 	        echo "21${pubkey}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
-	      "$(
+	      "bech32": "$(
 	        echo "$pubkey" | xxd -p -r | hash160 |
 	        segwit_encode bc 0
 	      )"
-	    ]
+	    }
 	  },
 	  "uncompressed": {
 	    "WIF": "$({
 	      printf "\x80"
 	      ser256 "$exponent"
 	      } | encodeBase58Check)",
-	    "addresses": [
-	      "$({
+	    "addresses": {
+	      "p2pkh": "$({
 	        printf "\0"
 	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
-	      "$({
+	      "p2sh": "$({
 	        printf "\x05"
 	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)"
-	    ]
+	    }
 	  }
 	}
 	ENDJSON
