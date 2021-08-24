@@ -73,9 +73,11 @@ ser32()
   fi
 
 ser256()
-   if [[ "$1" =~ ^[[:xdigit:]]+$ ]]
-   then dc -e "16i 2 100^ ${1^^}+ P" |tail -c 32
-   fi
+  if [[ "$1" =~ ^(0x)?([[:xdigit:]]+)$ ]]
+  then
+    dc -e "16i 2 100^ ${BASH_REMATCH[2]^^}+ P" |
+    tail -c 32
+  fi
 
 parse256() { xxd -u -p -c32; }
 serP() {
