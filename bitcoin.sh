@@ -110,7 +110,10 @@ newBitcoinKey() {
       {
 	read
 	local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
-	ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
+        if [[ "$BITCOIN_NET" = 'TEST' ]]
+        then ser32 $BIP32_TESTNET_PRIVATE_VERSION_CODE
+        else ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
+        fi
         printf "\x00"      # depth
         ser32 0            # parent's fingerprint is zero for master keys
         ser32 0            # child number is zero for master keys
