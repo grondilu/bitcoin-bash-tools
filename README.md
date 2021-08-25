@@ -12,6 +12,8 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     > xxd -p -r |
     > newBitcoinKey -m  
     xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
+    
+    $ prove -e bash t/*-test.sh    # to run TAP tests
 
 ## REQUIREMENTS
 
