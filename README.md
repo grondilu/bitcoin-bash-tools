@@ -28,6 +28,7 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
 - [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
 - [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032) (WIP)
 - use an environment variable for generating addresses on the test network. (WIP)
+- [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 
 ## LICENSE
 
