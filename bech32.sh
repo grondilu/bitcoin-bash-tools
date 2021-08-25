@@ -15,8 +15,10 @@ bech32_polymod() {
   local    -i chk=1 b i v
   while read v
   do
-    b=$((chk >> 25))
-    chk=$(( (chk & 0x1ffffff) << 5^v ))
+    ((
+      b=chk >> 25,
+      chk=(chk & 0x1ffffff) << 5^v
+    ))
     for i in {0..4}
     do ((chk^= (b >> i) & 1 ? GEN[i] : 0))
     done
