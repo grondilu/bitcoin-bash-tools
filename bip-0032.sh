@@ -14,7 +14,7 @@ parseExtendedKey() {
     childIndex: ("0x"+.[18:26]),
     chainCode: ("0x"+.[26:90]),
     key: ("0x"+.[90:156]),
-    checksum: ("0x"+.[156:]),
+    checksum: ("0x"+.[156:])
   }'
 }
 extendKey() {
