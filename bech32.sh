@@ -59,7 +59,7 @@ bech32_verify() {
   [[ "${s,,}" =~ ^($HRP_CHAR_CLASS{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
   bech32_verify_checksum "$s" || return 3
 }
-bech32_checksum() {
+bech32_create_checksum() {
   local -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
   local -a checksum
   for i in {0..5}

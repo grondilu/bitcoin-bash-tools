@@ -29,7 +29,7 @@ segwit_encode() {
       {
         read
         echo -n "$REPLY"
-        bech32_checksum "$REPLY"
+        bech32_create_checksum "$REPLY"
         echo
       }
       rm "$tmpfile"
