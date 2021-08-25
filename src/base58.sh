@@ -25,14 +25,17 @@ encodeBase58() {
       else break
       fi
     done 
-    {
-      echo "16i${REPLY^^}"
-      while read
-      do echo "100*${REPLY^^}+"
-      done
-      echo '[3A~rd0<x]dsxx+f'  
-    } | dc |
-    while read -r n; do echo -n "${base58[n]}"; done
+    if test -n "$REPLY"
+    then
+      {
+	echo "16i${REPLY^^}"
+	while read
+	do echo "100*${REPLY^^}+"
+	done
+	echo '[3A~rd0<x]dsxx+f'  
+      } | dc |
+      while read -r n; do echo -n "${base58[n]}"; done
+    fi
     echo
   }
 }
