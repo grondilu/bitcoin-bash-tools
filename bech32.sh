@@ -50,14 +50,13 @@ bech32_decode() {
   do echo ${bech32A[$c]}
   done
 }
-bech32_verify_checksum() {
-  bech32_decode "${1,,}" | bech32_polymod | grep -q '^1$'
-}
+bech32_verify_checksum() ((
+  $(bech32_decode "${1,,}" | bech32_polymod) == 1
+))
 bech32_verify() {
-  local s="${1,,}"
-  (( ${#s} > 90 )) && return 1
-  [[ "${s,,}" =~ ^($HRP_CHAR_CLASS{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
-  bech32_verify_checksum "$s" || return 3
+  (( ${#1} <= 90 )) || return 1
+  [[ "${1,,}" =~ ^($HRP_CHAR_CLASS{1,83})1([02-9ac-hj-np-z]{6,})$ ]] || return 2
+  bech32_verify_checksum "${1,,}" || return 3
 }
 bech32_create_checksum() {
   local -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
