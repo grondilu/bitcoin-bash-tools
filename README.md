@@ -3,7 +3,7 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
 ## SYNOPSIS
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
-    $ cd bitcoin-bash-tools/src/
+    $ cd bitcoin-bash-tools/
     $ . bitcoin.sh
     $ newBitcoinKey                # single, random key
     $ newBitcoinKey $e             # key from exponent

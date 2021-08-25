@@ -1,8 +1,4 @@
-if ! . bech32.sh
-then
-  1>&2 echo "can't load bech32 script"
-  exit 1
-fi
+. bech32.sh
 
 segwit_encode() {
   local hrp="$1" version="$2" tmpfile="$(mktemp)"

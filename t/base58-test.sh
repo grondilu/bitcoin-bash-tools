@@ -1,6 +1,6 @@
 json=t/base58_encode_decode.json
 
-. src/base58.sh
+. base58.sh
 
 echo 1..$(jq length < $json)
 declare -i t=0

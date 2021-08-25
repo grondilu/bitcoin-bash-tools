@@ -1,7 +1,6 @@
 if [[ ! -f secp256k1.dc ]]
 then
   1>&2 echo "could not find dc script file"
-  exit 1
 fi
 
 point()

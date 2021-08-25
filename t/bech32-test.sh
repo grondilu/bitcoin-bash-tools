@@ -1,4 +1,4 @@
-. src/bech32.sh
+. bech32.sh
 
 declare -a correct_bech32=(
 	A12UEL5L

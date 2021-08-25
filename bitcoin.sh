@@ -26,28 +26,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-if ((BASH_VERSINFO[0] < 4))
-then
-  echo "This script requires bash version 4 or above." >&2
-  exit 1
-else
-  for script in {secp256k1,base58,bip-{0173,0032}}.sh
-  do 
-    if ! . "$script"
-    then
-      1>&2 echo "This script requires the $script script file."
-      exit 2
-    fi
-  done
-  for prog in dc jq openssl
-  do
-    if ! which $prog >/dev/null
-    then
-      1>&2 echo "This script requires the $prog program."
-      exit 3
-    fi
-  done
-fi
+for script in {secp256k1,base58,bip-{0173,0032}}.sh
+do . "$script"
+done
 
 hash160() {
   openssl dgst -sha256 -binary |
