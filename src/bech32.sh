@@ -1,14 +1,18 @@
 # BECH32
 # see https://en.bitcoin.it/wiki/BIP_0173
-readonly -a bech32=(
+if ! test -v bech32
+then readonly -a bech32=(
   q p z r y 9 x 8
   g f 2 t v d w 0
   s 3 j n 5 4 k h
   c e 6 m u a 7 l
 )
+fi
 # character class allowed for human readable part
 # hopefully this should match the ASCII range 33 .. 126
-readonly HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
+if ! test -v HRP_CHAR_CLASS
+then readonly HRP_CHAR_CLASS="[[:alnum:][:punct:]$+<=>^\`|~]"
+fi
 
 bech32_polymod() {
   readonly -a GEN=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
