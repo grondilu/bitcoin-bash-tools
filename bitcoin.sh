@@ -114,7 +114,7 @@ newBitcoinKey() {
         ser256 "$chainCode"
         printf "\x00"; ser256 "$exponent"
       } | encodeBase58Check
-    elif [[ "$1" = N ]]
+    elif [[ "$1" = '/n' ]]
     then
         read
         if [[ "$REPLY" =~ ^[tx]prv ]]
