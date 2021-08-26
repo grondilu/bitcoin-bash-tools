@@ -97,7 +97,7 @@ newBitcoinKey() {
 	  }
 	}
 	ENDJSON
-    elif [[ "$1" = '-m' ]]
+    elif [[ "$1" = 'M' ]]
     then
       openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
       xxd -p -u -c64 |
@@ -114,6 +114,21 @@ newBitcoinKey() {
         ser256 "$chainCode"
         printf "\x00"; ser256 "$exponent"
       } | encodeBase58Check
+    elif [[ "$1" = N ]]
+    then
+        read
+        if [[ "$REPLY" =~ ^[tx]prv ]]
+        then
+	  local version json="$(parseExtendedKey <<<"$REPLY")"
+          local key="0x$(point "$(jq -r ".key" <<<"$json")")"
+	  if [[ "$REPLY" =~ ^t ]]
+	  then version="0x$BIP32_TESTNET_PUBLIC_VERSION_CODE"
+          else version="0x$BIP32_MAINNET_PUBLIC_VERSION_CODE"
+          fi
+          jq ". + { version: \"$version\", key: \"$key\" }" <<<"$json" |
+          serExtendedKey
+        else echo "$REPLY"
+        fi
     elif test -z "$1"
     then $FUNCNAME "0x$(openssl rand -hex 32)"
     else

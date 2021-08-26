@@ -5,14 +5,21 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
     $ cd bitcoin-bash-tools/
     $ . bitcoin.sh
+
     $ newBitcoinKey                # single, random key
-    $ newBitcoinKey $e             # key from exponent
-    $ newBitcoinKey -m < entropy   # BIP-0032 master key generation from stdin
+    $ newBitcoinKey 1234567890     # key from exponent
+
+    $ newBitcoinKey M < entropy    # BIP-0032 master key generation from stdin
     $ echo 000102030405060708090a0b0c0d0e0f |  # first test vector in BIP-0032
     > xxd -p -r |
-    > newBitcoinKey -m  
+    > newBitcoinKey M  
     xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
     
+    $ newBitcoinKey M < entropy |  # generate a master key from entropy file
+    > tee masterkey.priv |         # save it in a file before processing it
+    > newBitcoinKey N              # create the corresponding public extended key
+    xpub661MyMwAqRbcGXJ4qGq9tApMzfe7mC5gd633ddq5432TRCVHJ7ArzUvvChdPwkG23xTGkThjp5bngR6xNyURabCbRikmhvyMwvA3Kk6PdXS
+
     $ prove -e bash t/*-test.sh    # to run TAP tests
 
 ## REQUIREMENTS
