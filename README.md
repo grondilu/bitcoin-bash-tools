@@ -1,4 +1,4 @@
-This is a set of bash tools to manipulate bitcoin addresses, but mostly to generate keys for cold storage.
+This is a set of bash functions to manipulate bitcoin addresses, but mostly to generate keys for cold storage.
 
 ## SYNOPSIS
 
