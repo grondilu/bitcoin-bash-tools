@@ -1,3 +1,6 @@
+if ! test -v base58
+then . base58.sh
+fi
 . secp256k1.sh
 
 BIP32_MAINNET_PUBLIC_VERSION_CODE=0x0488B21E
@@ -5,58 +8,75 @@ BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
-parseExtendedKey() {
-  xxd -u -p -c 82 |
-  jq -R '{
-    version: ("0x"+.[0:8]),
-    depth:   ("0x"+.[8:10]),
-    parentFP: ("0x"+.[10:18]),
-    childIndex: ("0x"+.[18:26]),
-    chainCode: ("0x"+.[26:90]),
-    key: ("0x"+.[90:156]),
-    checksum: ("0x"+.[156:])
-  }'
-}
-extendKey() {
-  jq "{ key: ., chainCode: \"${1:-$(openssl rand -hex 32)}\" }"
+parseExtendedKey()
+  if
+    read 
+    ! decodeBase58Check "$REPLY"
+  then
+    echo "wrong format (input was $REPLY)" >&2
+    return 1
+  elif [[ ! "$REPLY" =~ ^(xprv|xpub|tprx|tpub) ]]
+  then
+    echo "input does not look like a BIP-0032 extended key" >&2
+    return 2
+  else
+    decodeBase58 $REPLY |
+    xxd -p -c $((2*(78+4))) |
+    jq -R '{
+       version: ("0x"+.[0:8]),
+       depth:   ("0x"+.[8:10]),
+       fingerprint:   ("0x"+.[10:18]),
+       "child number":   ("0x"+.[18:26]),
+       "chain code":   ("0x"+.[26:90]),
+       key:   ("0x"+.[90:156])
+    }'
+  fi
+
+serExtendedKey() {
+  jq -r '[
+      .version,.depth,.fingerprint,."child number",."chain code",.key
+    ]|map(.[2:])|join("")' |
+  xxd -p -r |
+  encodeBase58Check
 }
 
-fingerPrint() {
-  jq .key |
-  serP |
-  head -c4 |
-  xxd -p -c8
-}
-
-CKDpriv() {
-  local -i index=$1
-  jq -r '[.key.exponent, .chainCode]|join(" ")' |
-  {
-    read k_par c_par
+CKDpriv()
+  if
+    read key
+    decodeBase58Check "$key"
+  then
+    local -i index=$1
+    parseExtendedKey <<<"$key" |
+    jq -r '[.key, ."chain code"]|join(" ")' |
     {
-      if ((index >= 1<<31))
-      then
-	printf "\0"
-	ser256 "$k_par"
-      else 
-	point "$k_par" |serP
-      fi
-      ser32 "$index"
-    } |
-    openssl dgst -sha512 -hmac "$c_par" -binary |
-    xxd -u -p -c 64 |
-    {
-      read
-      local left=${REPLY:0:64} right=${REPLY:64:64}
-      dc -e "$secp256k1 16doi $left $(printf "%X" $k_par)+ lo%n"
-      echo " $right"
-    } |
-    {
-      read k c
-      jq -n "{ key: { exponent: \"$k\" }, chainCode: \"$c\" }"
+      read k_par c_par
+      {
+	if ((index >= 1<<31))
+	then
+	  printf "\0"
+	  ser256 "$k_par"
+	else 
+	  point "$k_par" |serP
+	fi
+	ser32 "$index"
+      } |
+      openssl dgst -sha512 -hmac "$c_par" -binary |
+      xxd -u -p -c 64 |
+      {
+	read
+	local left=${REPLY:0:64} right=${REPLY:64:64}
+	dc -e "$secp256k1 16doi $left $k_par+ lo%n"
+	echo " $right"
+      } |
+      {
+	read k c
+	jq -n "{ key: { exponent: \"$k\" }, chainCode: \"$c\" }"
+      }
     }
-  }
-}
+  else
+    echo "wrong format (input was $key)" >&2
+    return 1
+  fi
 
 CKDpub() {
   local -i index=$1
