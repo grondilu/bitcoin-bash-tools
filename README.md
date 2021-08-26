@@ -17,7 +17,7 @@ This is a set of bash tools to manipulate bitcoin addresses, but mostly to gener
     
     $ newBitcoinKey M < entropy |  # generate a master key from entropy file
     > tee masterkey.priv |         # save it in a file before processing it
-    > newBitcoinKey /n              # create the corresponding public extended key
+    > newBitcoinKey /n             # create the corresponding public extended key
     xpub661MyMwAqRbcGXJ4qGq9tApMzfe7mC5gd633ddq5432TRCVHJ7ArzUvvChdPwkG23xTGkThjp5bngR6xNyURabCbRikmhvyMwvA3Kk6PdXS
 
     $ prove -e bash t/*-test.sh    # to run TAP tests
