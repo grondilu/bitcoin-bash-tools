@@ -18,19 +18,19 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
     $ newBitcoinKey                # single, random bitcoin key, showing base58 addresses
     {
       "compressed": {
-	"WIF": "L4xGHV92UrCpTEXAMPLEKEYDONOTUSEGdE1bub628S4BaPpJ3VDQ",
-	"addresses": {
-	  "p2pkh": "1EeT1YP4KHEXAMPLEKEYDONOTUSE5zETzS",
-	  "p2sh": "384AV37keiAVDONOTUSEhRbLYwL5TxK6aH",
-	  "bech32": "bc1qjkhte0dEXAMPLEKEYDONOTUSEt2fypfehtftwf"
-	}
+        "WIF": "L4xGHV92UrCpTEXAMPLEKEYDONOTUSEGdE1bub628S4BaPpJ3VDQ",
+        "addresses": {
+          "p2pkh": "1EeT1YP4KHEXAMPLEKEYDONOTUSE5zETzS",
+          "p2sh": "384AV37keiAVDONOTUSEhRbLYwL5TxK6aH",
+          "bech32": "bc1qjkhte0dEXAMPLEKEYDONOTUSEt2fypfehtftwf"
+        }
       },
       "uncompressed": {
-	"WIF": "5KZurW2pThbrGRyrKpSMHEXAMPLEKEYDONOTUSERGjP23APujMM",
-	"addresses": {
-	  "p2pkh": "1K1Z2wZShjv968EXAMPLEKEYDONOTUSEej",
-	  "p2sh": "41EXAMPLEKEYDONOTUSE8pvfHkweX6P8cbZk"
-	}
+        "WIF": "5KZurW2pThbrGRyrKpSMHEXAMPLEKEYDONOTUSERGjP23APujMM",
+        "addresses": {
+          "p2pkh": "1K1Z2wZShjv968EXAMPLEKEYDONOTUSEej",
+          "p2sh": "41EXAMPLEKEYDONOTUSE8pvfHkweX6P8cbZk"
+        }
       }
     }
     $ newBitcoinKey 123 > k.json   # key from exponent, saving to file
