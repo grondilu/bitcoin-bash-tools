@@ -43,6 +43,19 @@ segwit_encode() {
   fi
 }
 
+segwit_verify() {
+  if ! bech32_verify "$1"
+  then return 1
+  elif
+    local -l hrp="${1%1*}" data="${1##*1}"
+    [[ ! "$hrp" =~ ^(bc|tb)$ ]]
+  then return 2
+  elif (( "${bech32A[${data:0:1}]}" > 16 ))
+  then return 3
+  else return 0
+  fi
+}
+
 convert_bits() {
   local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i
   readonly maxv=$(((1 << outbits) - 1))
