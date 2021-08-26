@@ -102,8 +102,8 @@ newBitcoinKey() {
       openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
       xxd -p -u -c64 |
       {
-	read
-	local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
+        read
+        local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
         if [[ "$BITCOIN_NET" = 'TEST' ]]
         then ser32 $BIP32_TESTNET_PRIVATE_VERSION_CODE
         else ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
