@@ -8,6 +8,10 @@ then readonly -a bech32=(
   c e 6 m u a 7 l
 )
 fi
+declare -A bech32A
+for i in {0..31}
+do bech32A[${bech32[i]}]=$i
+done
 # character class allowed for human readable part
 # hopefully this should match the ASCII range 33 .. 126
 if ! test -v HRP_CHAR_CLASS
@@ -40,10 +44,6 @@ bech32_hrp_expand() {
   done
 }
 bech32_decode() {
-  local -A bech32A
-  for i in {0..31}
-  do bech32A[${bech32[i]}]=$i
-  done
   echo -n "${1%1*}" |
   while read -n 1 c
   do LC_CTYPE=C printf '%d\n' "'$c"
@@ -63,12 +63,31 @@ bech32_verify() {
   bech32_verify_checksum "${1,,}" || return 3
 }
 bech32_create_checksum() {
-  local -i polymod=$(($({ bech32_decode "$1"; for i in {1..6}; do echo 0; done; } | bech32_polymod ) ^ 1))
-  local -a checksum
-  for i in {0..5}
-  do checksum[i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
-  done
-  for c in ${checksum[@]}
-  do echo -n ${bech32[$c]}
-  done
+  local hrp="${1%1*}" data="${1##*1}"
+  {
+    echo -n "$hrp" |
+    while read -n 1
+    do LC_TYPE=C printf '%d\n' "'$REPLY"
+    done |
+    bech32_hrp_expand
+
+    echo -n "${1##*1}" |
+    while read -n 1 c
+    do echo ${bech32A[$c]}
+    done
+    
+    for i in {1..6}; do echo 0; done
+  } |
+  bech32_polymod |
+  {
+    read
+    local -i polymod=$(($REPLY ^ 1))
+    local -a checksum
+    for i in {0..5}
+    do checksum[i]=$(( (polymod >> 5 * (5 - i)) & 31 ))
+    done
+    for c in ${checksum[@]}
+    do echo -n ${bech32[$c]}
+    done
+  }
 }
