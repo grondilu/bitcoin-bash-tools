@@ -35,119 +35,62 @@ hash160() {
   openssl dgst -rmd160 -binary
 }
 
-newBitcoinKey() {
-    if [[ "$1" =~ ^[1-9][0-9]*$ ]]
-    then $FUNCNAME "0x$(dc -e "16o$1p")"
-    elif [[ "$1" =~ ^0x[[:xdigit:]]+$ ]]
-    then
-        local exponent="$1"
-        local pubkey="$(point "$exponent")"
-        local pubkey_uncompressed="$(uncompressPoint "$pubkey")"
-        declare -A prefixes
-        if [[ "$BITCOIN_NET" = 'TEST' ]]
-        then
-           prefixes[wif]="\xEF"
-           prefixes[p2pkh]="\x6F"
-           prefixes[p2sh]="\xC4"
-           prefixes[bech32]="tb"
-        else
-           prefixes[wif]="\x80"
-           prefixes[p2pkh]="\x00"
-           prefixes[p2sh]="\x05"
-           prefixes[bech32]="bc"
-        fi
-        jq . <<-ENDJSON
+newBitcoinKey()
+  if [[ "$1" =~ ^[1-9][0-9]*$ ]]
+  then $FUNCNAME "0x$(dc -e "16o$1p")"
+  elif [[ "$1" =~ ^0x[[:xdigit:]]+$ ]]
+  then
+    local exponent="$1"
+    local pubkey="$(secp256k1 "$exponent")"
+    local pubkey_uncompressed="$(secp256k1 -u "$pubkey")"
+    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00" P2SH_PREFIX="\x05" BECH32_PREFIX="bc"
+    if [[ "$BITCOIN_NET" = 'TEST' ]]
+    then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F" P2SH_PREFIX="\xC4" BECH32_PREFIX="tb"
+    fi
+    jq . <<-ENDJSON
 	{
 	  "compressed": {
 	    "WIF": "$({
-	      printf "${prefixes[wif]}"
+	      printf "$WIF_PREFIX"
 	      ser256 "$exponent"
-              printf "\x01"
+	      printf "\x01"
 	      } | encodeBase58Check)",
 	    "addresses": {
 	      "p2pkh": "$({
-	        printf "${prefixes[p2pkh]}"
+	        printf "$P2PKH_PREFIX"
 	        echo "$pubkey" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "p2sh":  "$({
-	        printf "${prefixes[p2sh]}"
+	        printf "$P2SH_PREFIX"
 	        echo "21${pubkey}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "bech32": "$(
 	        echo "$pubkey" | xxd -p -r | hash160 |
-	        segwit_encode "${prefixes[bech32]}" 0
+	        segwit_encode "$BECH32_PREFIX" 0
 	      )"
 	    }
 	  },
 	  "uncompressed": {
 	    "WIF": "$({
-	      printf "${prefixes[wif]}"
+	      printf "$WIF_PREFIX"
 	      ser256 "$exponent"
 	      } | encodeBase58Check)",
 	    "addresses": {
 	      "p2pkh": "$({
-	        printf "${prefixes[p2pkh]}"
+	        printf "$P2PKH_PREFIX"
 	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
 	      } | encodeBase58Check)",
 	      "p2sh": "$({
-	        printf "${prefixes[p2sh]}"
+	        printf "$BECH32_PREFIX"
 	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
 	      } | encodeBase58Check)"
 	    }
 	  }
 	}
 	ENDJSON
-    elif [[ "$1" = 'M' ]]
-    then
-      openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-      xxd -p -u -c64 |
-      {
-        read
-        local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
-        if [[ "$BITCOIN_NET" = 'TEST' ]]
-        then ser32 $BIP32_TESTNET_PRIVATE_VERSION_CODE
-        else ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
-        fi
-        printf "\x00"      # depth
-        ser32 0            # parent's fingerprint is zero for master keys
-        ser32 0            # child number is zero for master keys
-        ser256 "$chainCode"
-        printf "\x00"; ser256 "$exponent"
-      } | encodeBase58Check
-    elif [[ "$1" = '/n' ]]
-    then
-        read
-        if [[ "$REPLY" =~ ^[tx]prv ]]
-        then
-	  local version json="$(parseExtendedKey <<<"$REPLY")"
-          local key="0x$(point "$(jq -r ".key" <<<"$json")")"
-	  if [[ "$REPLY" =~ ^t ]]
-	  then version="0x$BIP32_TESTNET_PUBLIC_VERSION_CODE"
-          else version="0x$BIP32_MAINNET_PUBLIC_VERSION_CODE"
-          fi
-          jq ". + { version: \"$version\", key: \"$key\" }" <<<"$json" |
-          serExtendedKey
-        else echo "$REPLY"
-        fi
-    elif test -z "$1"
-    then $FUNCNAME "0x$(openssl rand -hex 32)"
-    else
-        echo unknown key format "$1" >&2
-        return 2
-    fi
-}
-
-# toEthereumAddressWithChecksum() {
-#     local addrLower=$(sed -r -e 's/[[:upper:]]/\l&/g' <<< "$1")
-#     local addrHash=$(echo -n "$addrLower" | openssl dgst -sha3-256 -binary | xxd -p -c32)
-#     local addrChecksum=""
-#     local i c x
-#     for i in {0..39}; do
-#         c=${addrLower:i:1}
-#         x=${addrHash:i:1}
-#         [[ $c =~ [a-f] ]] && [[ $x =~ [89a-f] ]] && c=${c^^}
-#         addrChecksum+=$c
-#     done
-#     echo -n $addrChecksum
-# }
-
+  elif test -z "$1"
+  then $FUNCNAME "0x$(openssl rand -hex 32)"
+  else
+      echo unknown key format "$1" >&2
+      return 2
+  fi
