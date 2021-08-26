@@ -75,7 +75,7 @@ ser32()
   if
     local -i i=$1
     ((i >= 0 && i < 1<<32)) 
-  then dc -e "2 32^ $i+ P" |tail -c 4
+  then printf "%08x" $i |xxd -p -r
   else
     1>&2 echo index out of range
     return 1
