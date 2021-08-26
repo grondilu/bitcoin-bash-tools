@@ -48,13 +48,19 @@ declare -i t=0
 for v in "${correct_bech32[@]}"
 do
   ((t++))
-  bech32_verify "$v" && echo "ok $t - '$v' is valid" 
+  if bech32_verify "$v"
+  then echo "ok $t - true positive for '$v'" 
+  else echo "not ok $t - false negative for '$v'" 
+  fi
 done
 
 for v in "${incorrect_bech32[@]}"
 do
   ((t++))
-  ! bech32_verify "$v" && echo "ok $t - error in '$v' is detected" 
+  if ! bech32_verify "$v"
+  then echo "ok $t - true negative for '$v'" 
+  else echo "not ok $t - false positive for '$v'" 
+  fi
 done
 
 for k in "${!correct_segwit_addresses[@]}"
@@ -63,11 +69,11 @@ do
   bech32_verify "$k" && echo "ok $t - $k is a valid bech32"
 done
 
-for k in "${incorrect_segwit_addresses[@]}"
+for v in "${incorrect_segwit_addresses[@]}"
 do
   ((t++))
-  if ! segwit_verify "$k"
-  then echo "ok $t - error in $k is detected"
-  else echo "not ok $t - failed to detect error in $k"
+  if ! segwit_verify "$v"
+  then echo "ok $t - true negative for '$v'" 
+  else echo "not ok $t - false positive for '$v'" 
   fi
 done
