@@ -6,19 +6,40 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
     $ cd bitcoin-bash-tools/
     $ . bitcoin.sh
 
-    $ newBitcoinKey                # single, random key
-    $ newBitcoinKey 1234567890     # key from exponent
+    $ secp256k1 1                  # generator point G
+    0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+    $ secp256k1 2                  # G + G = 2*G
+    02C6047F9441ED7D6D3045406E95C07CD85C778E4B8CEF3CA7ABAC09B95C709EE5
+    $ secp256k1 3                  # 3*G
+    02F9308A019258C31049344F85F89D5229B531C845836F99B08601F113BCE036F9
+    $ { !-2 ; !-3 ; } |secp256k1   # with no parameter, reads points to sum on stdin
+    02F9308A019258C31049344F85F89D5229B531C845836F99B08601F113BCE036F9
 
-    $ newBitcoinKey M < entropy    # BIP-0032 master key generation from stdin
-    $ echo 000102030405060708090a0b0c0d0e0f |  # first test vector in BIP-0032
-    > xxd -p -r |
-    > newBitcoinKey M  
-    xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
-    
-    $ newBitcoinKey M < entropy |  # generate a master key from entropy file
-    > tee masterkey.priv |         # save it in a file before processing it
-    > newBitcoinKey /n             # create the corresponding public extended key
-    xpub661MyMwAqRbcGXJ4qGq9tApMzfe7mC5gd633ddq5432TRCVHJ7ArzUvvChdPwkG23xTGkThjp5bngR6xNyURabCbRikmhvyMwvA3Kk6PdXS
+    $ newBitcoinKey                # single, random bitcoin key, showing base58 addresses
+    {
+      "compressed": {
+	"WIF": "L4xGHV92UrCpTEXAMPLEKEYDONOTUSEGdE1bub628S4BaPpJ3VDQ",
+	"addresses": {
+	  "p2pkh": "1EeT1YP4KHEXAMPLEKEYDONOTUSE5zETzS",
+	  "p2sh": "384AV37keiAVDONOTUSEhRbLYwL5TxK6aH",
+	  "bech32": "bc1qjkhte0dEXAMPLEKEYDONOTUSEt2fypfehtftwf"
+	}
+      },
+      "uncompressed": {
+	"WIF": "5KZurW2pThbrGRyrKpSMHEXAMPLEKEYDONOTUSERGjP23APujMM",
+	"addresses": {
+	  "p2pkh": "1K1Z2wZShjv968EXAMPLEKEYDONOTUSEej",
+	  "p2sh": "41EXAMPLEKEYDONOTUSE8pvfHkweX6P8cbZk"
+	}
+      }
+    }
+    $ newBitcoinKey 123 > k.json   # key from exponent, saving to file
+
+    $ head -c 16 </dev/random |    # generating 16 random bytes
+    > bip32 M                      # using them as seed to generate a master key
+    > tee masterkey.priv |         # saving this key in a file before processing it
+    > bip32 /n                     # creating the corresponding public extended key
+    xpub661MyMwAqRbcGXJ4qGqEXAMPLEKEYDONOTUSEdq5432TRCVHJ7ArzUvvChdPwkG23xTGkThjp5bngR6xNyUEXAMPLEKEYDONOTUSEk6PdXS
 
     $ prove -e bash t/*.t.sh    # to run TAP tests
 
