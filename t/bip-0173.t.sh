@@ -1,4 +1,5 @@
 . bech32.sh
+. bip-0173.sh
 
 declare -a correct_bech32=(
 	A12UEL5L
@@ -62,11 +63,10 @@ do
   bech32_verify "$k" && echo "ok $t - $k is a valid bech32"
 done
 
-echo segwit
 for k in "${incorrect_segwit_addresses[@]}"
 do
   ((t++))
-  if ! bech32_verify "$k"
+  if ! segwit_verify "$k"
   then echo "ok $t - error in $k is detected"
   else echo "not ok $t - failed to detect error in $k"
   fi
