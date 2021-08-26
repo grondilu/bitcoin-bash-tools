@@ -35,8 +35,6 @@ hash160() {
   openssl dgst -rmd160 -binary
 }
 
-bitcoin_test() [[ "$BITCOIN_NET" = 'TEST' ]]
-
 newBitcoinKey() {
     if [[ "$1" =~ ^[1-9][0-9]*$ ]]
     then $FUNCNAME "0x$(dc -e "16o$1p")"
@@ -46,7 +44,7 @@ newBitcoinKey() {
         local pubkey="$(point "$exponent")"
         local pubkey_uncompressed="$(uncompressPoint "$pubkey")"
         declare -A prefixes
-        if bitcoin_test
+        if [[ "$BITCOIN_NET" = 'TEST' ]]
         then
            prefixes[wif]="\xEF"
            prefixes[p2pkh]="\x6F"
@@ -106,7 +104,7 @@ newBitcoinKey() {
       {
 	read
 	local exponent="${REPLY:0:64}" chainCode="${REPLY:64:64}"
-        if bitcoin_test
+        if [[ "$BITCOIN_NET" = 'TEST' ]]
         then ser32 $BIP32_TESTNET_PRIVATE_VERSION_CODE
         else ser32 $BIP32_MAINNET_PRIVATE_VERSION_CODE
         fi
