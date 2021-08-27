@@ -132,11 +132,11 @@ bip32()
     }
   else cat <<-USAGE_END
 	Usage:
-	  bip32 M
-	  bip32 derivation-path
-	  bip32 version depth parent-fingerprint child-number chain-code key
-	  bip32 --to-json
-	  bip32 -p
+	  $FUNCNAME M
+	  $FUNCNAME derivation-path
+	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
+	  $FUNCNAME --to-json
+	  $FUNCNAME -p
 	USAGE_END
   fi
 
