@@ -20,7 +20,7 @@ bip32()
     while read
     do
       if [[ "$REPLY" =~ ^[tx](prv|pub) ]] && decodeBase58Check "$REPLY"
-      then echo "$REPLY"
+      then continue
       else
         echo "$REPLY is not a valid BIP-32 extended key" >&2
         return 1
@@ -70,18 +70,40 @@ bip32()
     }
   elif [[ "$1" = '/n' ]]
   then
+    $FUNCNAME -p |
+    {
+      local -i version depth pfp index
+      local    cc key
+      read version depth pfp index
+      read cc
+      read key
+      case $version in
+         $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+           ;;
+         $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+           ;;
+         $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+           echo foo
+           version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+         $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+           version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+         *)
+           key="$(secp256k1 "0x$key")"
+      esac
+      $FUNCNAME $version $depth $pfp $index $cc $key
+    }
+  elif [[ "$1" = '-p' ]]
+  then
     read
-    if [[ "$REPLY" =~ ^[tx]prv ]]
-    then
-      local json="$($FUNCNAME "$REPLY")"
-      local key="0x$(secp256k1 "$(jq -r ".key" <<<"$json")")"
-      local version=$BIP32_MAINNET_PUBLIC_VERSION_CODE
-      if [[ "$REPLY" =~ ^t ]]
-      then version=$BIP32_TESTNET_PUBLIC_VERSION_CODE
-      fi
-      jq ". + { version: \"$version\", key: \"$key\" }" <<<"$json" |
-      $FUNCNAME --from-json
-    else echo "$REPLY"
+    if ! echo -n "$REPLY" |$FUNCNAME
+    then return $?
+    else
+      decodeBase58 "$REPLY" |
+      xxd -p -c $((2*(78+4))) |
+      {
+        read
+	printf '%u %u %u %u\n%s\n%s\n' "0x${REPLY:0:8}" "0x${REPLY:8:2}" "0x${REPLY:10:8}" "0x${REPLY:18:8}" "${REPLY:26:64}" "${REPLY:90:66}"
+      }
     fi
   elif [[ "$1" =~ ^/([[:digit:]]+)(h?)$ ]]
   then
@@ -121,11 +143,13 @@ bip32()
     }
   elif [[ "$1" = --to-json ]]
   then
-    read
-    decodeBase58 "$REPLY" |
-    xxd -p -c $((2*(78+4))) |
+    $FUNCNAME -p |
     {
-      read
+      local -i version depth pfp index
+      local    cc key
+      read version depth pfp index
+      read cc
+      read key
       printf '{
          "version": %u,
          "depth": %u,
@@ -133,23 +157,16 @@ bip32()
          "child number": %u,
          "chain code": "%s",
          "key": "%s"
-      }' "0x${REPLY:0:8}" "0x${REPLY:8:2}" "0x${REPLY:10:8}" "0x${REPLY:18:8}" "${REPLY:26:64}" "${REPLY:90:66}" |
+      }' $version $depth $pfp $index $cc $key |
       jq .
     }
-  elif [[ "$1" = --from-json ]]
-  then
-    jq -r '@sh "printf \"%08x%02x%08x%08x%s%s\n\" \\
-    \(.version) \(.depth) \(."parent fingerprint") \(."child number") \(."chain code") \(.key)"
-    ' |
-    bash |
-    xxd -p -r |
-    encodeBase58Check
   else cat <<-USAGE_END
 	Usage:
 	  bip32 M
 	  bip32 derivation-path
-	  bip32 version depth parent-fingerprint child-number
-	  bip32 [--from-json|--to-json]
+	  bip32 version depth parent-fingerprint child-number chain-code key
+	  bip32 --to-json
+	  bip32 -p
 	USAGE_END
   fi
 
