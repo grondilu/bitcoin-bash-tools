@@ -108,39 +108,7 @@ bip32()
   elif [[ "$1" =~ ^/([[:digit:]]+)(h?)$ ]]
   then
     local -i index=${BASH_REMATCH[1]}
-    local parent
-    read parent
-    if test -n "${BASH_REMATCH[2]}"
-    then
-      [[ "$parent" =~ ^[tx]pub ]] && return 1 
-      ((index+= 1<<31))
-    fi
-    local json="$($FUNCNAME "$parent")"
-    local key="$(jq -r .key <<<"$json")"
-
-    if [[ "$parent" =~ ^[tx]prv ]]
-    then
-       if ((index > 1<<31))
-       then
-         printf "\x00"
-         ser256 "$key"
-       else secp256k1 "$key" |xxd -p -r -c 66
-       fi
-       ser32 $index
-    elif [[ "$parent" =~ ^[tx]pub ]]
-    then
-      : TODO
-    else return 2  # should not happen
-    fi |
-    openssl dgst -sha512 -hmac "$(jq -r '."chain code"[2:]' <<<"$json")" -binary |
-    xxd -p -u -c 64 |
-    {
-      read
-      local left="${REPLY:0:64}" right="${REPLY:64:64}"
-      key="$(secp256k1 "0x$left" "0x$key")"
-      jq ". + { key: (\"$key\"|ascii_downcase), \"child number\": $index }" <<<"$json"
-      
-    }
+    : TODO
   elif [[ "$1" = --to-json ]]
   then
     $FUNCNAME -p |
