@@ -83,7 +83,6 @@ bip32()
          $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
            ;;
          $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-           echo foo
            version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
          $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
            version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
@@ -108,7 +107,10 @@ bip32()
   elif [[ "$1" =~ ^/([[:digit:]]+)(h?)$ ]]
   then
     local -i index=${BASH_REMATCH[1]}
+    test -n "${BASH_REMATCH[2]}" && ((index+= 1<<31))
+
     : TODO
+
   elif [[ "$1" = --to-json ]]
   then
     $FUNCNAME -p |
