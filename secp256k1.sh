@@ -27,6 +27,20 @@ secp256k1()
       sed 's/.*/&dlYxr2 2 8^^%lm*+lAx/'
       echo lEx
     } | dc -f secp256k1.dc -
+  elif (( $# > 1 ))
+  then
+    {
+      echo 0
+      for i in "$@"
+      do
+        if [[ "$i" =~ ^[[:digit:]]+$ ]]
+        then echo "5d+i$i+"
+	elif [[ "$i" =~ ^0x([[:xdigit:]]+)$ ]]
+        then echo "8d+i${BASH_REMATCH[1]^^}+"
+        fi
+      done
+      echo 'lo%[0x]P8d+op'
+    } | dc -f secp256k1.dc -
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
