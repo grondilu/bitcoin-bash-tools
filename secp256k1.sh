@@ -36,16 +36,24 @@ secp256k1()
   else
     cat <<-EOF
 	Usage:
-	  secp256k1 [exponent]
+	  secp256k1
+	  secp256k1 exponent
+	  secp256k1 exponent1 exponent2 ...
+	  secp256k1 -u compressed-point
 	
-	Display the compressed coordinates of a point on the secp256k1 curve
-	given an exponent.
+	With no parameters, parses stdin as a list of compressed points
+	and echoes their sum as a compressed point.
+
+	With a single exponent parameter, echoes the corresponding
+	compressed point.
+
+	With more than one parameters, echoes their sum modulo the order of
+	the curve, in hexadecimal.
+
+	The -u option echoes the uncompressed form of a compressed point.
 	
-	Exponent is a natural integer in either decimal or hexadecimal format
+	An exponent is a natural integer in either decimal or hexadecimal format
 	(with the 0x prefix for hexadecimal).
-	
-	If no exponent is given, a random one will be generated with 'openssl
-	rand -hex 32'
 	EOF
   fi
 
