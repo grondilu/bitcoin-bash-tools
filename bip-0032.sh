@@ -141,6 +141,9 @@ bip32()
   then
     local -i childIndex=${BASH_REMATCH[1]}
     test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
+    local parent
+    read parent
+    echo "$parent" |
     $FUNCNAME --parse |
     {
       local -i version depth pfp index
@@ -158,13 +161,18 @@ bip32()
           secp256k1 $key |xxd -p -r
           ser32 $childIndex
         fi |
-        openssl dgst -sha512 -hmac="$cc" -binary |
+        openssl dgst -sha512 -hmac="$(xxd -p -r <<<$cc)" -binary |
         xxd -p -c 64 |
         {
           read
           key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
           key="00$(ser256 "$key" |xxd -p -c 64)"
           cc="${REPLY:64:64}"
+          
+          (( index=childIndex, depth++ ))
+          pfp="0x$($FUNCNAME /fp <<<"$parent")"
+          
+          $FUNCNAME $version $depth $pfp $index $cc $key
         }
 
       else
