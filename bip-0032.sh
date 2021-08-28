@@ -146,33 +146,17 @@ bip32()
     $FUNCNAME --parse |
     {
       local -i version depth pfp index
-      local    cc key pubkey
+      local    cc key
       read version depth pfp index cc key
       
       if isPrivate $version
       then
-	pubkey="$(secp256k1 "0x$key")"
-        if (( childIndex >= (1 << 31) ))
-        then
-          printf "\x00"
-          ser256 "0x$key"
-          ser32 $childIndex
-        else
-          xxd -p -r <<<"$pubkey"
-          ser32 $childIndex
-        fi |
-        openssl dgst -sha512 -mac hmac -macopt hexkey:$cc -binary |
-        xxd -p -c 64 |
+        CKDpriv "$key" "$cc" $childIndex |
         {
-          read
-          key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
-          key="00$(ser256 "$key" |xxd -p -c 64)"
-          cc="${REPLY:64:64}"
-          
-          (( index=childIndex, depth++ ))
-          pfp="0x$(fingerprint "$pubkey")"
-          
-          $FUNCNAME $version $depth $pfp $index $cc $key
+           local ki ci
+           read ki ci
+	   pfp="0x$(fingerprint "$(secp256k1 "0x$key")")"
+           $FUNCNAME $version $((depth+1)) $pfp $childIndex $ci $ki
         }
       else
         : TODO
@@ -205,6 +189,37 @@ bip32()
 	  $FUNCNAME --to-json
 	  $FUNCNAME --parse
 	USAGE_END
+  fi
+
+CKDpriv()
+  if [[ ! "$1" =~ ^00([[:xdigit:]]{2}){32}$ ]]
+  then return 1
+  elif [[ ! "$2" =~ ^([[:xdigit:]]{2}){32}$ ]]
+  then return 2
+  elif local kpar="${1:2}" cpar="$2"
+       local -i i=$3
+    ((i < 0 || i > 1<<32))
+  then return 3
+  else
+    if (( i >= (1 << 31) ))
+    then
+      printf "\x00"
+      ser256 "0x$kpar"
+      ser32 $i
+    else
+      secp256k1 "0x$kpar" |xxd -p -r
+      ser32 $i
+    fi |
+    openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
+    xxd -p -c 64 |
+    {
+      read
+      local ki ci
+      ki="$(secp256k1 "0x$kpar" "0x${REPLY:0:64}")"
+      ki="00$(ser256 "$ki" |xxd -p -c 64)"
+      ci="${REPLY:64:64}"
+      echo $ki $ci
+    }
   fi
 
 ser32()
