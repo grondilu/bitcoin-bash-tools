@@ -28,6 +28,14 @@ chr()
   else printf "\\$(printf '%03o' "$1")"
   fi
 
+fingerprint() {
+  xxd -p -r <<<"$1" |
+  openssl dgst -sha256 -binary |
+  openssl dgst -rmd160 -binary |
+  head -c 4 |
+  xxd -p -u -c 8
+}
+
 bip32()
   if (( $# == 0 ))
   then $FUNCNAME -h
@@ -86,11 +94,7 @@ bip32()
         local -i v d p i
         local c k
         read v d p i c key
-        xxd -p -r <<<"$key" |
-        openssl dgst -sha256 -binary |
-        openssl dgst -rmd160 -binary |
-        head -c 4 |
-        xxd -p -u -c 8
+        fingerprint "$key"
       }
     fi
   elif [[ "$1" = n ]]
@@ -139,24 +143,22 @@ bip32()
   then
     local -i childIndex=${BASH_REMATCH[1]}
     test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
-    local parent
-    read parent
-    echo "$parent" |
     $FUNCNAME --parse |
     {
       local -i version depth pfp index
-      local    cc key
+      local    cc key pubkey
       read version depth pfp index cc key
       
       if isPrivate $version
       then
+	pubkey="$(secp256k1 "0x$key")"
         if (( childIndex >= (1 << 31) ))
         then
           printf "\x00"
           ser256 "0x$key"
           ser32 $childIndex
         else
-          secp256k1 "0x$key" |xxd -p -r
+          xxd -p -r <<<"$pubkey"
           ser32 $childIndex
         fi |
         openssl dgst -sha512 -mac hmac -macopt hexkey:$cc -binary |
@@ -168,7 +170,7 @@ bip32()
           cc="${REPLY:64:64}"
           
           (( index=childIndex, depth++ ))
-          pfp="0x$($FUNCNAME fp <<<"$parent")"
+          pfp="0x$(fingerprint "$pubkey")"
           
           $FUNCNAME $version $depth $pfp $index $cc $key
         }
