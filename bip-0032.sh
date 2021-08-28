@@ -77,6 +77,24 @@ bip32()
       read
       $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
     }
+  elif [[ "$1" = '/fp' ]]
+  then
+    read
+    if [[ "$REPLY" =~ ^[tx]prv ]]
+    then echo "$REPLY" | $FUNCNAME '/n/fp'
+    else
+      $FUNCNAME --parse <<<"$REPLY" |
+      {
+        local -i v d p i
+        local c k
+        read v d p i c key
+        xxd -p -r <<<"$key" |
+        openssl dgst -sha256 -binary |
+        openssl dgst -rmd160 -binary |
+        head -c 4 |
+        xxd -p -u -c 8
+      }
+    fi
   elif [[ "$1" = '/n' ]]
   then
     $FUNCNAME --parse |
@@ -146,9 +164,7 @@ bip32()
           read
           key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
           key="00$(ser256 "$key" |xxd -p -c 64)"
-          echo $key
           cc="${REPLY:64:64}"
-          echo $cc
         }
 
       else
@@ -156,7 +172,7 @@ bip32()
       fi
     } 
 
-  elif [[ "$1" = --to-json ]]
+  elif [[ "$1" = /json ]]
   then
     $FUNCNAME --parse |
     {
@@ -173,6 +189,10 @@ bip32()
       }' $version $depth $pfp $index $cc $key |
       jq .
     }
+  elif [[ "$1" =~ ^/(n|[[:digit:]]+h?)(/.*) ]]
+  then
+    $FUNCNAME "/${BASH_REMATCH[1]}" |
+    $FUNCNAME "${BASH_REMATCH[2]}"
   else cat <<-USAGE_END
 	Usage:
 	  $FUNCNAME M
