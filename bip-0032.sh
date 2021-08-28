@@ -134,7 +134,7 @@ bip32()
         if (( childIndex & (1 << 31) ))
         then
           printf "\x00"
-          ser256 $key
+          ser256 "0x$key"
           ser32 $childIndex
         else
           secp256k1 $key |xxd -p -r
@@ -145,7 +145,10 @@ bip32()
         {
           read
           key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
-          echo "$key"
+          key="00$(ser256 "$key" |xxd -p -c 64)"
+          echo $key
+          cc="${REPLY:64:64}"
+          echo $cc
         }
 
       else
@@ -159,9 +162,7 @@ bip32()
     {
       local -i version depth pfp index
       local    cc key
-      read version depth pfp index
-      read cc
-      read key
+      read version depth pfp index cc key
       printf '{
          "version": %u,
          "depth": %u,
@@ -193,9 +194,10 @@ ser32()
   fi
 
 ser256()
-  if [[ "$1" =~ ^(0x)?([[:xdigit:]]+)$ ]]
+  if [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
   then
-    dc -e "16i 2 100^ ${BASH_REMATCH[2]^^}+ P" |
+    dc -e "16i 2 100^ ${BASH_REMATCH[1]^^}+ P" |
     tail -c 32
+  else return 1
   fi
 
