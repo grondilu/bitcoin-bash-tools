@@ -8,6 +8,20 @@ BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
+isPrivate()
+  if (( $1 == BIP32_TESTNET_PRIVATE_VERSION_CODE ||
+        $1 == BIP32_MAINNET_PRIVATE_VERSION_CODE ))
+  then return 0
+  else return 1
+  fi
+
+isPublic()
+  if (( $1 == BIP32_TESTNET_PUBLIC_VERSION_CODE ||
+        $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE ))
+  then return 0
+  else return 1
+  fi
+
 chr()
   if (( $1 < 0 || $1 > 255 ))
   then return 1
@@ -17,15 +31,8 @@ chr()
 bip32()
   if (( $# == 0 ))
   then
-    while read
-    do
-      if [[ "$REPLY" =~ ^[tx](prv|pub) ]] && decodeBase58Check "$REPLY"
-      then continue
-      else
-        echo "$REPLY is not a valid BIP-32 extended key" >&2
-        return 1
-      fi
-    done
+    1>&2 echo NYI
+    return 1
   elif (( $# == 6 ))
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
@@ -37,25 +44,27 @@ bip32()
       version != BIP32_MAINNET_PUBLIC_VERSION_CODE
     ))
     then return 1
-    elif ((depth < 0 || depth > 255))
+    elif ser32 $version
+      ((depth < 0 || depth > 255))
     then return 2
-    elif ((fingerprint < 0 || fingerprint > 0xffffffff))
+    elif chr   $depth
+      ((fingerprint < 0 || fingerprint > 0xffffffff))
     then return 3
-    elif ((childnumber < 0 || childnumber > 0xffffffff))
+    elif ser32 $fingerprint
+      ((childnumber < 0 || childnumber > 0xffffffff))
     then return 4
-    elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
+    elif ser32 $childnumber
+      [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
     then return 5
     elif [[ ! "$key" =~ ^[[:xdigit:]]{66}$ ]]
     then return 6
-    else
-      {
-        ser32 $version
-        chr   $depth
-        ser32 $fingerprint
-        ser32 $childnumber
-        xxd -p -r <<<"$chaincode$key"
-      } | encodeBase58Check
-    fi
+    elif isPublic  $version && [[ "$key" =~ ^00    ]]
+    then return 7
+    elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
+    then return 8
+    #TODO: check if point is on curve
+    else xxd -p -r <<<"$chaincode$key"
+    fi | encodeBase58Check
   elif [[ "$1" = 'M' ]]
   then
     local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
@@ -70,13 +79,11 @@ bip32()
     }
   elif [[ "$1" = '/n' ]]
   then
-    $FUNCNAME -p |
+    $FUNCNAME --parse |
     {
       local -i version depth pfp index
       local    cc key
-      read version depth pfp index
-      read cc
-      read key
+      read version depth pfp index cc key
       case $version in
          $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
            ;;
@@ -91,29 +98,64 @@ bip32()
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
-  elif [[ "$1" = '-p' ]]
+  elif [[ "$1" = '--parse' ]]
   then
     read
-    if ! echo -n "$REPLY" |$FUNCNAME
-    then return $?
-    else
-      decodeBase58 "$REPLY" |
-      xxd -p -c $((2*(78+4))) |
-      {
-        read
-	printf '%u %u %u %u\n%s\n%s\n' "0x${REPLY:0:8}" "0x${REPLY:8:2}" "0x${REPLY:10:8}" "0x${REPLY:18:8}" "${REPLY:26:64}" "${REPLY:90:66}"
-      }
-    fi
+    decodeBase58Check "$REPLY" || return 1
+    decodeBase58 "$REPLY" |
+    xxd -p -c $((2*(78+4))) |
+    {
+      read
+      local -a args=(
+        "0x${REPLY:0:8}"
+	"0x${REPLY:8:2}"
+	"0x${REPLY:10:8}"
+	"0x${REPLY:18:8}"
+	"${REPLY:26:64}"
+	"${REPLY:90:66}"
+      )
+      if $FUNCNAME "${args[@]}" >/dev/null
+      then echo "${args[@]}"
+      else return $?
+      fi
+    }
   elif [[ "$1" =~ ^/([[:digit:]]+)(h?)$ ]]
   then
-    local -i index=${BASH_REMATCH[1]}
-    test -n "${BASH_REMATCH[2]}" && ((index+= 1<<31))
+    local -i childIndex=${BASH_REMATCH[1]}
+    test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
+    $FUNCNAME --parse |
+    {
+      local -i version depth pfp index
+      local    cc key
+      read version depth pfp index cc key
+      
+      if isPrivate $version
+      then
+	if (( childIndex & (1 << 31) ))
+	then
+	  printf "\x00"
+	  ser256 $key
+	  ser32 $childIndex
+	else
+          secp256k1 $key |xxd -p -r
+	  ser32 $childIndex
+	fi |
+	openssl dgst -sha512 -hmac="$cc" -binary |
+	xxd -p -c 64 |
+	{
+	  read
+	  key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
+          echo "$key"
+	}
 
-    : TODO
+      else
+	: TODO
+      fi
+    } 
 
   elif [[ "$1" = --to-json ]]
   then
-    $FUNCNAME -p |
+    $FUNCNAME --parse |
     {
       local -i version depth pfp index
       local    cc key
@@ -136,7 +178,7 @@ bip32()
 	  $FUNCNAME derivation-path
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
 	  $FUNCNAME --to-json
-	  $FUNCNAME -p
+	  $FUNCNAME --parse
 	USAGE_END
   fi
 
