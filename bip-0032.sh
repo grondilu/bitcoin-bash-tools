@@ -108,11 +108,11 @@ bip32()
       read
       local -a args=(
         "0x${REPLY:0:8}"
-	"0x${REPLY:8:2}"
-	"0x${REPLY:10:8}"
-	"0x${REPLY:18:8}"
-	"${REPLY:26:64}"
-	"${REPLY:90:66}"
+        "0x${REPLY:8:2}"
+        "0x${REPLY:10:8}"
+        "0x${REPLY:18:8}"
+        "${REPLY:26:64}"
+        "${REPLY:90:66}"
       )
       if $FUNCNAME "${args[@]}" >/dev/null
       then echo "${args[@]}"
@@ -131,25 +131,25 @@ bip32()
       
       if isPrivate $version
       then
-	if (( childIndex & (1 << 31) ))
-	then
-	  printf "\x00"
-	  ser256 $key
-	  ser32 $childIndex
-	else
+        if (( childIndex & (1 << 31) ))
+        then
+          printf "\x00"
+          ser256 $key
+          ser32 $childIndex
+        else
           secp256k1 $key |xxd -p -r
-	  ser32 $childIndex
-	fi |
-	openssl dgst -sha512 -hmac="$cc" -binary |
-	xxd -p -c 64 |
-	{
-	  read
-	  key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
+          ser32 $childIndex
+        fi |
+        openssl dgst -sha512 -hmac="$cc" -binary |
+        xxd -p -c 64 |
+        {
+          read
+          key="$(secp256k1 "0x$key" "0x${REPLY:0:64}")"
           echo "$key"
-	}
+        }
 
       else
-	: TODO
+        : TODO
       fi
     } 
 
