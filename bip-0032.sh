@@ -65,7 +65,7 @@ bip32()
     #TODO: check if point is on curve
     else xxd -p -r <<<"$chaincode$key"
     fi | encodeBase58Check
-  elif [[ "$1" = 'M' ]]
+  elif [[ "$1" = m ]]
   then
     local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
     if [[ "$BITCOIN_NET" = 'TEST' ]]
@@ -77,11 +77,11 @@ bip32()
       read
       $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
     }
-  elif [[ "$1" = '/fp' ]]
+  elif [[ "$1" = fp ]]
   then
     read
     if [[ "$REPLY" =~ ^[tx]prv ]]
-    then echo "$REPLY" | $FUNCNAME '/n/fp'
+    then echo "$REPLY" | $FUNCNAME 'n/fp'
     else
       $FUNCNAME --parse <<<"$REPLY" |
       {
@@ -95,7 +95,7 @@ bip32()
         xxd -p -u -c 8
       }
     fi
-  elif [[ "$1" = '/n' ]]
+  elif [[ "$1" = n ]]
   then
     $FUNCNAME --parse |
     {
@@ -137,7 +137,7 @@ bip32()
       else return $?
       fi
     }
-  elif [[ "$1" =~ ^/([[:digit:]]+)(h?)$ ]]
+  elif [[ "$1" =~ ^([[:digit:]]+)(h?)$ ]]
   then
     local -i childIndex=${BASH_REMATCH[1]}
     test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
@@ -170,17 +170,16 @@ bip32()
           cc="${REPLY:64:64}"
           
           (( index=childIndex, depth++ ))
-          pfp="0x$($FUNCNAME /fp <<<"$parent")"
+          pfp="0x$($FUNCNAME fp <<<"$parent")"
           
           $FUNCNAME $version $depth $pfp $index $cc $key
         }
-
       else
         : TODO
       fi
     } 
 
-  elif [[ "$1" = /json ]]
+  elif [[ "$1" = json ]]
   then
     $FUNCNAME --parse |
     {
@@ -197,13 +196,10 @@ bip32()
       }' $version $depth $pfp $index $cc $key |
       jq .
     }
-  elif [[ "$1" =~ ^/(n|[[:digit:]]+h?)(/.*) ]]
-  then
-    $FUNCNAME "/${BASH_REMATCH[1]}" |
-    $FUNCNAME "${BASH_REMATCH[2]}"
+  elif [[ "$1" =~ / ]]
+  then $FUNCNAME "${1%%/*}" |$FUNCNAME "${1#*/}"
   else cat <<-USAGE_END
 	Usage:
-	  $FUNCNAME M
 	  $FUNCNAME derivation-path
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
 	  $FUNCNAME --to-json

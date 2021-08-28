@@ -14,8 +14,9 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
 
     $ newBitcoinKey |tee mykey.json
 
-    $ bip32 M < entropy | tee masterKey.priv
-    $ bip32 /n < masterKey.priv 
+    $ bip32 m < entropy
+    $ bip32 m/n < entropy
+    $ bip32 m/0h/5/7h < entropy
 
     $ prove -e bash t/*.t.sh
 
