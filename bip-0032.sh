@@ -30,9 +30,7 @@ chr()
 
 bip32()
   if (( $# == 0 ))
-  then
-    1>&2 echo NYI
-    return 1
+  then $FUNCNAME -h
   elif (( $# == 6 ))
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
@@ -152,16 +150,16 @@ bip32()
       
       if isPrivate $version
       then
-        if (( childIndex & (1 << 31) ))
+        if (( childIndex >= (1 << 31) ))
         then
           printf "\x00"
           ser256 "0x$key"
           ser32 $childIndex
         else
-          secp256k1 $key |xxd -p -r
+          secp256k1 "0x$key" |xxd -p -r
           ser32 $childIndex
         fi |
-        openssl dgst -sha512 -hmac="$(xxd -p -r <<<$cc)" -binary |
+        openssl dgst -sha512 -mac hmac -macopt hexkey:$cc -binary |
         xxd -p -c 64 |
         {
           read
