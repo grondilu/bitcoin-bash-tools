@@ -17,6 +17,7 @@ secp256k1()
     xxd -p -u -c 65
   elif (( $# > 1 ))
   then
+    local i
     {
       echo 0
       for i in "$@"
