@@ -29,12 +29,12 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
 
 ## TODO
 
-- [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki) (WIP)
-- [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
-- [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032) (WIP)
-- use an environment variable for generating addresses on the test network. (WIP)
-- [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
-- [TAP](http://testanything.org/testing-with-tap/) support.
+- [ ] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+- [ ] [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
+- [ ] [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
+- [x] use an environment variable for generating addresses on the test network.
+- [ ] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
+- [x] [TAP](http://testanything.org/testing-with-tap/) support.
 
 ## LICENSE
 
