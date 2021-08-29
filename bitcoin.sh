@@ -47,7 +47,7 @@ newBitcoinKey()
     if [[ "$BITCOIN_NET" = 'TEST' ]]
     then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F" P2SH_PREFIX="\xC4" BECH32_PREFIX="tb"
     fi
-    jq . <<-ENDJSON
+    cat <<-ENDJSON
 	{
 	  "compressed": {
 	    "WIF": "$({

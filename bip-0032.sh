@@ -145,7 +145,7 @@ bip32()
     test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
     $FUNCNAME --parse |
     {
-      local -i version depth pfp index
+      local -i version depth pfp index    fp
       local    cc key
       read version depth pfp index cc key
       
@@ -155,11 +155,19 @@ bip32()
         {
            local ki ci
            read ki ci
-	   pfp="0x$(fingerprint "$(secp256k1 "0x$key")")"
-           $FUNCNAME $version $((depth+1)) $pfp $childIndex $ci $ki
+	   fp="0x$(fingerprint "$(secp256k1 "0x$key")")"
+           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
         }
-      else
-        : TODO
+      elif isPublic $version
+      then
+        CKDpub "$key" "$cc" $childIndex |
+        {
+           local Ki ci
+           read Ki ci
+	   fp="0x$(fingerprint "$key")"
+           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $Ki
+        }
+      else return 255  # should never happen
       fi
     } 
 
@@ -177,8 +185,7 @@ bip32()
          "child number": %u,
          "chain code": "%s",
          "key": "%s"
-      }' $version $depth $pfp $index $cc $key |
-      jq .
+      }' $version $depth $pfp $index $cc $key
     }
   elif [[ "$1" =~ / ]]
   then $FUNCNAME "${1%%/*}" |$FUNCNAME "${1#*/}"
