@@ -185,7 +185,7 @@ bip32()
          "child number": %u,
          "chain code": "%s",
          "key": "%s"
-      }' $version $depth $pfp $index $cc $key
+      }\n' $version $depth $pfp $index $cc $key
     }
   elif [[ "$1" =~ / ]]
   then $FUNCNAME "${1%%/*}" |$FUNCNAME "${1#*/}"
@@ -193,9 +193,36 @@ bip32()
 	Usage:
 	  $FUNCNAME derivation-path
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
-	  $FUNCNAME --to-json
 	  $FUNCNAME --parse
 	USAGE_END
+  fi
+
+CKDpub()
+  if [[ ! "$1" =~ ^0[23]([[:xdigit:]]{2}){32}$ ]]
+  then return 1
+  elif [[ ! "$2" =~ ^([[:xdigit:]]{2}){32}$ ]]
+  then return 2
+  elif local Kpar="$1" cpar="$2"
+       local -i i=$3
+    ((i < 0 || i > 1<<32))
+  then return 3
+  else
+    if (( i >= (1 << 31) ))
+    then return 4
+    else
+      {
+	xxd -p -r <<<"$Kpar"
+	ser32 $i
+      } |
+      openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
+      xxd -p -u -c 64 |
+      {
+	read
+	local Ki="$({ secp256k1 "0x${REPLY:0:64}"; echo "${Kpar^^}"; } |secp256k1 )"
+	local ci="${REPLY:64:64}"
+	echo $Ki $ci
+      }
+    fi
   fi
 
 CKDpriv()
