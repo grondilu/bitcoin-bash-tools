@@ -1,4 +1,10 @@
 
+function pbkdf2_hmac {
+  local command_str
+  printf -v command_str 'import hashlib; print(hashlib.pbkdf2_hmac("%s","%s".encode("utf-8"), "%s".encode("utf-8"), %s).hex())' "$@"
+  python -c "$command_str"
+}
+
 function pbkdf2() {
   : TODO
 }
