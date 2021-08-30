@@ -83,6 +83,23 @@ bip32()
       read
       $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
     }
+  elif [[ "$1" = M ]]
+  then
+    $FUNCNAME --parse |
+    {
+      local -i version depth pfp index
+      local    cc key
+      read version depth pfp index cc key
+      if ((
+	version == $BIP32_MAINNET_PRIVATE_VERSION_CODE ||
+        version == $BIP32_TESTNET_PRIVATE_VERSION_CODE
+      ))
+      then return 1
+      elif (( depth != 0 || pfp != 0 || index != 0 ))
+      then return 2
+      fi
+      $FUNCNAME $version $depth $pfp $index $cc $key
+    }
   elif [[ "$1" = fp ]]
   then
     read
