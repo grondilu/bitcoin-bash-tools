@@ -144,12 +144,12 @@ bip32()
     {
       read
       local -a args=(
-        "0x${REPLY:0:8}"
-        "0x${REPLY:8:2}"
-        "0x${REPLY:10:8}"
-        "0x${REPLY:18:8}"
-        "${REPLY:26:64}"
-        "${REPLY:90:66}"
+        "0x${REPLY:0:8}"   # 4 bytes:  version
+        "0x${REPLY:8:2}"   # 1 byte:   depth
+        "0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
+        "0x${REPLY:18:8}"  # 4 bytes:  child number
+        "${REPLY:26:64}"   # 32 bytes: chain code
+        "${REPLY:90:66}"   # 33 bytes: public or private key data
       )
       if $FUNCNAME "${args[@]}" >/dev/null
       then echo "${args[@]}"
