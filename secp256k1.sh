@@ -59,7 +59,3 @@ secp256k1()
   fi
 
 parse256() { xxd -u -p -c32; }
-parseP() {
-  secp256k1 "$(xxd -u -p -c33)"
-}
-
