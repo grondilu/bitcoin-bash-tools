@@ -1,7 +1,7 @@
 
 function pbkdf2_hmac {
   local command_str
-  printf -v command_str 'import hashlib; print(hashlib.pbkdf2_hmac("%s","%s".encode("utf-8"), "%s".encode("utf-8"), %s).hex())' "$@"
+  printf -v command_str 'import hashlib; print(hashlib.pbkdf2_hmac("%s","%s".encode("utf-8"), "%s".encode("utf-8"), %d).hex())' "$@"
   python -c "$command_str"
 }
 
