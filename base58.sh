@@ -16,7 +16,7 @@ decodeBase58() {
   } | dc
 }
 encodeBase58() {
-  xxd -p -c1 |
+  xxd -p -u -c 1 |
   {
     while read
     do
@@ -26,11 +26,11 @@ encodeBase58() {
       fi
     done 
     if test -n "$REPLY"
-    then
+    then local -i n
       {
-	echo "16i${REPLY^^}"
+	echo "16i$REPLY"
 	while read
-	do echo "100*${REPLY^^}+"
+	do echo "100*$REPLY+"
 	done
 	echo '[3A~rd0<x]dsxx+f'  
       } | dc |
