@@ -104,7 +104,7 @@ bech32m_encode() {
 }
 
 bech32m_decode() {
-  local bechString=$1 enc=$2
+  local bechString=$1 enc=${2:-bech32m}
   local -i p has_lower=0 has_upper=0 ord
 
   for ((p=0;p<${#bechString};++p))
@@ -149,5 +149,5 @@ bech32m_decode() {
       rm $tmpfile
       return 8
     fi
-fi
+  fi
 }
