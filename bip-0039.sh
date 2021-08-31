@@ -51,7 +51,8 @@ function bip39() {
     dc |
     while read
     do echo ${wordlist[REPLY]}
-    done
+    done |
+    paste -sd ' '
   elif [[ $# =~ ^(12|15|18|21|24)$ ]]
   then 
     {
@@ -72,16 +73,17 @@ function bip39() {
          sed 's/ /0/g'
        ) || 1>&2 echo "undocumented error"
     } |
-    tail -n1 |
-    if read
-    [[ "$REPLY" != "${@: -1}" ]]
+    tail -n 1 |
+    if read -a words
+    [[ "${words[@]: -1}" != "${@: -1}" ]]
     then
-      1>&2 echo wrong checksum
+      1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
       return 5
+    else
+      local passphrase
+      read -p 'passphrase: ' passphrase
+      pbkdf2_hmac sha512 "$*" "mnemonic$passphrase" 2048
     fi
-    local passphrase
-    read -p 'passphrase: ' passphrase
-    pbkdf2_hmac sha512 "$*" "mnemonic$passphrase" 2048
   elif (($# == 0))
   then $FUNCNAME 160
   else
