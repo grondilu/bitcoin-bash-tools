@@ -1,6 +1,8 @@
+# Bitcoin bash tools
+
 This is a set of bash functions to manipulate bitcoin addresses, but mostly to generate keys for cold storage.
 
-## SYNOPSIS
+## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
     $ cd bitcoin-bash-tools/
@@ -20,7 +22,7 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
 
     $ prove -e bash t/*.t.sh
 
-## REQUIREMENTS
+## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
 - [dc](https://en.wikipedia.org/wiki/Dc_\(computer_program\)), the Unix desktop calculator;
@@ -37,7 +39,7 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
 - [x] [TAP](http://testanything.org/testing-with-tap/) support
 - [ ] offline transactions
 
-## LICENSE
+## License
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
 
