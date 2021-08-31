@@ -50,17 +50,13 @@ bip32()
       version != BIP32_MAINNET_PUBLIC_VERSION_CODE
     ))
     then return 1
-    elif ser32 $version
-      ((depth < 0 || depth > 255))
+    elif ((depth < 0 || depth > 255))
     then return 2
-    elif chr   $depth
-      ((fingerprint < 0 || fingerprint > 0xffffffff))
+    elif ((fingerprint < 0 || fingerprint > 0xffffffff))
     then return 3
-    elif ser32 $fingerprint
-      ((childnumber < 0 || childnumber > 0xffffffff))
+    elif ((childnumber < 0 || childnumber > 0xffffffff))
     then return 4
-    elif ser32 $childnumber
-      [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
+    elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
     then return 5
     elif [[ ! "$key" =~ ^[[:xdigit:]]{66}$ ]]
     then return 6
@@ -68,9 +64,19 @@ bip32()
     then return 7
     elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
     then return 8
-    #TODO: check if point is on curve
-    else xxd -p -r <<<"$chaincode$key"
-    fi | encodeBase58Check
+    elif local decompressedKey="$(secp256k1 -u "${key^^}")"
+      [[ "$key" =~ ^03 && "$decompressedKey" =~ [02468ACE]$ ]] ||
+      [[ "$key" =~ ^02 && "$decompressedKey" =~ [13579BDF]$ ]]
+    then return 9
+    else
+      {
+        ser32 $version
+	chr   $depth
+	ser32 $fingerprint
+	ser32 $childnumber
+	xxd -p -r <<<"$chaincode$key"
+      } | encodeBase58Check
+    fi
   elif [[ "$1" = m ]]
   then
     local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
