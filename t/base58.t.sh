@@ -1,4 +1,4 @@
-json=t/base58_encode_decode.json
+json="t/base58_encode_decode.json"
 
 . base58.sh
 
