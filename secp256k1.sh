@@ -33,7 +33,7 @@ secp256k1()
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
   elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
-  then dc -f secp256k1.dc -e "16doi${BASH_REMATCH[1]^^}dlGrlMxlEx"
+  then dc -f secp256k1.dc -e "16doilG${BASH_REMATCH[1]^^}lMxlEx"
   else
     cat <<-EOF
 	Usage:
