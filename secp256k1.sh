@@ -28,7 +28,7 @@ secp256k1()
         then echo "8d+i${BASH_REMATCH[1]^^}+"
         fi
       done
-      echo 'lo%[0x]P8d+op'
+      echo 'ln%[0x]P8d+op'
     } | dc -f secp256k1.dc -
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
