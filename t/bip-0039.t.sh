@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
 . bip-0039.sh
+. bip-0032.sh
+
+shorten()
+  if (( ${#1} > 12 ))
+  then echo "${1:0:6}..${1: -4}"
+  fi
 
 # test vectors taken from https://github.com/trezor/python-mnemonic/blob/master/vectors.json
 cat <<EOF |  
@@ -31,7 +37,7 @@ f585c11aec520db57dd353c69554b21a89b20fb0650966fa0a9d6f74fd989d8f:void come effor
 EOF
 {
   mapfile -t vectors
-  echo 1..$((${#vectors[@]}*2))
+  echo 1..$((${#vectors[@]}*4))
 
   declare -i n
   declare v
@@ -43,13 +49,24 @@ EOF
     ((n++))
     declare r1="$(bip39 "$hex")"
     if [[ "$r1" = "$words" ]]
-    then echo "ok $n - $hex -> $words"
+    then echo "ok $n - $(shorten "$hex") -> $(shorten "$words")"
     else echo "not ok $n - from $hex, '$words' was expected, but we got '$r1'"
     fi
     ((n++))
-    if bip39 $words >/dev/null
-    then echo "ok $n - good checksum for '$words'"
+    if declare generatedSeed="$(echo TREZOR| bip39 $words)"
+    then echo "ok $n - good checksum for '$(shorten "$words")'"
     else echo "not ok $n - error code $? when checking words '$words'"
+    fi
+    ((n++))
+    if [[ "$generatedSeed" = "$seed" ]]
+    then echo "ok $n - good seed generated for '$(shorten "$words")'"
+    else echo "not ok $n - wrong seed generated for '$words' : $generatedSeed instead of $seed"
+    fi
+    ((n++))
+    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32 m)"
+       [[ "$generatedExtendedKey" = "$addr" ]]
+    then echo "ok $n - good key generated from seed : $(shorten $seed) -> $(shorten $generatedExtendedKey)"
+    else echo "$generatedExtendedKey"
     fi
   done
 }

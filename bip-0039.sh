@@ -79,11 +79,10 @@ function bip39() {
     then
       1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
       return 5
-    else
-      local passphrase
-      read -p 'passphrase: ' passphrase
-      pbkdf2_hmac sha512 "$*" "mnemonic$passphrase" 2048
     fi
+    local passphrase
+    read -p 'passphrase: ' passphrase
+    pbkdf2_hmac sha512 "$*" "mnemonic$passphrase" 2048
   elif (($# == 0))
   then $FUNCNAME 160
   else
