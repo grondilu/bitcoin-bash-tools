@@ -16,6 +16,6 @@ done
 ((t++))
 n="0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
 if [[ "$(secp256k1 10 $n)" = '0xA' ]]
-then echo "ok $t - 10 + n = 0xA"
-else echo "not ok $t - 10 + n != 0xA"
+then echo "ok $t - 10 + n = 10"
+else echo "not ok $t - 10 + n != 10"
 fi
