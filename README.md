@@ -2,6 +2,16 @@
 
 This is a set of bash functions to manipulate bitcoin addresses, but mostly to generate keys for cold storage.
 
+When I first conceived these functions, tools like
+[sx](https://sx.dyne.org/index.html) or its successor
+[bx](https://github.com/libbitcoin/libbitcoin-explorer) either did not exist or
+I was not aware of their existence.  Now that I look at bx, it seems this
+utility does everything that I wanted to do and more, except it's not written in bash.
+
+I like bash for its ''out-of-the-box'' availibility in a GNU system, so I will likely continue
+to developp bitcoin-bash-tools, aiming at making it a translation of bx into bash.
+
+
 ## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
@@ -38,6 +48,7 @@ This is a set of bash functions to manipulate bitcoin addresses, but mostly to g
 - [ ] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 - [x] [TAP](http://testanything.org/testing-with-tap/) support
 - [ ] offline transactions
+- [ ] copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible
 
 ## License
 
