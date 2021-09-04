@@ -98,16 +98,29 @@ bx()
         fi
         ;;
       ec-to-public)
-        local o
-        if (($# == 0))
-        then read; $FUNCNAME ec-to-public "$REPLY"
+        if
+          local format="${BITCOIN_PUBLIC_KEY_FORMAT:-compressed}"
+          getopts u u
+        then
+          shift $((OPTIND - 1))
+          BITCOIN_PUBLIC_KEY_FORMAT=uncompressed $FUNCNAME $command "$@"
+        elif (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
         elif isDecimal "$1"
-        then $FUNCNAME ec-to-public "0x$(dc -e "16o$1p")"
+        then $FUNCNAME $command "0x$(dc -e "16o$1p")"
         elif isHexadecimal "$1"
-        then dc -f secp256k1.dc -e "16doilG${BASH_REMATCH[2]^^}lMxlEx"
-        else
-          return 1
-        fi;;
+	then
+          {
+	    echo "16doilG${BASH_REMATCH[2]^^}lMxlm~" 
+	    if [[ "$format" = compressed ]]
+	    then echo "2%2+2 2 8^^*+ P"
+	    else echo "r 4 2 2 8^^*+2 2 8^^*+P"
+	    fi
+          } | dc -f secp256k1.dc - |
+          xxd -p -c 65
+        else return 1
+        fi
+        ;;
       ec-to-address)
         if (($# == 0))
         then read; $FUNCNAME ec-to-address "$REPLY"
@@ -264,7 +277,7 @@ bx()
         elif (($# == 1))
         then read; $FUNCNAME $command "$1" "$REPLY"
         elif local -u point="$1"
-	  [[ ! "$point" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
+          ! isCompressedPoint "$point"
         then return 1
         elif isHexadecimal "$2"
         then dc -f secp256k1.dc -e "16doi$point dlYxr2 2 8^^%lm*+lG${BASH_REMATCH[2]^^}lMxlAxlEx"
