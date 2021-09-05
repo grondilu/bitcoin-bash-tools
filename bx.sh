@@ -10,7 +10,7 @@ bip32_mainnet_private_version_code=0x0488ADE4
 bip32_testnet_public_version_code=0x043587CF
 bip32_testnet_private_version_code=0x04358394
 
-declare base58=(123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz)
+declare base58="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
 
 isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
