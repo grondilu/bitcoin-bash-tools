@@ -5,13 +5,20 @@
 
 debug() { [[ $DEBUG = yes ]] && echo "$@"; } >&2
 
+bip32_mainnet_public_version_code=0x0488B21E
+bip32_mainnet_private_version_code=0x0488ADE4
+bip32_testnet_public_version_code=0x043587CF
+bip32_testnet_private_version_code=0x04358394
+
 declare base58=(123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz)
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
+
+isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
+isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
 
 isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
 isHexadecimal()    [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
 isBase64()         [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
-isRawExtendedKey() [[ "$1" =~ ^[[:xdigit:]]{2}{78}$ ]]
 isBase58Check() {
   [[ "$1" =~ ^[$base58]+$ ]] &&
   bx base58-decode "$1" |
@@ -20,9 +27,31 @@ isBase58Check() {
     [[ "$(bx wrap-encode -n "${REPLY:0:-8}")" = "$REPLY" ]]
   }
 }
+isExtendedKey() {
+  isBase58Check "$1" &&
+  bx base58-decode "$1" |
+  bx base16-decode |
+  wc -c |
+  grep -q '^82$'
+}
+isDerivationPath() [[ "$1" =~ ^[mM](/[[:digit:]]+h?)*$ ]]
 
-isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
-isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
+identifier()
+  if (($# == 0))
+  then read; $FUNCNAME "$1"
+  elif isExtendedKey "$1"
+  then
+    if [[ "$1" =~ ^[tx]prv ]]
+    then bx hd-to-public "$1" | $FUNCNAME
+    elif [[ "$1" =~ ^[tx]pub ]]
+    then
+      bx hd-parse "$1" |
+      cut -d' ' -f 6
+      #TODO
+    else return 2
+    fi
+  else return 1
+  fi
 
 declare -a bx_commands=(
   seed
@@ -153,10 +182,6 @@ bx()
       hd-new)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif isRawExtendedKey "$1"
-        then
-	  $FUNCNAME wrap-encode -n "$1" |
-	  $FUNCNAME base58-encode
         elif
 	  local -i version=${BITCOIN_VERSION_BYTES:-76066276}
 	  getopts v: o
@@ -178,10 +203,78 @@ bx()
 	      read
 	      printf "%08x%02x%08x%08x%s00%s\n" $version 0 0 0 "${REPLY:64:64}" "${REPLY:0:64}"
 	    } |
-            $FUNCNAME $command
+	    $FUNCNAME wrap-encode -n |
+	    $FUNCNAME base58-encode
           fi
         else
           echo "unknow argument format for '$1'" >&2
+	  return 1
+        fi
+        ;;
+      hd-to-public)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif
+          local -i version=${BIP32_EXTENDED_KEY_VERSION:-$bip32_mainnet_public_version_code}
+          getopts v: o
+        then shift $((OPTIND - 1))
+          BIP32_EXTENDED_KEY_VERSION=$OPTARG $FUNCNAME $command "$@"
+        elif isExtendedKey "$1"
+        then
+          $FUNCNAME hd-parse "$1" |
+          {
+             local -i oldversion depth parentfp childnumber
+             local chaincode key
+             read oldversion depth parentfp childnumber chaincode key
+	     key="$($FUNCNAME ec-to-public "$key")"
+             printf "%08x%02x%08x%08x%s%s\n" $version $depth $parentfp $childnumber $chaincode $key |
+             $FUNCNAME wrap-encode -n |
+             $FUNCNAME base58-encode
+          }
+        else return 1
+        fi
+        ;;
+      hd-parse)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isExtendedKey "$1"
+        then
+          $FUNCNAME base58-decode "$1" |
+          {
+            read
+	    local -i version="0x${REPLY:0:8}" \
+	               depth="0x${REPLY:8:2}" \
+	            parentfp="0x${REPLY:10:8}" \
+	         childnumber="0x${REPLY:18:8}"
+            local chaincode="${REPLY:26:64}" key="${REPLY:90:66}"
+            echo "$version $depth $parentfp $childnumber $chaincode $key"
+          }
+        else return 1
+        fi
+        ;;
+      hd-private)
+        local -i index=${BIP32_DERIVATION_INDEX:-0}
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif getopts di: o
+        then
+          shift $((OPTIND - 1))
+          case $o in
+	    d) BIP32_DERIVATION_TYPE=hardened $FUNCNAME $command "$@" ;;
+            i) BIP32_DERIVATION_INDEX=$OPTARG $FUNCNAME $command "$@" ;;
+          esac
+        elif isExtendedKey "$1"
+        then
+	  debug "BIP32_DERIVATION_INDEX=$BIP32_DERIVATION_INDEX"
+          debug "BIP32_DERIVATION_TYPE=$BIP32_DERIVATION_TYPE"
+          $FUNCNAME hd-parse "$1" |
+          {
+            local -i version depth parentfp childnumber
+            local chaincode key
+            read version depth parentfp childnumber chaincode key
+            echo $version $depth $parentfp $childnumber $chaincode $key
+          }
+        else
 	  return 1
         fi
         ;;
