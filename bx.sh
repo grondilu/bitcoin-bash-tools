@@ -124,20 +124,21 @@ bx()
         fi
         ;;
       ec-to-address)
-        debug "version in $command is $version"
-	local -i version
+	local -i version=${BITCOIN_VERSION_BYTE:-0}
         if getopts v: o
         then
           shift $((OPTIND - 1))
-          version=$OPTARG $FUNCNAME $command "$@"
+          BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
         elif (($# == 0))
         then read; $FUNCNAME ec-to-address "$REPLY"
         elif isCompressedPoint "$1" || isUncompressedPoint "$1"
         then
           $FUNCNAME bitcoin160 "$1" |
-          $FUNCNAME base58check-encode -v ${version:-0}
+          $FUNCNAME base58check-encode -v $version
         else return 1
         fi
+        ;;
+      hd-new)
         ;;
 
       # Encoding commands
@@ -204,18 +205,17 @@ bx()
         fi
         ;;
       wrap-encode)
-        local -i version_byte
+        local -i version=${BITCOIN_VERSION_BYTE:-0}
         if getopts v: o
         then
           debug "parsing option in $command : -$o $OPTARG"
           shift $((OPTIND - 1))
-          version_byte=$OPTARG $FUNCNAME $command "$@"
+          BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
         elif (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-	  debug "version_byte in $command is $version_byte"
-          printf "%02x%s\n" ${version_byte:-0} "$1" |
+          printf "%02x%s\n" $version "$1" |
           {
             read
             echo -n $REPLY
@@ -229,20 +229,19 @@ bx()
         fi
         ;;
       base58check-encode)
-        if local -i version
-          getopts v: o
+	local -i version=${BITCOIN_VERSION_BYTE:-0}
+        if getopts v: o
         then
           debug "parsing option in $command : -$o $OPTARG"
           shift $((OPTIND - 1))
-          version=$OPTARG $FUNCNAME $command "$@"
+          BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
         elif ((version < 0 || version > 255))
         then return 2
         elif (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-	  debug "version in $command is $version"
-          $FUNCNAME wrap-encode -v ${version:-0} "$1" |
+          $FUNCNAME wrap-encode -v $version "$1" |
           $FUNCNAME base58-encode
         else return 1
         fi
