@@ -3,6 +3,8 @@
 # bx.sh, an attempt at a bash port of the Bitcoin eXplorer (BX).
 # Original code:  https://github.com/libbitcoin/libbitcoin-explorer
 
+debug() { [[ $debug = yes ]] && echo "$@"; } >&2
+
 isDecimal()     [[ "$1" =~ ^[[:digit:]]+$ ]]
 isHexadecimal() [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
 is64based()     [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
@@ -122,8 +124,19 @@ bx()
         fi
         ;;
       ec-to-address)
-        if (($# == 0))
+        debug "version in $command is $version"
+	local -i version
+        if getopts v: o
+        then
+          shift $((OPTIND - 1))
+          version=$OPTARG $FUNCNAME $command "$@"
+        elif (($# == 0))
         then read; $FUNCNAME ec-to-address "$REPLY"
+        elif isCompressedPoint "$1" || isUncompressedPoint "$1"
+        then
+          $FUNCNAME bitcoin160 "$1" |
+          $FUNCNAME base58check-encode -v ${version:-0}
+        else return 1
         fi
         ;;
 
@@ -150,30 +163,23 @@ bx()
       base58-decode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif [[ ! "$1" =~ ^[$base58]+$ ]]
-        then return 1
         elif [[ "$1" =~ ^1 ]]
+        then echo -n 1; $FUNCNAME $command "${1:1}"
+        elif [[ "$1" =~ ^[$base58]+$ ]]
         then
-          local ones="${1%%[^1]*}"
-          echo -n "${ones//?/00}"
-          $FUNCNAME $command "${1:${#ones}}"
-        else
-	  {
-	    echo "$dcr 0"
-	    sed 's/./ 58*l&+/g' <<<"$1"
-	    echo "P"
-	  } | dc |
+	  sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$1" |
+	  dc |
           $FUNCNAME base16-encode
+        else return 1
         fi
         ;;
       base58-encode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif ! isHexadecimal "$1"
-        then return 1
         elif [[ "$1" =~ ^00.+ ]]
         then echo -n 1; $FUNCNAME $command "${1:2}"
-        else
+        elif isHexadecimal "$1"
+        then
           {
 	    echo 16i 0
 	    echo -n "${1^^}" |
@@ -183,10 +189,12 @@ bx()
           } | dc |
 	  while read; do echo -n "${base58:$REPLY:1}"; done
           echo
+        else return 1
         fi
         ;;
       base64-encode)
-        openssl base64;;
+        openssl base64
+        ;;
       base64-decode)
         if (($# == 0))
         then openssl base64 -d
@@ -196,14 +204,18 @@ bx()
         fi
         ;;
       wrap-encode)
-        if local -i version=${VERSION_BYTE:-0}
-          getopts v: v
+        local -i version_byte
+        if getopts v: o
         then
+          debug "parsing option in $command : -$o $OPTARG"
           shift $((OPTIND - 1))
-          VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
+          version_byte=$OPTARG $FUNCNAME $command "$@"
+        elif (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          printf "%02x%s\n" $version "$1" |
+	  debug "version_byte in $command is $version_byte"
+          printf "%02x%s\n" ${version_byte:-0} "$1" |
           {
             read
             echo -n $REPLY
@@ -217,45 +229,47 @@ bx()
         fi
         ;;
       base58check-encode)
-        if local -i version=${VERSION_BYTE:-0}
-          getopts v: v
+        if local -i version
+          getopts v: o
         then
+          debug "parsing option in $command : -$o $OPTARG"
           shift $((OPTIND - 1))
-          VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
+          version=$OPTARG $FUNCNAME $command "$@"
+        elif ((version < 0 || version > 255))
+        then return 2
         elif (($# == 0))
-        then read; $FUNCNAME $command -v $version "$REPLY"
+        then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          $FUNCNAME wrap-encode -v $version "$1" |
+	  debug "version in $command is $version"
+          $FUNCNAME wrap-encode -v ${version:-0} "$1" |
           $FUNCNAME base58-encode
         else return 1
         fi
         ;;
-
       # Hash commands
       bitcoin160)
         if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isHexadecimal "$1"
         then
-          $FUNCNAME base16-decode |
+          $FUNCNAME base16-decode "$1" |
           openssl dgst -sha256 -binary |
           openssl dgst -rmd160 -binary |
           $FUNCNAME base16-encode
-        elif isHexadecimal "$1"
-        then echo -n "$1" | $FUNCNAME $command
         else return 1
         fi
 	;;
       bitcoin256)
         if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isHexadecimal "$1"
         then
-          $FUNCNAME base16-decode |
+          $FUNCNAME base16-decode "$1" |
           openssl dgst -sha256 -binary |
           openssl dgst -sha256 -binary |
           $FUNCNAME base16-encode |
           fold -w 2 | tac |tr -d "\n"
-          echo
-        elif isHexadecimal "$1"
-        then echo -n "$1" | $FUNCNAME $command
         else return 1
         fi
         ;;
@@ -286,7 +300,7 @@ bx()
         ;;
       ec-add-secrets)
         local dc_script
-        for arg in "$@"
+        for arg
         do
 	  if isHexadecimal "$arg"
 	  then dc_script+="${BASH_REMATCH[2]^^}+"
