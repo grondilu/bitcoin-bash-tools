@@ -15,7 +15,6 @@ isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
 declare base58=(123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz)
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
 
-
 declare -a bx_commands=(
   seed
   ec-{new,to-{address,public,wif}}
@@ -86,23 +85,28 @@ bx()
       ec-new)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif ! isHexadecimal "$1"
-        then return 1
-        elif ((4*${#1} < 128))
+        elif isDecimal "$1"
+        then $FUNCNAME $command "0x$(dc -e "16o$1p")"
+        elif isHexadecimal "$1"
         then
-          echo "The seed is less than 128 bits long." >&2
-          return 2
-        else
-          $FUNCNAME base16-decode "$1" |
-          openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-          head -c 32 |
-          $FUNCNAME base16-encode
+          local hex="${BASH_REMATCH[2]}"
+	  if ((4*$hex < 128))
+	  then
+	    echo "The seed is less than 128 bits long." >&2
+	    return 2
+	  else
+	    $FUNCNAME base16-decode "$hex" |
+	    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+	    head -c 32 |
+	    $FUNCNAME base16-encode
+	  fi
+        else return 1
         fi
         ;;
       ec-to-public)
         if
           local format="${BITCOIN_PUBLIC_KEY_FORMAT:-compressed}"
-          getopts u u
+          getopts u o
         then
           shift $((OPTIND - 1))
           BITCOIN_PUBLIC_KEY_FORMAT=uncompressed $FUNCNAME $command "$@"
@@ -139,6 +143,41 @@ bx()
         fi
         ;;
       hd-new)
+        local -i version=${BITCOIN_VERSION_BYTES:-76066276}
+        if getopts v: o
+        then
+          shift $((OPTIND - 1))
+          BITCOIN_VERSION_BYTES=$OPTARG $FUNCNAME $command "$@"
+        elif (($# == 0))
+        then read; $FUNCNAME $command "$1"
+        elif isHexadecimal "$1"
+        then
+          local seed="${BASH_REMATCH[2]}"
+          if ((4*${#seed} < 128))
+          then
+            echo "Seed is less than 128 bits long" >&2
+            return 2
+          else
+	    $FUNCNAME base16-decode "$seed" |
+	    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+	    $FUNCNAME base16-encode |
+	    {
+	      read
+	      printf "%08x%02x%08x%08x%s00%s\n" $version 0 0 0 "${REPLY:64:64}" "${REPLY:0:64}"
+	    } |
+	    {
+	      read
+	      echo -n $REPLY
+	      $FUNCNAME base16-decode "$REPLY" |
+	      openssl sha256 -binary |
+	      openssl sha256 -binary |
+	      head -c 4 |
+	      $FUNCNAME base16-encode
+	    } |
+	    $FUNCNAME base58-encode
+          fi
+        else return 1
+        fi
         ;;
 
       # Encoding commands
@@ -158,7 +197,7 @@ bx()
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
-        then xxd -p -r <<<"$1"
+        then xxd -p -r <<<"${BASH_REMATCH[2]}"
         else return 1
         fi;;
       base58-decode)
@@ -183,7 +222,7 @@ bx()
         then
           {
 	    echo 16i 0
-	    echo -n "${1^^}" |
+	    echo -n "${BASH_REMATCH[2]^^}" |
 	    fold -w 2 |
 	    sed 's/$/r100*+/'
 	    echo '[3A~rd0<x]dsxx+f'
@@ -215,7 +254,7 @@ bx()
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          printf "%02x%s\n" $version "$1" |
+          printf "%02x%s\n" $version "${BASH_REMATCH[2]}" |
           {
             read
             echo -n $REPLY
@@ -241,7 +280,7 @@ bx()
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          $FUNCNAME wrap-encode -v $version "$1" |
+          $FUNCNAME wrap-encode -v $version "${BASH_REMATCH[2]}" |
           $FUNCNAME base58-encode
         else return 1
         fi
@@ -252,7 +291,7 @@ bx()
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          $FUNCNAME base16-decode "$1" |
+          $FUNCNAME base16-decode "${BASH_REMATCH[2]}" |
           openssl dgst -sha256 -binary |
           openssl dgst -rmd160 -binary |
           $FUNCNAME base16-encode
@@ -264,7 +303,7 @@ bx()
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          $FUNCNAME base16-decode "$1" |
+          $FUNCNAME base16-decode "${BASH_REMATCH[2]}" |
           openssl dgst -sha256 -binary |
           openssl dgst -sha256 -binary |
           $FUNCNAME base16-encode |
@@ -276,7 +315,7 @@ bx()
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
-        then $FUNCNAME base16-decode "$1" |
+        then $FUNCNAME base16-decode "${BASH_REMATCH[2]}" |
           openssl rmd160 -binary |
           $FUNCNAME base16-encode
         else return 1
