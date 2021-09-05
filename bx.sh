@@ -3,17 +3,26 @@
 # bx.sh, an attempt at a bash port of the Bitcoin eXplorer (BX).
 # Original code:  https://github.com/libbitcoin/libbitcoin-explorer
 
-debug() { [[ $debug = yes ]] && echo "$@"; } >&2
-
-isDecimal()     [[ "$1" =~ ^[[:digit:]]+$ ]]
-isHexadecimal() [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
-is64based()     [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
-
-isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
-isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
+debug() { [[ $DEBUG = yes ]] && echo "$@"; } >&2
 
 declare base58=(123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz)
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
+
+isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
+isHexadecimal()    [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
+isBase64()         [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
+isRawExtendedKey() [[ "$1" =~ ^[[:xdigit:]]{2}{78}$ ]]
+isBase58Check() {
+  [[ "$1" =~ ^[$base58]+$ ]] &&
+  bx base58-decode "$1" |
+  {
+    read
+    [[ "$(bx wrap-encode -n "${REPLY:0:-8}")" = "$REPLY" ]]
+  }
+}
+
+isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
+isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
 
 declare -a bx_commands=(
   seed
@@ -36,7 +45,6 @@ declare -a bx_commands=(
 )
 
 complete -W "${bx_commands[*]}" bx
-
 bx() 
   if
     local OPTIND OPTARG
@@ -143,13 +151,18 @@ bx()
         fi
         ;;
       hd-new)
-        local -i version=${BITCOIN_VERSION_BYTES:-76066276}
-        if getopts v: o
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isRawExtendedKey "$1"
+        then
+	  $FUNCNAME wrap-encode -n "$1" |
+	  $FUNCNAME base58-encode
+        elif
+	  local -i version=${BITCOIN_VERSION_BYTES:-76066276}
+	  getopts v: o
         then
           shift $((OPTIND - 1))
           BITCOIN_VERSION_BYTES=$OPTARG $FUNCNAME $command "$@"
-        elif (($# == 0))
-        then read; $FUNCNAME $command "$1"
         elif isHexadecimal "$1"
         then
           local seed="${BASH_REMATCH[2]}"
@@ -165,11 +178,11 @@ bx()
 	      read
 	      printf "%08x%02x%08x%08x%s00%s\n" $version 0 0 0 "${REPLY:64:64}" "${REPLY:0:64}"
 	    } |
-            $FUNCNAME wrap-encode -n |
-            $FUNCNAME base58-encode
-
+            $FUNCNAME $command
           fi
-        else return 1
+        else
+          echo "unknow argument format for '$1'" >&2
+	  return 1
         fi
         ;;
 
@@ -197,7 +210,7 @@ bx()
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif [[ "$1" =~ ^1 ]]
-        then echo -n 1; $FUNCNAME $command "${1:1}"
+        then echo -n 00; $FUNCNAME $command "${1:1}"
         elif [[ "$1" =~ ^[$base58]+$ ]]
         then
 	  sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$1" |
@@ -231,7 +244,7 @@ bx()
       base64-decode)
         if (($# == 0))
         then openssl base64 -d
-        elif is64based "$1"
+        elif isBase64 "$1"
         then echo "$1" | $FUNCNAME $command
         else return 1
         fi
@@ -253,8 +266,9 @@ bx()
         elif isHexadecimal "$1"
         then
           local payload="${BASH_REMATCH[2]}"
+          debug payload is $payload
           {
-            if [[ ! "$BITCOIN_VERSION_BYTE" = none ]]
+            if [[ ! "$BITCOIN_VERSION_BYTE" = "none" ]]
 	    then printf "%02x" $version
             fi
             printf "%s\n" "$payload"
@@ -268,7 +282,9 @@ bx()
 	    head -c 4 |
 	    $FUNCNAME base16-encode
           }
-        else return 1
+        else
+          debug "unknown argument '$1'"
+	  return 1
         fi
         ;;
       base58check-encode)
