@@ -165,16 +165,9 @@ bx()
 	      read
 	      printf "%08x%02x%08x%08x%s00%s\n" $version 0 0 0 "${REPLY:64:64}" "${REPLY:0:64}"
 	    } |
-	    {
-	      read
-	      echo -n $REPLY
-	      $FUNCNAME base16-decode "$REPLY" |
-	      openssl sha256 -binary |
-	      openssl sha256 -binary |
-	      head -c 4 |
-	      $FUNCNAME base16-encode
-	    } |
-	    $FUNCNAME base58-encode
+            $FUNCNAME wrap-encode -n |
+            $FUNCNAME base58-encode
+
           fi
         else return 1
         fi
@@ -245,16 +238,27 @@ bx()
         ;;
       wrap-encode)
         local -i version=${BITCOIN_VERSION_BYTE:-0}
-        if getopts v: o
+        if getopts nv: o
         then
-          debug "parsing option in $command : -$o $OPTARG"
+          debug "parsing option -$o in $command"
           shift $((OPTIND - 1))
-          BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
+          if [[ "$o" = v ]]
+          then BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
+          elif [[ "$o" = n ]]
+          then BITCOIN_VERSION_BYTE=none $FUNCNAME $command "$@"
+          else echo "unexpected option -$o" >&2; return 2
+          fi
         elif (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
         then
-          printf "%02x%s\n" $version "${BASH_REMATCH[2]}" |
+          local payload="${BASH_REMATCH[2]}"
+          {
+            if [[ ! "$BITCOIN_VERSION_BYTE" = none ]]
+	    then printf "%02x" $version
+            fi
+            printf "%s\n" "$payload"
+          } |
           {
             read
             echo -n $REPLY
