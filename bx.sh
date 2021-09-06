@@ -262,6 +262,48 @@ bx()
         else $FUNCNAME hd-identifier "$1" | head -c 8
         fi
         ;;
+      hd-public)
+        local -i index=${BIP32_DERIVATION_INDEX:-0}
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif getopts di: o
+        then
+          shift $((OPTIND - 1))
+          case $o in
+	    d) BIP32_DERIVATION_TYPE=hardened $FUNCNAME $command "$@" ;;
+            i) BIP32_DERIVATION_INDEX=$OPTARG $FUNCNAME $command "$@" ;;
+          esac
+	elif [[ "$1" =~ ^[tx]prv ]]
+	then $FUNCNAME hd-private "$1" | $FUNCNAME hd-to-public
+        elif [[ "$BIP32_DERIVATION_TYPE" = hardened ]]
+        then echo "Hard key derivation requires private key" >&2; return 2
+        elif isExtendedKey "$1"
+        then
+          $FUNCNAME hd-parse "$1" |
+          {
+            local -i version depth parentfp childnumber
+            local chaincode key
+            read version depth parentfp childnumber chaincode key
+            ((depth++, childnumber=index))
+            parentfp="0x$($FUNCNAME hd-fingerprint "$1")"
+
+	    printf "%66s%08x\n" $key $index |
+	    $FUNCNAME base16-decode |
+	    openssl dgst -sha512 -mac hmac -macopt hexkey:$chaincode -binary |
+	    $FUNCNAME base16-encode |
+            {
+              read
+              local ki ci="${REPLY:64:64}"
+              ki="$($FUNCNAME ec-add $key ${REPLY:0:64})"
+              
+	      printf "$bip32_serialization_format\n" $version $depth $parentfp $childnumber $ci $ki
+            } |
+            $FUNCNAME wrap-encode -n |
+            $FUNCNAME base58-encode
+          }
+        else echo "$1 does not look like an extended key" >&2; return 1
+        fi
+        ;;
       hd-private)
         local -i index=${BIP32_DERIVATION_INDEX:-0}
         if (($# == 0))
@@ -273,6 +315,8 @@ bx()
 	    d) BIP32_DERIVATION_TYPE=hardened $FUNCNAME $command "$@" ;;
             i) BIP32_DERIVATION_INDEX=$OPTARG $FUNCNAME $command "$@" ;;
           esac
+	elif [[ "$1" =~ ^[tx]pub ]]
+	then echo "private key derivation can't be done from a public key" >&2; return 2
         elif isExtendedKey "$1"
         then
 	  debug "BIP32_DERIVATION_INDEX=$BIP32_DERIVATION_INDEX"
@@ -280,7 +324,7 @@ bx()
           if [[ "$BIP32_DERIVATION_TYPE" = hardened ]]
           then
             if ((index >= 1 << 31))
-            then return 2
+            then echo "derivation index already looks hardened" >&2; return 3
             else ((index += 1 << 31)) 
             fi
           fi
@@ -293,9 +337,10 @@ bx()
             ((depth++, childnumber=index))
             parentfp="0x$($FUNCNAME hd-fingerprint "$1")"
 
+            local parent_pubkey="$($FUNCNAME ec-to-public "${key:2}")"
             {
 	      if ((index < 1<<31))
-	      then $FUNCNAME ec-to-public "${key:2}"
+	      then echo "$parent_pubkey"
 	      else echo "$key"
 	      fi
 	      printf "%08x\n" $index
@@ -305,14 +350,15 @@ bx()
 	    $FUNCNAME base16-encode |
             {
               read
-              local ki="$($FUNCNAME ec-add-secrets ${REPLY:0:64} ${key:2})" ci="${REPLY:64:64}"
+              local ki ci="${REPLY:64:64}"
+              ki="00$($FUNCNAME ec-add-secrets ${REPLY:0:64} ${key:2})"
               
-	      printf "$bip32_serialization_format\n" $version $depth $parentfp $childnumber $ci "00$ki"
+	      printf "$bip32_serialization_format\n" $version $depth $parentfp $childnumber $ci $ki
             } |
             $FUNCNAME wrap-encode -n |
             $FUNCNAME base58-encode
           }
-        else return 1
+        else echo "$1 does not look like an extended key" >&2; return 1
         fi
         ;;
 
@@ -495,7 +541,9 @@ bx()
 	  else return 1
 	  fi
         done
-        dc -f secp256k1.dc -e "16doi0 $dc_script ln%p"
+        dc -f secp256k1.dc -e "16doi0 $dc_script ln% 2 2 8^^+P" |
+        tail -c 32 |
+        $FUNCNAME base16-encode
         ;;
       *)
         echo "$command NYI" >&2
