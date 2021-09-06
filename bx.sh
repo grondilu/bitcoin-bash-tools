@@ -10,6 +10,8 @@ bip32_mainnet_private_version_code=0x0488ADE4
 bip32_testnet_public_version_code=0x043587CF
 bip32_testnet_private_version_code=0x04358394
 
+bip32_serialization_format="%08x%02x%08x%08x%64s%66s" 
+
 declare base58="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
 
@@ -186,7 +188,7 @@ bx()
 	    $FUNCNAME base16-encode |
 	    {
 	      read
-	      printf "%08x%02x%08x%08x%s00%s\n" $version 0 0 0 "${REPLY:64:64}" "${REPLY:0:64}"
+	      printf "$bip32_serialization_format\n" $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
 	    } |
 	    $FUNCNAME wrap-encode -n |
 	    $FUNCNAME base58-encode
@@ -212,7 +214,7 @@ bx()
              local chaincode key
              read oldversion depth parentfp childnumber chaincode key
 	     key="$($FUNCNAME ec-to-public "$key")"
-             printf "%08x%02x%08x%08x%s%s\n" $version $depth $parentfp $childnumber $chaincode $key |
+             printf "$bip32_serialization_format\n" $version $depth $parentfp $childnumber $chaincode $key |
              $FUNCNAME wrap-encode -n |
              $FUNCNAME base58-encode
           }
@@ -275,12 +277,40 @@ bx()
         then
 	  debug "BIP32_DERIVATION_INDEX=$BIP32_DERIVATION_INDEX"
           debug "BIP32_DERIVATION_TYPE=$BIP32_DERIVATION_TYPE"
+          if [[ "$BIP32_DERIVATION_TYPE" = hardened ]]
+          then
+            if ((index >= 1 << 31))
+            then return 2
+            else ((index += 1 << 31)) 
+            fi
+          fi
+ 
           $FUNCNAME hd-parse "$1" |
           {
             local -i version depth parentfp childnumber
             local chaincode key
             read version depth parentfp childnumber chaincode key
-            debug "$version $depth $parentfp $childnumber $chaincode $key"
+            ((depth++, childnumber=index))
+            parentfp="0x$($FUNCNAME hd-fingerprint "$1")"
+
+            {
+	      if ((index < 1<<31))
+	      then $FUNCNAME ec-to-public "${key:2}"
+	      else echo "$key"
+	      fi
+	      printf "%08x\n" $index
+	    } |
+	    while read; do $FUNCNAME base16-decode "$REPLY"; done |
+	    openssl dgst -sha512 -mac hmac -macopt hexkey:$chaincode -binary |
+	    $FUNCNAME base16-encode |
+            {
+              read
+              local ki="$($FUNCNAME ec-add-secrets ${REPLY:0:64} ${key:2})" ci="${REPLY:64:64}"
+              
+	      printf "$bip32_serialization_format\n" $version $depth $parentfp $childnumber $ci "00$ki"
+            } |
+            $FUNCNAME wrap-encode -n |
+            $FUNCNAME base58-encode
           }
         else return 1
         fi
