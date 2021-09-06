@@ -114,7 +114,7 @@ bx()
         elif isHexadecimal "$1"
         then
           local hex="${BASH_REMATCH[2]}"
-	  if ((4*$hex < 128))
+	  if ((4*${#hex} < 128))
 	  then
 	    echo "The seed is less than 128 bits long." >&2
 	    return 2
