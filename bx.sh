@@ -36,23 +36,6 @@ isExtendedKey() {
 }
 isDerivationPath() [[ "$1" =~ ^[mM](/[[:digit:]]+h?)*$ ]]
 
-identifier()
-  if (($# == 0))
-  then read; $FUNCNAME "$1"
-  elif isExtendedKey "$1"
-  then
-    if [[ "$1" =~ ^[tx]prv ]]
-    then bx hd-to-public "$1" | $FUNCNAME
-    elif [[ "$1" =~ ^[tx]pub ]]
-    then
-      bx hd-parse "$1" |
-      cut -d' ' -f 6
-      #TODO
-    else return 2
-    fi
-  else return 1
-  fi
-
 declare -a bx_commands=(
   seed
   ec-{new,to-{address,public,wif}}
@@ -71,6 +54,8 @@ declare -a bx_commands=(
   sha{160,256,512}
 
   ec-{add,multiply}{,-secrets}
+  
+  hd-{parse,identifier,fingerprint}
 )
 
 complete -W "${bx_commands[*]}" bx
@@ -252,6 +237,29 @@ bx()
         else return 1
         fi
         ;;
+      hd-identifier)
+	if (($# == 0))
+	then read; $FUNCNAME $command "$REPLY"
+	elif isExtendedKey "$1"
+	then
+	  if [[ "$1" =~ ^[tx]prv ]]
+	  then $FUNCNAME hd-to-public "$1" | $FUNCNAME $command
+	  elif [[ "$1" =~ ^[tx]pub ]]
+	  then
+	    $FUNCNAME hd-parse "$1" |
+	    cut -d' ' -f 6 |
+	    $FUNCNAME bitcoin160
+	  else return 2
+	  fi
+	else return 1
+	fi
+        ;;
+      hd-fingerprint)
+	if (($# == 0))
+	then read; $FUNCNAME $command "$REPLY"
+        else $FUNCNAME hd-identifier "$1" | head -c 8
+        fi
+        ;;
       hd-private)
         local -i index=${BIP32_DERIVATION_INDEX:-0}
         if (($# == 0))
@@ -272,10 +280,9 @@ bx()
             local -i version depth parentfp childnumber
             local chaincode key
             read version depth parentfp childnumber chaincode key
-            echo $version $depth $parentfp $childnumber $chaincode $key
+            debug "$version $depth $parentfp $childnumber $chaincode $key"
           }
-        else
-	  return 1
+        else return 1
         fi
         ;;
 
