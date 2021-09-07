@@ -62,7 +62,10 @@ declare -a bx_commands=(
 
 complete -W "${bx_commands[*]}" bx
 bx() 
-  if
+  if ! test -f secp256k1.dc
+  then echo "can't find elliptic curve dc script file" >&2; return 1
+  elif
+    debug "$FUNCNAME $@"
     local OPTIND OPTARG
     getopts h o
   then cat <<-ENDUSAGE
@@ -382,6 +385,17 @@ bx()
             $FUNCNAME base58-encode
           }
         else echo "$1 does not look like an extended key" >&2; return 1
+        fi
+        ;;
+      hd-to-ec)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isExtendedKey "$1"
+        then
+          $FUNCNAME hd-parse "$1" |
+          cut -d' ' -f 6 |
+          sed 's/^00//'
+        else return 1
         fi
         ;;
 
