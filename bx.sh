@@ -151,6 +151,29 @@ bx()
         else return 1
         fi
         ;;
+      ec-to-wif)
+        local -i version=${BITCOIN_VERSION_BYTE:-0x80}
+        if getopts uv: o
+        then
+	  shift $((OPTIND - 1))
+          if [[ "$o" = v ]]
+          then BITCOIN_VERSION_BYTE=$OPTARG $FUNCNAME $command "$@"
+          elif [[ "$o" = u ]]
+          then BITCOIN_WIF_FORMAT=uncompressed $FUNCNAME $command "$@"
+          fi
+        elif (($# == 0))
+        then read; $FUNCNAME $command "$1"
+        elif isHexadecimal "$1"
+        then
+	  if [[ "$BITCOIN_WIF_FORMAT" = uncompressed ]]
+          then echo "$1"
+          else echo "${1}01"
+          fi |
+          $FUNCNAME wrap-encode -v $version |
+          $FUNCNAME base58-encode
+        else return 1
+        fi
+        ;;
       ec-to-address)
 	local -i version=${BITCOIN_VERSION_BYTE:-0}
         if getopts v: o
