@@ -1,11 +1,11 @@
-. bx.sh
+. base58.sh
 
 echo 1..14
 declare -i t=0
 while read a b
 do
   ((t++))
-  declare c="$(bx base58-encode "$a")"
+  declare c="$(xxd -p -r <<<"$a"| encodeBase58)"
   if [[ "$c" = "$b" ]]
   then echo "ok $t - $a → $b"
   else echo "not ok $t - $a → $c instead of $b"
