@@ -1,7 +1,8 @@
 . base58.sh
 
-echo 1..14
+echo 1..28
 declare -i t=0
+
 while read a b
 do
   ((t++))
@@ -9,6 +10,11 @@ do
   if [[ "$c" = "$b" ]]
   then echo "ok $t - $a → $b"
   else echo "not ok $t - $a → $c instead of $b"
+  fi
+  ((t++))
+  if diff <(xxd -p -r <<<"$a") <(decodeBase58 "$b")
+  then echo "ok $t - $b → $a"
+  else echo "not ok $t - ¬ $b → $a"
   fi
 done <<-EOF
  

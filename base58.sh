@@ -7,13 +7,15 @@ unset dcr; for i in ${!base58[@]}; do dcr+="${i}s${base58[i]}"; done
 
 decodeBase58() {
   if [[ "$1" =~ ^1+ ]]
-  then echo -n 00; $FUNCNAME "${1:1}"
-  fi | xxd -p -r
-  {
-    echo "$dcr 0"
-    sed 's/./ 58*l&+/g' <<<"$1"
-    echo "P"
-  } | dc
+  then printf "\x00"; $FUNCNAME "${1:1}"
+  elif ((${#1} > 0))
+  then
+    {
+      echo "$dcr 0"
+      sed 's/./ 58*l&+/g' <<<"$1"
+      echo "P"
+    } | dc
+  fi
 }
 encodeBase58() {
   xxd -p -u -c 1 |
