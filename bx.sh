@@ -197,10 +197,26 @@ bx()
         then read; $FUNCNAME $command "$REPLY"
         elif
 	  local -i version=${BITCOIN_VERSION_BYTES:-$bip32_mainnet_private_version_code}
-	  getopts v: o
+	  getopts Ppv: o
         then
           shift $((OPTIND - 1))
-          BITCOIN_VERSION_BYTES=$OPTARG $FUNCNAME $command "$@"
+          case "$o" in
+          v) BITCOIN_VERSION_BYTES=$OPTARG $FUNCNAME $command "$@" ;;
+          p)
+            read -p "Passphrase: "
+            BIP32_PASSPHRASE="$REPLY" $FUNCNAME $command "$@"
+            ;;
+          P)
+            local passphrase
+	    read -p "Passphrase: " -s passphrase
+            debug passphrase is $passphrase
+	    read -p "Confirm passphrase: " -s
+            if [[ "$REPLY" = "$passphrase" ]]
+            then BIP32_PASSPHRASE=$passphrase $FUNCNAME $command "$@"
+            else echo "passphrase input error" >&2; return 3;
+            fi
+            ;;
+          esac
         elif isHexadecimal "$1"
         then
           local seed="${BASH_REMATCH[2]}"
@@ -210,7 +226,7 @@ bx()
             return 2
           else
 	    $FUNCNAME base16-decode "$seed" |
-	    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+	    openssl dgst -sha512 -hmac "${BIP32_PASSPHRASE:-Bitcoin seed}" -binary |
 	    $FUNCNAME base16-encode |
 	    {
 	      read
