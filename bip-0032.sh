@@ -75,7 +75,7 @@ bip32()
 	ser32 $fingerprint
 	ser32 $childnumber
 	xxd -p -r <<<"$chaincode$key"
-      } | encodeBase58Check
+      } | base58 -c
     fi
   elif [[ "$1" = m ]]
   then
@@ -144,8 +144,8 @@ bip32()
   elif [[ "$1" = '--parse' ]]
   then
     read
-    decodeBase58Check "$REPLY" || return 1
-    decodeBase58 "$REPLY" |
+    base58 -v "$REPLY" || return 1
+    base58 -d "$REPLY" |
     xxd -p -c $((2*(78+4))) |
     {
       read
