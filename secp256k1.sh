@@ -11,8 +11,11 @@ secp256k1()
       sed 's/.*/&dlYxr2 2 8^^%lm*+lAx/'
       echo lEx
     } | dc -f secp256k1.dc -
-  elif [[ "$1" = '-u' ]]
-  then shift
+  elif
+    local OPTIND o
+    getopts u o
+  then
+    shift $((OPTIND - 1))
     dc -f secp256k1.dc -e "4 2 512^*16doi$1dlYxr2 2 8^^%2 2 8^^*++P" |
     xxd -p -u -c 65
   elif (( $# > 1 ))
@@ -32,8 +35,8 @@ secp256k1()
     } | dc -f secp256k1.dc -
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
   then $FUNCNAME "0x$(dc -e "$1 16on")"
-  elif [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
-  then dc -f secp256k1.dc -e "16doilG${BASH_REMATCH[1]^^}lMxlEx"
+  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]+)$ ]]
+  then dc -f secp256k1.dc -e "16doilG${BASH_REMATCH[2]^^}lMxlEx"
   else
     cat <<-EOF
 	Usage:

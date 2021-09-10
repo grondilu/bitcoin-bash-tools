@@ -44,7 +44,8 @@ ser256()
   fi
 
 newBitcoinKey()
-  if
+  if 
+    echo "trace : $FUNCNAME $@" >&2
     local OPTIND o
     getopts hu o
   then
@@ -52,12 +53,13 @@ newBitcoinKey()
     case "$o" in
       h) cat <<-END_USAGE
 	$FUNCNAME -h
-	$FUNCNAME [-u] EXPONENT
+	$FUNCNAME [-u] PRIVATE_KEY
+        $FUNCNAME WIF
 	
 	The '-h' option displays this message.
 	
-	EXPONENT is a natural integer in decimal or hexadecimal,
-	with an optional '0x' prefix for hexadecimal.
+	PRIVATE_KEY is a natural integer in decimal, hexadecimal (with an
+	optional '0x' prefix) or wallet import format (WIF).
 	
 	The '-u' will use the uncompressed form of the public key.
 	END_USAGE
@@ -69,19 +71,20 @@ newBitcoinKey()
   then $FUNCNAME "0x$(dc -e "16o$1p")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
   then
-    local exponent="${BASH_REMATCH[2]^^}" pubkey WIF_SUFFIX
-    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00"
+    local exponent="${BASH_REMATCH[2]^^}"
+    local pubkey="$(secp256k1 "$exponent")"
+    local WIF_PREFIX="\x80" WIF_SUFFIX="\x01" P2PKH_PREFIX="\x00"
+
     if [[ "$BITCOIN_NET" = 'TEST' ]]
     then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F"
     fi
+
     if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
     then
-      pubkey="$(secp256k1 -u "$exponent")"
+      pubkey="$(secp256k1 -u "$pubkey")"
       WIF_SUFFIX=''
-    else
-      pubkey="$(secp256k1 "$exponent")"
-      WIF_SUFFIX="\x01"
     fi
+
     cat <<-ENDJSON
 	{
 	  "WIF": "$({
@@ -95,6 +98,17 @@ newBitcoinKey()
 	    } | base58 -c)"
 	}
 	ENDJSON
+  elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
+  then base58 -x "$1" |
+    {
+      read
+      if   [[ "$REPLY" =~ ^80([[:xdigit:]]{2}{32})01[[:xdigit:]]{2}{4}$ ]]
+      then $FUNCNAME "${BASH_REMATCH[1]}"
+      elif [[ "$REPLY" =~ ^80([[:xdigit:]]{2}{32})[[:xdigit:]]{2}{4}$ ]]
+      then $FUNCNAME -u "${BASH_REMATCH[1]}"
+      else return 2
+      fi
+    }
   elif test -z "$1"
   then $FUNCNAME "0x$(openssl rand -hex 32)"
   else
