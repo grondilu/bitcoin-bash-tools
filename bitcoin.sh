@@ -26,7 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-for script in {secp256k1,base58,bip-{0173,0032}}.sh
+for script in {secp256k1,base58}.sh
 do . "$script"
 done
 
@@ -36,69 +36,68 @@ hash160() {
 }
 
 ser256()
-  if   [[ "$1" =~ ^0x([[:xdigit:]]{2}{32})$ ]]
-  then xxd -p -r <<<"${BASH_REMATCH[1]}"
-  elif [[ "$1" =~ ^0x([[:xdigit:]]{,63})$ ]]
-  then $FUNCNAME "0x0${BASH_REMATCH[1]}"
+  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}{32})$ ]]
+  then xxd -p -r <<<"${BASH_REMATCH[2]}"
+  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{,63})$ ]]
+  then $FUNCNAME "0x0${BASH_REMATCH[2]}"
   else return 1
   fi
 
 newBitcoinKey()
-  if [[ "$1" =~ ^[1-9][0-9]*$ ]]
-  then $FUNCNAME "0x$(dc -e "16o$1p")"
-  elif [[ "$1" =~ ^0x[[:xdigit:]]+$ ]]
+  if
+    local OPTIND o
+    getopts hu o
   then
-    local exponent="$1"
-    local pubkey="$(secp256k1 "$exponent")"
-    local pubkey_uncompressed="$(secp256k1 -u "$pubkey")"
-    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00" P2SH_PREFIX="\x05" BECH32_PREFIX="bc"
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE
+	$FUNCNAME -h
+	$FUNCNAME [-u] EXPONENT
+	
+	The '-h' option displays this message.
+	
+	EXPONENT is a natural integer in decimal or hexadecimal,
+	with an optional '0x' prefix for hexadecimal.
+	
+	The '-u' will use the uncompressed form of the public key.
+	END_USAGE
+        return
+        ;;
+      u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed $FUNCNAME "$@";;
+    esac
+  elif [[ "$1" =~ ^[1-9][0-9]*$ ]]
+  then $FUNCNAME "0x$(dc -e "16o$1p")"
+  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
+  then
+    local exponent="${BASH_REMATCH[2]^^}" pubkey WIF_SUFFIX
+    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00"
     if [[ "$BITCOIN_NET" = 'TEST' ]]
-    then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F" P2SH_PREFIX="\xC4" BECH32_PREFIX="tb"
+    then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F"
+    fi
+    if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
+    then
+      pubkey="$(secp256k1 -u "$exponent")"
+      WIF_SUFFIX=''
+    else
+      pubkey="$(secp256k1 "$exponent")"
+      WIF_SUFFIX="\x01"
     fi
     cat <<-ENDJSON
 	{
-	  "compressed": {
-	    "WIF": "$({
-	      printf "$WIF_PREFIX"
-	      ser256 "$exponent"
-	      printf "\x01"
-	      } | base58 -c)",
-	    "addresses": {
-	      "p2pkh": "$({
-	        printf "$P2PKH_PREFIX"
-	        echo "$pubkey" | xxd -p -r | hash160
-	      } | base58 -c)",
-	      "p2sh":  "$({
-	        printf "$P2SH_PREFIX"
-	        echo "21${pubkey}AC" | xxd -p -r | hash160
-	      } | base58 -c)",
-	      "bech32": "$(
-	        echo "$pubkey" | xxd -p -r | hash160 |
-	        segwit_encode "$BECH32_PREFIX" 0
-	      )"
-	    }
-	  },
-	  "uncompressed": {
-	    "WIF": "$({
-	      printf "$WIF_PREFIX"
-	      ser256 "$exponent"
-	      } | base58 -c)",
-	    "addresses": {
-	      "p2pkh": "$({
-	        printf "$P2PKH_PREFIX"
-	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
-	      } | base58 -c)",
-	      "p2sh": "$({
-	        printf "$BECH32_PREFIX"
-	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
-	      } | base58 -c)"
-	    }
-	  }
+	  "WIF": "$({
+	    printf "$WIF_PREFIX"
+	    ser256 "$exponent"
+	    printf "$WIF_SUFFIX"
+	    } | base58 -c)",
+	  "p2pkh": "$({
+	    printf "$P2PKH_PREFIX"
+	    echo "$pubkey" | xxd -p -r | hash160
+	    } | base58 -c)"
 	}
 	ENDJSON
   elif test -z "$1"
   then $FUNCNAME "0x$(openssl rand -hex 32)"
   else
-      echo unknown key format "$1" >&2
-      return 2
+    echo unknown key format "$1" >&2
+    return 2
   fi
