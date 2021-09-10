@@ -26,6 +26,7 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
 
     $ newBitcoinKey |tee mykey.json
 
+    $ . bip-0032.sh
     $ openssl rand 64 > entropy
     $ bip32 m < entropy
     $ bip32 m/n < entropy
