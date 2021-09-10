@@ -7,9 +7,7 @@ declare -a base58_chars=(
 unset dcr; for i in ${!base58_chars[@]}; do dcr+="${i}s${base58_chars[i]}"; done
 
 base58()
-  if
-    # echo BASE58_OPERATION=$BASE58_OPERATION $FUNCNAME "$@" >&2
-    (($# == 0))
+  if (($# == 0))
   then $FUNCNAME "$(xxd -p |while read; do echo -n "$REPLY"; done)"
   elif
     local OPTIND OPTARG o
