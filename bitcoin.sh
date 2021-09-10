@@ -46,13 +46,13 @@ ser256()
 newBitcoinKey()
   if 
     local OPTIND o
-    getopts hu o
+    getopts hut o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE
 	$FUNCNAME -h
-	$FUNCNAME [-u] [PRIVATE_KEY]
+	$FUNCNAME [-t][-u] [PRIVATE_KEY]
         $FUNCNAME WIF
 	
 	The '-h' option displays this message.
@@ -63,10 +63,13 @@ newBitcoinKey()
 	The '-u' will use the uncompressed form of the public key.
         
         If no PRIVATE_KEY is provided, a random one will be generated.
+	
+	The '-t' option will generate addresses for the test network.
 	END_USAGE
         return
         ;;
       u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed $FUNCNAME "$@";;
+      t) BITCOIN_NET=TEST $FUNCNAME "$@";;
     esac
   elif [[ "$1" =~ ^[1-9][0-9]*$ ]]
   then $FUNCNAME "0x$(dc -e "16o$1p")"
@@ -74,9 +77,10 @@ newBitcoinKey()
   then
     local exponent="${BASH_REMATCH[2]^^}"
     local pubkey="$(secp256k1 "$exponent")"
-    local WIF_PREFIX="\x80" WIF_SUFFIX="\x01" P2PKH_PREFIX="\x00"
+    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00"
+    local WIF_SUFFIX="\x01"
 
-    if [[ "$BITCOIN_NET" = 'TEST' ]]
+    if [[ "$BITCOIN_NET" = TEST ]]
     then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F"
     fi
 
@@ -103,10 +107,10 @@ newBitcoinKey()
   then base58 -x "$1" |
     {
       read
-      if   [[ "$REPLY" =~ ^80([[:xdigit:]]{2}{32})01[[:xdigit:]]{2}{4}$ ]]
-      then $FUNCNAME "${BASH_REMATCH[1]}"
-      elif [[ "$REPLY" =~ ^80([[:xdigit:]]{2}{32})[[:xdigit:]]{2}{4}$ ]]
-      then $FUNCNAME -u "${BASH_REMATCH[1]}"
+      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})01[[:xdigit:]]{2}{4}$ ]]
+      then $FUNCNAME "${BASH_REMATCH[2]}"
+      elif [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})[[:xdigit:]]{2}{4}$ ]]
+      then $FUNCNAME -u "${BASH_REMATCH[2]}"
       else return 2
       fi
     }
