@@ -286,10 +286,10 @@ ser32()
   fi
 
 ser256()
-  if [[ "$1" =~ ^0x([[:xdigit:]]+)$ ]]
-  then
-    dc -e "16i 2 100^ ${BASH_REMATCH[1]^^}+ P" |
-    tail -c 32
+  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}{32})$ ]]
+  then xxd -p -r <<<"${BASH_REMATCH[2]}"
+  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{,63})$ ]]
+  then $FUNCNAME "0x0${BASH_REMATCH[2]}"
   else return 1
   fi
 
