@@ -45,7 +45,6 @@ ser256()
 
 newBitcoinKey()
   if 
-    echo "trace : $FUNCNAME $@" >&2
     local OPTIND o
     getopts hu o
   then
