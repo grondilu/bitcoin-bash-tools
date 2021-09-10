@@ -6,13 +6,13 @@ declare -i t=0
 while read a b
 do
   ((t++))
-  declare c="$(xxd -p -r <<<"$a"| encodeBase58)"
+  declare c="$(base58 "$a")"
   if [[ "$c" = "$b" ]]
   then echo "ok $t - $a → $b"
   else echo "not ok $t - $a → $c instead of $b"
   fi
   ((t++))
-  if diff <(xxd -p -r <<<"$a") <(decodeBase58 "$b")
+  if diff <(xxd -p -r <<<"$a") <(base58 -d "$b")
   then echo "ok $t - $b → $a"
   else echo "not ok $t - ¬ $b → $a"
   fi
