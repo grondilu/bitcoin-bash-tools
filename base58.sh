@@ -1,10 +1,5 @@
 declare -a base58_chars_str="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-declare -a base58_chars=(
-    1 2 3 4 5 6 7 8 9
-  A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
-  a b c d e f g h i j k   m n o p q r s t u v w x y z
-)
-unset dcr; for i in ${!base58_chars[@]}; do dcr+="${i}s${base58_chars[i]}"; done
+unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 
 base58()
   if (($# == 0))
@@ -65,7 +60,7 @@ base58()
   elif [[ "$1" =~ ^[[:xdigit:]]{2}+$ ]]
   then sed -e 'i16i0' -e 's/../100*&+/g' -e 'a[3A~rd0<x]dsxx+f' <<<"${1^^}" |
     dc |
-    while read; do echo -n ${base58_chars[REPLY]}; done
+    while read; do echo -n ${base58_chars_str:$REPLY:1}; done
     echo
   else return 9
   fi
