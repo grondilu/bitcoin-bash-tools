@@ -177,6 +177,24 @@ bx()
         else return 1
         fi
         ;;
+      wif-to-ec)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isBase58Check "$1"
+        then
+	  $FUNCNAME base58-decode "$1" |
+          {
+            read
+            case "${REPLY:0:2}" in
+              80)
+                ;;
+              EF)
+                ;;
+            esac
+          }
+        fi
+        ;;
+
       ec-to-address)
 	local -i version=${BITCOIN_VERSION_BYTE:-0}
         if getopts v: o
@@ -466,6 +484,19 @@ bx()
       address-embed)
         ;;
       address-encode)
+        local -i version=${BITCOIN_VERSION_BYTE:-0}
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif getopts v: o
+        then
+          shift $((OPTIND - 1))
+          BITCOIN_VERSION_BYTE="$OPTARG" $FUNCNAME $command "$@"
+        elif isHexadecimal "$1"
+        then
+          $FUNCNAME wrap-encode -v $version "${BASH_REMATCH[2]}" |
+          $FUNCNAME base58-encode
+        else return 1
+        fi
         ;;
       base16-encode)
         if (($# == 0))
@@ -580,6 +611,28 @@ bx()
         fi
         ;;
       # Hash commands
+      sha256)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isHexadecimal "$1"
+        then
+          $FUNCNAME base16-decode "${BASH_REMATCH[2]}" |
+          openssl dgst -sha256 -binary |
+          $FUNCNAME base16-encode
+        else return 1
+        fi
+	;;
+      ripemd160)
+        if (($# == 0))
+        then read; $FUNCNAME $command "$REPLY"
+        elif isHexadecimal "$1"
+        then
+          $FUNCNAME base16-decode "${BASH_REMATCH[2]}" |
+          openssl dgst -rmd160 -binary |
+          $FUNCNAME base16-encode
+        else return 1
+        fi
+	;;
       bitcoin160)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
