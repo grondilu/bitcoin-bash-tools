@@ -54,16 +54,16 @@ newBitcoinKey()
 	      printf "$WIF_PREFIX"
 	      ser256 "$exponent"
 	      printf "\x01"
-	      } | encodeBase58Check)",
+	      } | base58 -c)",
 	    "addresses": {
 	      "p2pkh": "$({
 	        printf "$P2PKH_PREFIX"
 	        echo "$pubkey" | xxd -p -r | hash160
-	      } | encodeBase58Check)",
+	      } | base58 -c)",
 	      "p2sh":  "$({
 	        printf "$P2SH_PREFIX"
 	        echo "21${pubkey}AC" | xxd -p -r | hash160
-	      } | encodeBase58Check)",
+	      } | base58 -c)",
 	      "bech32": "$(
 	        echo "$pubkey" | xxd -p -r | hash160 |
 	        segwit_encode "$BECH32_PREFIX" 0
@@ -74,16 +74,16 @@ newBitcoinKey()
 	    "WIF": "$({
 	      printf "$WIF_PREFIX"
 	      ser256 "$exponent"
-	      } | encodeBase58Check)",
+	      } | base58 -c)",
 	    "addresses": {
 	      "p2pkh": "$({
 	        printf "$P2PKH_PREFIX"
 	        echo "$pubkey_uncompressed" | xxd -p -r | hash160
-	      } | encodeBase58Check)",
+	      } | base58 -c)",
 	      "p2sh": "$({
 	        printf "$BECH32_PREFIX"
 	        echo "41${pubkey_uncompressed}AC" | xxd -p -r | hash160
-	      } | encodeBase58Check)"
+	      } | base58 -c)"
 	    }
 	  }
 	}
