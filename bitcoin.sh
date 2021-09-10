@@ -35,6 +35,14 @@ hash160() {
   openssl dgst -rmd160 -binary
 }
 
+ser256()
+  if   [[ "$1" =~ ^0x([[:xdigit:]]{2}{32})$ ]]
+  then xxd -p -r <<<"${BASH_REMATCH[1]}"
+  elif [[ "$1" =~ ^0x([[:xdigit:]]{,63})$ ]]
+  then $FUNCNAME "0x0${BASH_REMATCH[1]}"
+  else return 1
+  fi
+
 newBitcoinKey()
   if [[ "$1" =~ ^[1-9][0-9]*$ ]]
   then $FUNCNAME "0x$(dc -e "16o$1p")"
