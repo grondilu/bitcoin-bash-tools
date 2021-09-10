@@ -3,6 +3,7 @@
 # bx.sh, an attempt at a bash port of the Bitcoin eXplorer (BX).
 # Original code:  https://github.com/libbitcoin/libbitcoin-explorer
 
+. base58.sh
 debug() { [[ $DEBUG = yes ]] && echo "$@"; } >&2
 
 bip32_mainnet_public_version_code=0x0488B21E
@@ -12,25 +13,14 @@ bip32_testnet_private_version_code=0x04358394
 
 bip32_serialization_format="%08x%02x%08x%08x%64s%66s" 
 
-declare base58="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-unset dcr; for i in {0..57}; do dcr+="${i}s${base58:$i:1}"; done
-
 isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
 isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
 
 isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
 isHexadecimal()    [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
 isBase64()         [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
-isBase58Check() {
-  [[ "$1" =~ ^[$base58]+$ ]] &&
-  bx base58-decode "$1" |
-  {
-    read
-    [[ "$(bx wrap-encode -n "${REPLY:0:-8}")" = "$REPLY" ]]
-  }
-}
 isExtendedKey() {
-  isBase58Check "$1" &&
+  base58 -v "$1" &&
   bx base58-decode "$1" |
   bx base16-decode |
   wc -c |
@@ -180,17 +170,15 @@ bx()
       wif-to-ec)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif isBase58Check "$1"
+        elif base58 -v "$1"
         then
 	  $FUNCNAME base58-decode "$1" |
           {
             read
-            case "${REPLY:0:2}" in
-              80)
-                ;;
-              EF)
-                ;;
-            esac
+	    if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?[[:xdigit:]]{2}{4}$ ]]
+            then echo "${BASH_REMATCH[2]}"
+            else return 2
+            fi
           }
         fi
         ;;
@@ -514,32 +502,14 @@ bx()
       base58-decode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif [[ "$1" =~ ^1 ]]
-        then echo -n 00; $FUNCNAME $command "${1:1}"
-        elif [[ "$1" =~ ^[$base58]+$ ]]
-        then
-	  sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$1" |
-	  dc |
-          $FUNCNAME base16-encode
-        else return 1
+        else base58 -x "$1"
         fi
         ;;
       base58-encode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif [[ "$1" =~ ^00.+ ]]
-        then echo -n 1; $FUNCNAME $command "${1:2}"
         elif isHexadecimal "$1"
-        then
-          {
-	    echo 16i 0
-	    echo -n "${BASH_REMATCH[2]^^}" |
-	    fold -w 2 |
-	    sed 's/$/r100*+/'
-	    echo '[3A~rd0<x]dsxx+f'
-          } | dc |
-	  while read; do echo -n "${base58:$REPLY:1}"; done
-          echo
+        then base58 "$1"
         else return 1
         fi
         ;;
