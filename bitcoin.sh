@@ -52,7 +52,7 @@ newBitcoinKey()
     case "$o" in
       h) cat <<-END_USAGE
 	$FUNCNAME -h
-	$FUNCNAME [-u] PRIVATE_KEY
+	$FUNCNAME [-u] [PRIVATE_KEY]
         $FUNCNAME WIF
 	
 	The '-h' option displays this message.
@@ -61,6 +61,8 @@ newBitcoinKey()
 	optional '0x' prefix) or wallet import format (WIF).
 	
 	The '-u' will use the uncompressed form of the public key.
+        
+        If no PRIVATE_KEY is provided, a random one will be generated.
 	END_USAGE
         return
         ;;
