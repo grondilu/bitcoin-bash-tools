@@ -51,6 +51,11 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
 - [ ] offline transactions
 - [ ] copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible
 
+## Feedback
+
+To discuss this project without necessarily open an issue, feel free to use the
+[discussions](https://github.com/grondilu/bitcoin-bash-tools/discussions) tab.
+
 ## License
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
