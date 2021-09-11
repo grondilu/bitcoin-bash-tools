@@ -33,8 +33,43 @@ fingerprint() {
 }
 
 bip32()
-  if (( $# == 0 ))
-  then $FUNCNAME -h
+  if local OPTIND OPTARG o
+    getopts ht o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE
+	Usage:
+	  $FUNCNAME extended-key
+	  $FUNCNAME derivation-path
+	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
+
+        Without
+	END_USAGE
+        ;;
+      t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
+    esac
+  elif (($# == 0))
+  then read; $FUNCNAME "$REPLY"
+  elif base58 -v "$1"
+  then
+    base58 -d "$1" |
+    xxd -p -c $((2*(78+4))) |
+    {
+      read
+      local -a args=(
+	"0x${REPLY:0:8}"   # 4 bytes:  version
+	"0x${REPLY:8:2}"   # 1 byte:   depth
+	"0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
+	"0x${REPLY:18:8}"  # 4 bytes:  child number
+	"${REPLY:26:64}"   # 32 bytes: chain code
+	"${REPLY:90:66}"   # 33 bytes: public or private key data
+      )
+      if $FUNCNAME "${args[@]}" >/dev/null
+      then echo "${args[@]}"
+      else return $?
+      fi
+    }
   elif (( $# == 6 ))
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
@@ -87,7 +122,7 @@ bip32()
     }
   elif [[ "$1" = M ]]
   then
-    $FUNCNAME --parse |
+    $FUNCNAME |
     {
       local -i version depth pfp index
       local    cc key
@@ -108,7 +143,7 @@ bip32()
     if [[ "$REPLY" =~ ^[tx]prv ]]
     then echo "$REPLY" | $FUNCNAME 'n/fp'
     else
-      $FUNCNAME --parse <<<"$REPLY" |
+      $FUNCNAME <<<"$REPLY" |
       {
         local -i v d p i
         local c k
@@ -118,7 +153,7 @@ bip32()
     fi
   elif [[ "$1" = n ]]
   then
-    $FUNCNAME --parse |
+    $FUNCNAME |
     {
       local -i version depth pfp index
       local    cc key
@@ -137,32 +172,11 @@ bip32()
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
-  elif [[ "$1" = '--parse' ]]
-  then
-    read
-    base58 -v "$REPLY" || return 1
-    base58 -d "$REPLY" |
-    xxd -p -c $((2*(78+4))) |
-    {
-      read
-      local -a args=(
-        "0x${REPLY:0:8}"   # 4 bytes:  version
-        "0x${REPLY:8:2}"   # 1 byte:   depth
-        "0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
-        "0x${REPLY:18:8}"  # 4 bytes:  child number
-        "${REPLY:26:64}"   # 32 bytes: chain code
-        "${REPLY:90:66}"   # 33 bytes: public or private key data
-      )
-      if $FUNCNAME "${args[@]}" >/dev/null
-      then echo "${args[@]}"
-      else return $?
-      fi
-    }
   elif [[ "$1" =~ ^([[:digit:]]+)(h?)$ ]]
   then
     local -i childIndex=${BASH_REMATCH[1]}
     test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
-    $FUNCNAME --parse |
+    $FUNCNAME |
     {
       local -i version depth pfp index    fp
       local    cc key
@@ -192,7 +206,7 @@ bip32()
 
   elif [[ "$1" = json ]]
   then
-    $FUNCNAME --parse |
+    $FUNCNAME |
     {
       local -i version depth pfp index
       local    cc key
@@ -208,12 +222,7 @@ bip32()
     }
   elif [[ "$1" =~ / ]]
   then $FUNCNAME "${1%%/*}" |$FUNCNAME "${1#*/}"
-  else cat <<-USAGE_END
-	Usage:
-	  $FUNCNAME derivation-path
-	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
-	  $FUNCNAME --parse
-	USAGE_END
+  else return 1
   fi
 
 CKDpub()
