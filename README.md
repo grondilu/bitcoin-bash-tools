@@ -24,10 +24,18 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     $ for i in $a $b; do secp256k1 $i; done | secp256k1
     $ secp256k1 $((a+b))
 
+    $ # Bitcoin book, chap. 04, example 6 :
+    $ prv=3aba4162c7251c891207b747840551a71939b0de081f85c4e44cf7c13e41daa6
+    $ secp256k1 "$prv"
+    025C0DE3B9C8AB18DD04E3511243EC2952002DBFADC864B9628910169D9B9B00EC 
     $ bitcoinAddress "$(!!)"
-
-    $ newBitcoinKey > myrandomkey.wif 
-    $ bitcoinAddress "$(< myrandomkey.wif)"
+    14cxpo3MBCYYWCgF74SWTdcmxipnGUsPw3
+    $ bitcoinAddress "$(secp256k1 -u "$prv")"
+    1thMirt546nngXqyPEz532S8fLwbozud8
+    $ newBitcoinKey -u "$prv"
+    5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K
+    $ newBitcoinKey "$prv"
+    KyBsPXxTuVD82av65KZkrGrWi5qLMah5SdNq6uftawDbgKa2wv6S
 
     $ . bip-0032.sh
     $ openssl rand 64 > entropy
