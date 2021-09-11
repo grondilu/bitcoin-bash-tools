@@ -43,6 +43,47 @@ ser256()
   else return 1
   fi
 
+bitcoinAddress()
+  if
+    local OPTIND o
+    getopts ht o
+  then shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE_bitcoinAddress
+	$FUNCNAME -h
+	$FUNCNAME PUBLIC_POINT
+	$FUNCNAME WIF_PRIVATE_KEY
+	END_USAGE_bitcoinAddress
+        ;;
+      t) P2PKH_PREFIX="\x6F" $FUNCNAME "$@" ;;
+    esac
+  elif [[ "$1" =~ ^0([23][[:xdigit:]]{2}{32}|4[[:xdigit:]]{2}{64})$ ]]
+  then
+    {
+      printf "${P2PKH_PREFIX:-\x00}"
+      echo "$1" | xxd -p -r | hash160
+    } | base58 -c
+  elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
+  then base58 -x "$1" |
+    {
+      read
+      if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
+      then
+	local point
+        if test -n "${BASH_REMATCH[3]}"
+        then point="$(secp256k1 "${BASH_REMATCH[2]}")"
+        else point="$(secp256k1 -u "${BASH_REMATCH[2]}")"
+        fi
+        if [[ "$REPLY" =~ ^80 ]]
+        then $FUNCNAME "$point"
+        else $FUNCNAME -t "$point"
+        fi
+      else return 2
+      fi
+    }
+  else return 1
+  fi
+
 newBitcoinKey()
   if 
     local OPTIND o
@@ -57,10 +98,13 @@ newBitcoinKey()
 	
 	The '-h' option displays this message.
 	
-	PRIVATE_KEY is a natural integer in decimal, hexadecimal (with an
-	optional '0x' prefix) or wallet import format (WIF).
+	PRIVATE_KEY is a natural integer in decimal or hexadecimal, with an
+	optional '0x' prefix for hexadecimal.
 	
-	The '-u' will use the uncompressed form of the public key.
+	WIF is a private key in Wallet Import Format.  With such argument,
+	$FUNCNAME will parse it and echo the result in JSON.
+	
+	The '-u' option will use the uncompressed form of the public key.
         
         If no PRIVATE_KEY is provided, a random one will be generated.
 	
@@ -75,43 +119,31 @@ newBitcoinKey()
   then $FUNCNAME "0x$(dc -e "16o$1p")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
   then
-    local exponent="${BASH_REMATCH[2]^^}"
-    local pubkey="$(secp256k1 "$exponent")"
-    local WIF_PREFIX="\x80" P2PKH_PREFIX="\x00"
-    local WIF_SUFFIX="\x01"
+    {
+      if [[ "$BITCOIN_NET" = TEST ]]
+      then printf "\xEF"
+      else printf "\x80"
+      fi
+      ser256 "${BASH_REMATCH[2]^^}"
+      if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
+      then printf "\x01"
+      fi
+    } | base58 -c
 
-    if [[ "$BITCOIN_NET" = TEST ]]
-    then WIF_PREFIX="\xEF" P2PKH_PREFIX="\x6F"
-    fi
-
-    if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
-    then
-      pubkey="$(secp256k1 -u "$pubkey")"
-      WIF_SUFFIX=''
-    fi
-
-    cat <<-ENDJSON
-	{
-	  "WIF": "$({
-	    printf "$WIF_PREFIX"
-	    ser256 "$exponent"
-	    printf "$WIF_SUFFIX"
-	    } | base58 -c)",
-	  "p2pkh": "$({
-	    printf "$P2PKH_PREFIX"
-	    echo "$pubkey" | xxd -p -r | hash160
-	    } | base58 -c)"
-	}
-	ENDJSON
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {
       read
-      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})01[[:xdigit:]]{2}{4}$ ]]
-      then $FUNCNAME "${BASH_REMATCH[2]}"
-      elif [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})[[:xdigit:]]{2}{4}$ ]]
-      then $FUNCNAME -u "${BASH_REMATCH[2]}"
-      else return 2
+      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
+      then cat <<-JSON
+	{
+	  "prefix": $((0x${BASH_REMATCH[1]})),
+	  "exponent"   : "${BASH_REMATCH[2]}",
+	  "compression suffix": "${BASH_REMATCH[3]}",
+	  "checksum": "${BASH_REMATCH[4]}"
+	}
+	JSON
+      else return 3
       fi
     }
   elif test -z "$1"

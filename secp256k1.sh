@@ -13,38 +13,36 @@ secp256k1()
     } | dc -f secp256k1.dc -
   elif
     local OPTIND OPTARG o
-    getopts hu: o
+    getopts hu o
   then
     shift $((OPTIND - 1))
     case "$o" in
-      u)
-        if [[ "$OPTARG" =~ ^0[23][[:xdigit:]{2}{32}$ ]]
-        then
-	  dc -f secp256k1.dc -e "4 2 512^*16doi${OPTARG^^}dlYxr2 2 8^^%2 2 8^^*++P" |
+      u) $FUNCNAME "$@" |
+        {
+          read
+	  dc -f secp256k1.dc -e "4 2 512^*16doi${REPLY}dlYxr2 2 8^^%2 2 8^^*++P" |
 	  xxd -p -u -c 65
-        else return 7
-        fi
+        }
         ;;
       h) cat <<-EOF
 	Usage:
-	  secp256k1
-	  secp256k1 exponent
+	  secp256k1 -h
+	  secp256k1 [-u] [exponent]
 	  secp256k1 exponent1 exponent2 ...
-	  secp256k1 -u compressed-point
 	
 	With no parameters, parses stdin as a list of compressed points
-	and echoes their sum as a compressed point.
+	and echoes their sum.
 
-	With a single exponent parameter, echoes the corresponding
-	compressed point.
-
-	With more than one parameters, echoes their sum modulo the order of
-	the curve, in hexadecimal.
-
-	The -u option echoes the uncompressed form of a compressed point.
-	
 	An exponent is a natural integer in either decimal or hexadecimal format
 	(with the 0x prefix for hexadecimal).
+	
+	With a single exponent parameter, echoes the corresponding
+	point.
+
+	With more than one exponent parameters, echoes their sum modulo the
+	order of the curve, in hexadecimal.
+
+	The -u option sets the uncompressed point format output.
 	EOF
         ;;
     esac

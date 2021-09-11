@@ -24,7 +24,10 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     $ for i in $a $b; do secp256k1 $i; done | secp256k1
     $ secp256k1 $((a+b))
 
-    $ newBitcoinKey |tee mykey.json
+    $ bitcoinAddress "$(!!)"
+
+    $ newBitcoinKey > myrandomkey.wif 
+    $ bitcoinAddress "$(< myrandomkey.wif)"
 
     $ . bip-0032.sh
     $ openssl rand 64 > entropy

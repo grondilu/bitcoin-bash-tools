@@ -44,7 +44,6 @@ bip32()
 	  $FUNCNAME derivation-path
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
 
-        Without
 	END_USAGE
         ;;
       t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
@@ -95,10 +94,7 @@ bip32()
     then return 7
     elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
     then return 8
-    elif local decompressedKey="$(secp256k1 -u "${key^^}")"
-      [[ "$key" =~ ^03 && "$decompressedKey" =~ [02468ACE]$ ]] ||
-      [[ "$key" =~ ^02 && "$decompressedKey" =~ [13579BDF]$ ]]
-    then return 9
+    # TODO: check that the point is on the curve?
     else
       {
         ser32 $version
