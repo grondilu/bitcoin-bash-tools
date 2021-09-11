@@ -18,12 +18,6 @@ isPublic() ((
   $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE
 ))
 
-chr()
-  if (( $1 < 0 || $1 > 255 ))
-  then return 1
-  else printf "\\$(printf '%03o' "$1")"
-  fi
-
 fingerprint() {
   xxd -p -r <<<"$1" |
   openssl dgst -sha256 -binary |
@@ -96,13 +90,9 @@ bip32()
     then return 8
     # TODO: check that the point is on the curve?
     else
-      {
-        ser32 $version
-	chr   $depth
-	ser32 $fingerprint
-	ser32 $childnumber
-	xxd -p -r <<<"$chaincode$key"
-      } | base58 -c
+      printf "%08x%02x%08x%08x%s%s" "$@" |
+      xxd -p -r |
+      base58 -c
     fi
   elif [[ "$1" = m ]]
   then
