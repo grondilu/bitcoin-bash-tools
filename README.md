@@ -43,7 +43,7 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     $ bip32 m/n < entropy
     $ bip32 m/0h/5/7 < entropy
 
-    $ prove -e bash t/*.t.sh
+    $ prove t/*.t.sh
 
 ## Requirements
 
