@@ -40,7 +40,7 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     $ . bip-0032.sh
     $ openssl rand 64 > entropy
     $ m="$(bip32 < entropy)"
-    $ bip32 $m/n
+    $ bip32 $m/N
     $ bip32 $m/0h/5/7
 
     $ prove t/*.t.sh
