@@ -63,7 +63,7 @@ EOF
     else echo "not ok $n - wrong seed generated for '$words' : $generatedSeed instead of $seed"
     fi
     ((n++))
-    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32 m)"
+    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32)"
        [[ "$generatedExtendedKey" = "$addr" ]]
     then echo "ok $n - good key generated from seed : $(shorten $seed) -> $(shorten $generatedExtendedKey)"
     else echo "$generatedExtendedKey"
