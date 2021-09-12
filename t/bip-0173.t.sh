@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 . bech32.sh
 . bip-0173.sh
 

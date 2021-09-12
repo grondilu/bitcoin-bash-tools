@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 . bech32m.sh
 
 declare -i t
