@@ -46,8 +46,7 @@ bip32()
   then read; $FUNCNAME "$REPLY"
   elif base58 -v "$1"
   then
-    base58 -d "$1" |
-    xxd -p -c $((2*(78+4))) |
+    base58 -x "$1" |
     {
       read
       local -a args=(
