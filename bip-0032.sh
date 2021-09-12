@@ -8,6 +8,11 @@ BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
+BIP32_XKEY_B58CHCK_FORMAT="[xt](prv|pub)[$base58_chars_str]{1,112}"
+BIP32_DERIVATION_FORMAT="/[[:digit:]]+"
+BIP32_HARDENED_DERIVATION_FORMAT="${BIP32_DERIVATION_FORMAT}h?"
+BIP32_DERIVATION_PATH="($BIP32_HARDENED_DERIVATION_FORMAT)*(/N($BIP32_DERIVATION_FORMAT)*)?"
+
 isPrivate() ((
   $1 == BIP32_TESTNET_PRIVATE_VERSION_CODE ||
   $1 == BIP32_MAINNET_PRIVATE_VERSION_CODE
@@ -26,23 +31,8 @@ fingerprint() {
   xxd -p -u -c 8
 }
 
-bip32()
-  if local OPTIND OPTARG o
-    getopts ht o
-  then
-    shift $((OPTIND - 1))
-    case "$o" in
-      h) cat <<-END_USAGE
-	Usage:
-	  $FUNCNAME extended-key
-	  $FUNCNAME derivation-path
-	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
-
-	END_USAGE
-        ;;
-      t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
-    esac
-  elif (($# == 0))
+parseNonDerivedExtendedKey()
+  if (($# == 0))
   then read; $FUNCNAME "$REPLY"
   elif base58 -v "$1"
   then
@@ -62,6 +52,105 @@ bip32()
       else return $?
       fi
     }
+  fi
+
+debug()
+  if [[ "$DEBUG" = yes ]]
+  then echo "$@"
+  fi >&2
+
+bip32()
+  if
+    local OPTIND OPTARG o
+    getopts ht o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE
+	Usage:
+	  $FUNCNAME -h
+	  $FUNCNAME [-t]
+	  $FUNCNAME EXTENDED-KEY[DERIVATION-PATH]
+	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
+	
+	With no argument, $FUNCNAME will generate an extended master key from
+	standard input.  With the -t option, it will generate an extended master key
+	for the test network.
+        
+	END_USAGE
+        ;;
+      t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
+    esac
+  elif (($# == 0))
+  then
+    local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
+    if [[ "$BITCOIN_NET" = 'TEST' ]]
+    then version=$BIP32_TESTNET_PRIVATE_VERSION_CODE
+    fi
+    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+    xxd -u -p -c 64 |
+    {
+      read
+      $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
+    }
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]]
+  then parseNonDerivedExtendedKey "$1" >/dev/null && echo "$1"
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
+  then
+    parseNonDerivedExtendedKey "${1::-2}" |
+    {
+      local -i version depth pfp index
+      local    cc key
+      read version depth pfp index cc key
+      case $version in
+         $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+           ;;
+         $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+           ;;
+         $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+           version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+         $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+           version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+         *)
+           key="$(secp256k1 "0x$key")"
+      esac
+      $FUNCNAME $version $depth $pfp $index $cc $key
+    }
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/([[:digit:]]+)h$ ]]
+  then $FUNCNAME "${1%/*}/$((${BASH_REMATCH[2]} + (1<<31)))" 
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/[[:digit:]]+$ ]]
+  then
+    local xkey="${1%/*}" 
+    local -i childIndex=${1##*/}
+    parseNonDerivedExtendedKey "$xkey" |
+    {
+      local -i version depth pfp index    fp
+      local    cc key
+      read version depth pfp index cc key
+      
+      if isPrivate $version
+      then
+        CKDpriv "$key" "$cc" $childIndex |
+        {
+           local ki ci
+           read ki ci
+	   fp="0x$(fingerprint "$(secp256k1 "0x$key")")"
+           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
+        }
+      elif isPublic $version
+      then
+        CKDpub "$key" "$cc" $childIndex |
+        {
+           local Ki ci
+           read Ki ci
+	   fp="0x$(fingerprint "$key")"
+           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $Ki
+        }
+      else return 255  # should never happen
+      fi
+    } 
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$BIP32_DERIVATION_PATH$ ]]
+  then $FUNCNAME "$($FUNCNAME "${1%/*}")/${1##*/}"
   elif (( $# == 6 ))
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
@@ -93,120 +182,6 @@ bip32()
       xxd -p -r |
       base58 -c
     fi
-  elif [[ "$1" = m ]]
-  then
-    local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
-    if [[ "$BITCOIN_NET" = 'TEST' ]]
-    then version=$BIP32_TESTNET_PRIVATE_VERSION_CODE
-    fi
-    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-    xxd -u -p -c 64 |
-    {
-      read
-      $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
-    }
-  elif [[ "$1" = M ]]
-  then
-    $FUNCNAME |
-    {
-      local -i version depth pfp index
-      local    cc key
-      read version depth pfp index cc key
-      if ((
-	version == $BIP32_MAINNET_PRIVATE_VERSION_CODE ||
-        version == $BIP32_TESTNET_PRIVATE_VERSION_CODE
-      ))
-      then return 1
-      elif (( depth != 0 || pfp != 0 || index != 0 ))
-      then return 2
-      fi
-      $FUNCNAME $version $depth $pfp $index $cc $key
-    }
-  elif [[ "$1" = fp ]]
-  then
-    read
-    if [[ "$REPLY" =~ ^[tx]prv ]]
-    then echo "$REPLY" | $FUNCNAME 'n/fp'
-    else
-      $FUNCNAME <<<"$REPLY" |
-      {
-        local -i v d p i
-        local c k
-        read v d p i c key
-        fingerprint "$key"
-      }
-    fi
-  elif [[ "$1" = n ]]
-  then
-    $FUNCNAME |
-    {
-      local -i version depth pfp index
-      local    cc key
-      read version depth pfp index cc key
-      case $version in
-         $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
-           ;;
-         $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
-           ;;
-         $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-           version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
-         $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
-           version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *)
-           key="$(secp256k1 "0x$key")"
-      esac
-      $FUNCNAME $version $depth $pfp $index $cc $key
-    }
-  elif [[ "$1" =~ ^([[:digit:]]+)(h?)$ ]]
-  then
-    local -i childIndex=${BASH_REMATCH[1]}
-    test -n "${BASH_REMATCH[2]}" && ((childIndex+= 1<<31))
-    $FUNCNAME |
-    {
-      local -i version depth pfp index    fp
-      local    cc key
-      read version depth pfp index cc key
-      
-      if isPrivate $version
-      then
-        CKDpriv "$key" "$cc" $childIndex |
-        {
-           local ki ci
-           read ki ci
-	   fp="0x$(fingerprint "$(secp256k1 "0x$key")")"
-           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
-        }
-      elif isPublic $version
-      then
-        CKDpub "$key" "$cc" $childIndex |
-        {
-           local Ki ci
-           read Ki ci
-	   fp="0x$(fingerprint "$key")"
-           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $Ki
-        }
-      else return 255  # should never happen
-      fi
-    } 
-
-  elif [[ "$1" = json ]]
-  then
-    $FUNCNAME |
-    {
-      local -i version depth pfp index
-      local    cc key
-      read version depth pfp index cc key
-      printf '{
-         "version": %u,
-         "depth": %u,
-         "parent fingerprint": %u,
-         "child number": %u,
-         "chain code": "%s",
-         "key": "%s"
-      }\n' $version $depth $pfp $index $cc $key
-    }
-  elif [[ "$1" =~ / ]]
-  then $FUNCNAME "${1%%/*}" |$FUNCNAME "${1#*/}"
   else return 1
   fi
 
