@@ -31,29 +31,6 @@ fingerprint() {
   xxd -p -u -c 8
 }
 
-parseNonDerivedExtendedKey()
-  if (($# == 0))
-  then read; $FUNCNAME "$REPLY"
-  elif base58 -v "$1"
-  then
-    base58 -x "$1" |
-    {
-      read
-      local -a args=(
-	"0x${REPLY:0:8}"   # 4 bytes:  version
-	"0x${REPLY:8:2}"   # 1 byte:   depth
-	"0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
-	"0x${REPLY:18:8}"  # 4 bytes:  child number
-	"${REPLY:26:64}"   # 32 bytes: chain code
-	"${REPLY:90:66}"   # 33 bytes: public or private key data
-      )
-      if $FUNCNAME "${args[@]}" >/dev/null
-      then echo "${args[@]}"
-      else return $?
-      fi
-    }
-  fi
-
 debug()
   if [[ "$DEBUG" = yes ]]
   then echo "$@"
@@ -62,7 +39,7 @@ debug()
 bip32()
   if
     local OPTIND OPTARG o
-    getopts ht o
+    getopts hp:t o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -79,6 +56,28 @@ bip32()
         
 	END_USAGE
         ;;
+      p)
+        if [[ "$OPTARG" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v "$OPTARG"
+        then
+	  base58 -x "$OPTARG" |
+	  {
+	    read
+	    local -a args=(
+	      "0x${REPLY:0:8}"   # 4 bytes:  version
+	      "0x${REPLY:8:2}"   # 1 byte:   depth
+	      "0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
+	      "0x${REPLY:18:8}"  # 4 bytes:  child number
+	      "${REPLY:26:64}"   # 32 bytes: chain code
+	      "${REPLY:90:66}"   # 33 bytes: public or private key data
+	    )
+	    if $FUNCNAME "${args[@]}" >/dev/null
+	    then echo "${args[@]}"
+	    else return $?
+	    fi
+	  }
+        else return 2
+        fi
+        ;;
       t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
     esac
   elif (($# == 0))
@@ -93,11 +92,11 @@ bip32()
       read
       $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
     }
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]]
-  then parseNonDerivedExtendedKey "$1" >/dev/null && echo "$1"
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v "$1"
+  then $FUNCNAME -p "$1" >/dev/null && echo $1
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
   then
-    parseNonDerivedExtendedKey "${1::-2}" |
+    $FUNCNAME -p "${1::-2}" |
     {
       local -i version depth pfp index
       local    cc key
@@ -122,7 +121,7 @@ bip32()
   then
     local xkey="${1%/*}" 
     local -i childIndex=${1##*/}
-    parseNonDerivedExtendedKey "$xkey" |
+    $FUNCNAME -p "$xkey" |
     {
       local -i version depth pfp index    fp
       local    cc key

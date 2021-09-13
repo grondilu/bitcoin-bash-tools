@@ -1,48 +1,174 @@
 #!/usr/bin/env bash
+#
+# Translated from javascript :
+# https://github.com/sipa/bech32/blob/master/ref/javascript/tests.js
+#
+# Original copyright notice and permission notice :
+# 
+#// Copyright (c) 2017, 2021 Pieter Wuille
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a copy
+#// of this software and associated documentation files (the "Software"), to deal
+#// in the Software without restriction, including without limitation the rights
+#// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#// copies of the Software, and to permit persons to whom the Software is
+#// furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included in
+#// all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#// THE SOFTWARE.
+
 
 . bech32m.sh
 
-declare -i t
 
-echo 1..$(grep -c ^_ $BASH_SOURCE)
+declare -a valid_checksum_bech32=(
+  A12UEL5L
+  a12uel5l
+  an83characterlonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1tt5tgs
+  abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw
+  11qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqc8247j
+  split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w
+  ?1ezyfcl
+)
 
-function _is_valid {
-  if
-    ((t++))
-    bech32m_decode "$1" bech32m >/dev/null
-  then echo "ok $t - $1 is valid"
-  else echo "not ok $t - false negative for $1"
+declare -a valid_checksum_bech32m=(
+  A1LQFN3A
+  a1lqfn3a
+  an83characterlonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11sg7hg6
+  abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx
+  11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8
+  split1checkupstagehandshakeupstreamerranterredcaperredlc445v
+  ?1v759aa
+)
+
+declare -a invalid_checksum_bech32=(
+    " 1nwldj5"
+    $'\x7f1axkwrx'
+    $'\x801eym55h'
+    an84characterslonghumanreadablepartthatcontainsthenumber1andtheexcludedcharactersbio1569pvx
+    pzry9x0s0muk
+    1pzry9x0s0muk
+    x1b4n0q5v
+    li1dgmt3
+    $'de1lg7wt\xff'
+    A1G7SGD8
+    10a06t8
+    1qzzfhee
+)
+
+declare -a invalid_checksum_bech32m=(
+    ' 1xj0phk'
+    $'\x7F1g6xzxy'
+    $'\x801vctc34'
+    an84characterslonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11d6pts4
+    qyrz8wqd2c9m
+    1qyrz8wqd2c9m
+    y1b0jsk6g
+    lt1igcx5c0
+    in1muywd
+    mm1crxm3i
+    au1s5cgom
+    M1VUXWEZ
+    16plkw9
+    1p2gdwpf
+)
+
+declare -A valid_address=(
+  [BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4]=0014751e76e8199196d454941c45d1b3a323f1433bd6
+  [tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7]=00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262
+  [bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kt5nd6y]=5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6
+  [BC1SW50QGDZ25J]=6002751e
+  [bc1zw508d6qejxtdg4y5r3zarvaryvaxxpcs]=5210751e76e8199196d454941c45d1b3a323
+  [tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy]=0020000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433
+  [tb1pqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesf3hn0c]=5120000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433
+  [bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0]=512079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+)
+
+declare -a invalid_address=(
+    tc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vq5zuyut
+    bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqh2y7hd
+    tb1z0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqglt7rf
+    BC1S0XLXVLHEMJA6C4DQV22UAPCTQUPFHLXM9H8Z3K2E72Q4K9HCZ7VQ54WELL
+    bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kemeawh
+    tb1q0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vq24jc47
+    bc1p38j9r5y49hruaue7wxjce0updqjuyyx0kh56v8s25huc6995vvpql3jow4
+    BC130XLXVLHEMJA6C4DQV22UAPCTQUPFHLXM9H8Z3K2E72Q4K9HCZ7VQ7ZWS8R
+    bc1pw5dgrnzv
+    bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7v8n0nx0muaewav253zgeav
+    BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P
+    tb1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vq47Zagq
+    bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7v07qwwzcrf
+    tb1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vpggkg4j
+    bc1gmk9yu
+)
+
+declare -i n=0
+declare t
+
+for t in "${valid_checksum_bech32[@]}"
+do
+  ((n++))
+  if bech32m_decode "$t" bech32 >/dev/null
+  then echo "ok $n - $t"
+  else echo "not ok $n - unexpected invalid test for $t"
   fi
-}
+done
 
-function _is_not_valid {
-  if
-    ((t++))
-    bech32m_decode "$1" bech32m >/dev/null
-  then echo "not ok $t - false positive for $1"
-  else echo "ok $t - $1 is invalid as expected (error code $?)"
+for t in "${valid_checksum_bech32m[@]}"
+do
+  ((n++))
+  if bech32m_decode "$t" bech32m >/dev/null
+  then echo "ok $n - $t"
+  else echo "not ok $n - unexpected invalid test for $t"
   fi
-}
- 
-_is_valid "A1LQFN3A"
-_is_valid "a1lqfn3a"
-_is_valid "an83characterlonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11sg7hg6"
-_is_valid "abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx"
-_is_valid "11llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllludsr8"
-_is_valid "split1checkupstagehandshakeupstreamerranterredcaperredlc445v"
-_is_valid "?1v759aa"
+done
 
-_is_not_valid $'\x20'1xj0phk
-_is_not_valid $'\x7F'1g6xzxy
-_is_not_valid $'\x80'1vctc34
-_is_not_valid "an84characterslonghumanreadablepartthatcontainsthetheexcludedcharactersbioandnumber11d6pts4"
-_is_not_valid "qyrz8wqd2c9m"
-_is_not_valid "1qyrz8wqd2c9m"
-_is_not_valid "y1b0jsk6g"
-_is_not_valid "lt1igcx5c0"
-_is_not_valid "in1muywd"
-_is_not_valid "mm1crxm3i"
-_is_not_valid "au1s5cgom"
-_is_not_valid "M1VUXWEZ"
-_is_not_valid "16plkw9"
-_is_not_valid "1p2gdwpf"
+for t in "${invalid_checksum_bech32[@]}"
+do
+  ((n++))
+  if bech32m_decode "$t" bech32 >/dev/null
+  then echo "not ok $n - unexpected valid test for $t"
+  else echo "ok $n - $t => $?"
+  fi
+done
+
+for t in "${invalid_checksum_bech32m[@]}"
+do
+  ((n++))
+  if bech32m_decode "$t" bech32m >/dev/null
+  then echo "not ok $n - unexpected valid test for $t"
+  else echo "ok $n - $t => $?"
+  fi
+done
+
+. bip-0350.sh
+
+for address in "${!valid_address[@]}"
+do
+  echo $address:
+  scriptpubkey=${valid_address[$address]}
+  hrp="${address%1*}" payload="${address##*1}" 
+
+  if segwit_decode "$address" >/dev/null
+  then
+    segwit_decode "$address" |
+    {
+      declare hrp program
+      declare -i version=0
+      read hrp
+      read version
+      (( version > 0 && (version+=0x50) ))
+      read program
+      printf "%02x%02x%s\n" $version $((${#program}/2)) $program
+      echo $scriptpubkey
+    }  
+  fi
+done
