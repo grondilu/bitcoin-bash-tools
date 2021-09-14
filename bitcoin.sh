@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Various bash bitcoin tools
 #
 # This script uses GNU tools.  It is therefore not guaranted to work on a POSIX
@@ -26,47 +26,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-for script in {secp256k1,base58}.sh
-do . "$script"
-done
+. secp256k1.sh
+. base58.sh
 
 hash160() {
   openssl dgst -sha256 -binary |
   openssl dgst -rmd160 -binary
 }
 
-ser256()
+ser256() {
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}{32})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{,63})$ ]]
-  then $FUNCNAME "0x0${BASH_REMATCH[2]}"
+  then ${FUNCNAME[0]} "0x0${BASH_REMATCH[2]}"
   else return 1
   fi
+}
 
-bitcoinAddress()
-  if
-    local OPTIND o
-    getopts ht o
+bitcoinAddress() {
+  local OPTIND o
+  if getopts ht o
   then shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE_bitcoinAddress
-	$FUNCNAME -h
-	$FUNCNAME PUBLIC_POINT
-	$FUNCNAME WIF_PRIVATE_KEY
+	${FUNCNAME[0]} -h
+	${FUNCNAME[0]} PUBLIC_POINT
+	${FUNCNAME[0]} WIF_PRIVATE_KEY
 	END_USAGE_bitcoinAddress
         ;;
-      t) P2PKH_PREFIX="\x6F" $FUNCNAME "$@" ;;
+      t) P2PKH_PREFIX="\x6F" ${FUNCNAME[0]} "$@" ;;
     esac
   elif [[ "$1" =~ ^0([23][[:xdigit:]]{2}{32}|4[[:xdigit:]]{2}{64})$ ]]
   then
     {
-      printf "${P2PKH_PREFIX:-\x00}"
+      printf "%c" "${P2PKH_PREFIX:-\x00}"
       echo "$1" | xxd -p -r | hash160
     } | base58 -c
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {
-      read
+      read -r
       if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
       then
 	local point
@@ -75,26 +74,26 @@ bitcoinAddress()
         else point="$(secp256k1 -u "${BASH_REMATCH[2]}")"
         fi
         if [[ "$REPLY" =~ ^80 ]]
-        then $FUNCNAME "$point"
-        else $FUNCNAME -t "$point"
+        then ${FUNCNAME[0]} "$point"
+        else ${FUNCNAME[0]} -t "$point"
         fi
       else return 2
       fi
     }
   else return 1
   fi
+}
 
-newBitcoinKey()
-  if 
-    local OPTIND o
-    getopts hut o
+newBitcoinKey() {
+  local OPTIND o
+  if getopts hut o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE
-	$FUNCNAME -h
-	$FUNCNAME [-t][-u] [PRIVATE_KEY]
-        $FUNCNAME WIF
+	${FUNCNAME[0]} -h
+	${FUNCNAME[0]} [-t][-u] [PRIVATE_KEY]
+        ${FUNCNAME[0]} WIF
 	
 	The '-h' option displays this message.
 	
@@ -102,7 +101,7 @@ newBitcoinKey()
 	optional '0x' prefix for hexadecimal.
 	
 	WIF is a private key in Wallet Import Format.  With such argument,
-	$FUNCNAME will parse it and echo the result in JSON.
+	${FUNCNAME[0]} will parse it and echo the result in JSON.
 	
 	The '-u' option will use the uncompressed form of the public key.
         
@@ -112,11 +111,11 @@ newBitcoinKey()
 	END_USAGE
         return
         ;;
-      u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed $FUNCNAME "$@";;
-      t) BITCOIN_NET=TEST $FUNCNAME "$@";;
+      u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed ${FUNCNAME[0]} "$@";;
+      t) BITCOIN_NET=TEST ${FUNCNAME[0]} "$@";;
     esac
   elif [[ "$1" =~ ^[1-9][0-9]*$ ]]
-  then $FUNCNAME "0x$(dc -e "16o$1p")"
+  then ${FUNCNAME[0]} "0x$(dc -e "16o$1p")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
   then
     {
@@ -133,7 +132,7 @@ newBitcoinKey()
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {
-      read
+      read -r
       if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
       then cat <<-JSON
 	{
@@ -147,8 +146,9 @@ newBitcoinKey()
       fi
     }
   elif test -z "$1"
-  then $FUNCNAME "0x$(openssl rand -hex 32)"
+  then ${FUNCNAME[0]} "0x$(openssl rand -hex 32)"
   else
     echo unknown key format "$1" >&2
     return 2
   fi
+}

@@ -1,9 +1,11 @@
+#!/usr/bin/env bash
+
 if [[ ! -f secp256k1.dc ]]
 then
   1>&2 echo "could not find dc script file"
 fi
 
-secp256k1()
+secp256k1() {
   if (( $# == 0 ))
   then
     {
@@ -17,9 +19,9 @@ secp256k1()
   then
     shift $((OPTIND - 1))
     case "$o" in
-      u) $FUNCNAME "$@" |
+      u) ${FUNCNAME[0]} "$@" |
         {
-          read
+          read -r
 	  dc -f secp256k1.dc -e "4 2 512^*16doi${REPLY}dlYxr2 2 8^^%2 2 8^^*++P" |
 	  xxd -p -u -c 65
         }
@@ -62,10 +64,11 @@ secp256k1()
       echo 'ln%[0x]P8d+op'
     } | dc -f secp256k1.dc -
   elif [[ "$1" =~ ^[[:digit:]]+$ ]]
-  then $FUNCNAME "0x$(dc -e "$1 16on")"
+  then ${FUNCNAME[0]} "0x$(dc -e "$1 16on")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]+)$ ]]
   then dc -f secp256k1.dc -e "16doilG${BASH_REMATCH[2]^^}lMxlEx"
   else return 1
   fi
+}
 
 parse256() { xxd -u -p -c32; }
