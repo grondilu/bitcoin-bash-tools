@@ -59,7 +59,7 @@ bitcoinAddress() {
   elif [[ "$1" =~ ^0([23][[:xdigit:]]{2}{32}|4[[:xdigit:]]{2}{64})$ ]]
   then
     {
-      printf "%c" "${P2PKH_PREFIX:-\x00}"
+      printf "${P2PKH_PREFIX:-\x00}"
       echo "$1" | xxd -p -r | hash160
     } | base58 -c
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
