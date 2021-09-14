@@ -33,23 +33,15 @@ for i in {0..31}
 do BECH32_CHARSET_REVERSE[${BECH32_CHARSET:$i:1}]=$((i))
 done
 
-declare -ai generator=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
 
-declare -A encodings=(BECH32 bech32 BECH32M bech32m)
-
-getEncodingConst()
-  if [[ "$1" = "${encodings[BECH32]}" ]]
-  then echo 1
-  elif [[ "$1" = "${encodings[BECH32M]}" ]]
-  then echo 0x2bc830a3
-  else return 1
-  fi
+BECH32_CONST=1
 
 polymod() {
-  local -i chk=1
-  while read
+  local -ai generator=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
+  local -i chk=1 value
+  for value
   do
-    local -i value=REPLY top i
+    local -i top i
     
     ((top = chk >> 25, chk = (chk & 0x1ffffff) << 5 ^ value))
     
@@ -74,80 +66,91 @@ hrpExpand() {
 }
 
 verifyChecksum() {
-  local hrp="$1" enc="$2"
-  local -i pmod=$({ hrpExpand "$hrp"; cat; }|polymod) encconst=$(getEncodingConst "$enc")
-  (( pmod == encconst ))
+  local hrp="$1"
+  shift
+  local -i pmod="$(polymod $(hrpExpand "$hrp") "$@")"
+  (( pmod == $BECH32_CONST ))
 }
 
 createChecksum() {
-  {
-    local -i i
-    hrpExpand $1
-    cat
-    for i in {1..6}; do echo 0; done
-  } | 
-  {
-    local -i p mod=$(($(polymod) ^ $(getEncodingConst $2)))
-    for p in 0 1 2 3 4 5
-    do echo $(( (mod >> 5 * (5 - p)) & 31 ))
-    done
-  }
-}
-
-bech32m_encode() {
-  local hrp=$1 enc=$2 data="$(mktemp)"
-  echo -n "${hrp}1"
-  cat > $data
-  cat $data <(createChecksum $hrp $enc < $data) |
-  while read; do echo -n ${BECH32_CHARSET:$REPLY:1}; done
-  rm $data
-}
-
-bech32m_decode() {
-  local bechString=$1 enc=${2:-bech32m}
-  local -i p has_lower=0 has_upper=0 ord
-
-  for ((p=0;p<${#bechString};++p))
-  do
-    printf -v ord "%d" "'${bechString:$p:1}"
-    if   ((ord <  33 || ord >  126))
-    then return 1
-    elif ((ord >= 97 && ord <= 122))
-    then has_lower=1
-    elif ((ord >= 65 && ord <= 90))
-    then has_upper=1
-    fi
+  local hrp="$1"
+  shift
+  local -i p mod=$(($(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0) ^ $BECH32_CONST))
+  for p in 0 1 2 3 4 5
+  do echo $(( (mod >> 5 * (5 - p)) & 31 ))
   done
-  if ((has_upper && has_lower))
-  then return 2
-  elif bechString="${bechString,,}"
-    ((${#bechString} > 90))
-  then return 3
-  elif 
-    [[ ! "$bechString" =~ 1 ]]
-  then return 4
-  elif
-    local hrp="${bechString%1*}"
-    test -z $hrp
-  then return 5
-  elif local data="${bechString##*1}"
-    ((${#data} < 6))
-  then return 6
+}
+
+bech32_encode()
+  if
+    local OPTIND o
+    getopts m o
+  then
+    shift $((OPTIND - 1))
+    BECH32_CONST=0x2bc830a3 $FUNCNAME "$@"
   else
-    echo $hrp
-    local tmpfile="$(mktemp)"
-    for ((p=0;p<${#data};++p))
-    do echo "${BECH32_CHARSET_REVERSE[${data:$p:1}]}"
-    done > $tmpfile
-    if grep -q '^$' $tmpfile
-    then rm $tmpfile; return 7
-    elif verifyChecksum "$hrp" "$enc" < $tmpfile
-    then
-      cat $tmpfile
-      rm $tmpfile
+    local hrp=$1 i
+    shift
+    echo -n "${hrp}1"
+    {
+      for i; do echo $i; done
+      createChecksum "$hrp" "$@"
+    } |
+    while read; do echo -n ${BECH32_CHARSET:$REPLY:1}; done
+    echo
+  fi
+
+bech32_decode()
+  if
+    local OPTIND o
+    getopts m o
+  then
+    shift $((OPTIND - 1))
+    BECH32_CONST=0x2bc830a3 $FUNCNAME "$@"
+  else
+    local bechString=$1
+    local -i p has_lower=0 has_upper=0 ord
+
+    for ((p=0;p<${#bechString};++p))
+    do
+      printf -v ord "%d" "'${bechString:$p:1}"
+      if   ((ord <  33 || ord >  126))
+      then return 1
+      elif ((ord >= 97 && ord <= 122))
+      then has_lower=1
+      elif ((ord >= 65 && ord <= 90))
+      then has_upper=1
+      fi
+    done
+    if ((has_upper && has_lower))
+    then return 2
+    elif bechString="${bechString,,}"
+      ((${#bechString} > 90))
+    then return 3
+    elif 
+      [[ ! "$bechString" =~ 1 ]]
+    then return 4
+    elif
+      local hrp="${bechString%1*}"
+      test -z $hrp
+    then return 5
+    elif local data="${bechString##*1}"
+      ((${#data} < 6))
+    then return 6
     else
-      rm $tmpfile
-      return 8
+      for ((p=0;p<${#data};++p))
+      do echo "${BECH32_CHARSET_REVERSE[${data:$p:1}]}"
+      done |
+      {
+	mapfile -t
+	if verifyChecksum "$hrp" "${MAPFILE[@]}"
+	then
+	  echo $hrp
+	  for p in "${MAPFILE[@]::${#MAPFILE[@]}-6}"
+	  do echo $p
+	  done
+	else return 8
+	fi
+      }
     fi
   fi
-}
