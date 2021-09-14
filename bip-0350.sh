@@ -83,22 +83,14 @@ segwit_decode() {
       fi
       
       mapfile -t
-      if
-        local p
-	! {
-        for p in ${MAPFILE[@]}
-        do echo $p
-        done |
-        convertbits 5 8 0 >/dev/null
-        }
-      then return 6
-      fi
-      local -a bytes=($(
+      local p
+      local -a bytes
+      bytes=($(
         for p in ${MAPFILE[@]}
         do echo $p
         done |
         convertbits 5 8 0
-      ))
+      )) || return 6
       if
 	((
 	  ${#bytes[@]} == 0 ||

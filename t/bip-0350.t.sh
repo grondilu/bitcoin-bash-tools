@@ -113,6 +113,8 @@ declare -a invalid_address=(
 declare -i n=0
 declare t
 
+echo 1..79
+
 for t in "${valid_checksum_bech32[@]}"
 do
   ((n++))
@@ -156,35 +158,36 @@ do
   scriptpubkey=${valid_address[$address]}
   hrp="${address%1*}" payload="${address##*1}" 
 
+  ((n++))
   if segwit_decode "$address" >/dev/null
-  then segwit_decode "$address" |
-    {
-      ((n++))
-      declare hrp program output recreated_address
-      declare -i version=0 encodedversion
-      read hrp
-      read version
-      encodedversion=$version
-      (( version > 0 && (encodedversion+=0x50) ))
-      read program
-      printf -v output "%02x%02x%s" $encodedversion $((${#program}/2)) $program
-      if [[ "$output" = "$scriptpubkey" ]]
-      then echo "ok $n - $address -> $scriptpubkey"
-      else echo "not ok $n - $address -> $output instead of $scriptpubkey"
-      fi
+  then echo "ok $n - could decode $address"
+  else echo "not ok $n - could not decode $address"
+  fi
 
-      ((n++))
-      recreated_address="$(
-	echo -n $program |
-	while read -n 2; do echo $((0x$REPLY)); done |
-	segwit_encode -v $version "$hrp"
-      )"
-      if [[ "$recreated_address" = "${address,,}" ]]
-      then echo "ok $n - could recreate $address"
-      else echo "not ok $n - failed to recreate $address, got $recreated_address instead"
-      fi
-    }  
-  else echo "failed to decode $address"
+  declare decoded_address="$(segwit_decode "$address" |tr '\n' ' ')"
+
+  declare hrp program output recreated_address
+  declare -i version=0 encodedversion
+  
+  ((n++))
+  read hrp version program <<<"$decoded_address"
+  encodedversion=$version
+  (( version > 0 && (encodedversion+=0x50) ))
+  printf -v output "%02x%02x%s" $encodedversion $((${#program}/2)) $program
+  if [[ "$output" = "$scriptpubkey" ]]
+  then echo "ok $n - $address -> $scriptpubkey"
+  else echo "not ok $n - $address -> $output instead of $scriptpubkey"
+  fi
+
+  ((n++))
+  recreated_address="$(
+    echo -n $program |
+    while read -n 2; do echo $((0x$REPLY)); done |
+    segwit_encode -v $version "$hrp"
+  )"
+  if [[ "$recreated_address" = "${address,,}" ]]
+  then echo "ok $n - could recreate $address"
+  else echo "not ok $n - failed to recreate $address, got $recreated_address instead"
   fi
 done
 
