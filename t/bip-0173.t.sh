@@ -36,13 +36,13 @@ declare -a incorrect_segwit_addresses=(
    tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty
    bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5
    BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2
-#   bc1rw5uspcuh
-#   bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90
-#   BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P
-#   tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7
-#   bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du
-#   tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv
-#   bc1gmk9yu
+   bc1rw5uspcuh
+   bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90
+   BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P
+   tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7
+   bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du
+   tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv
+   bc1gmk9yu
 )
 
 echo 1..$((
@@ -55,7 +55,7 @@ declare -i t=0
 for v in "${correct_bech32[@]}"
 do
   ((t++))
-  if bech32_verify "$v"
+  if bech32_decode "$v" >/dev/null
   then echo "ok $t - true positive for '$v'" 
   else echo "not ok $t - false negative for '$v'" 
   fi
@@ -64,7 +64,7 @@ done
 for v in "${incorrect_bech32[@]}"
 do
   ((t++))
-  if ! bech32_verify "$v"
+  if ! bech32_decode "$v" >/dev/null
   then echo "ok $t - true negative for '$v'" 
   else echo "not ok $t - false positive for '$v'" 
   fi
@@ -73,7 +73,10 @@ done
 for k in "${!correct_segwit_addresses[@]}"
 do
   ((t++))
-  bech32_verify "$k" && echo "ok $t - $k is a valid bech32"
+  if bech32_decode "$k" >/dev/null
+  then echo "ok $t - $k is a valid bech32"
+  else echo "not ok $t - $k should not have been parsed as valid"
+  fi
 done
 
 for v in "${incorrect_segwit_addresses[@]}"

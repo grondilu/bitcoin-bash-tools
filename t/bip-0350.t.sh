@@ -26,8 +26,7 @@
 #// THE SOFTWARE.
 
 
-. bech32m.sh
-
+. bip-0350.sh
 
 declare -a valid_checksum_bech32=(
   A12UEL5L
@@ -150,8 +149,6 @@ do
   else echo "ok $n - $t => $?"
   fi
 done
-
-. bip-0350.sh
 
 for address in "${!valid_address[@]}"
 do

@@ -1,35 +1,46 @@
+#!/usr/bin/env bash
+
 . bech32.sh
 
-segwit_encode() {
-  local hrp="$1" version="$2" tmpfile="$(mktemp)"
-  [[ "$hrp"     =~ ^$HRP_CHAR_CLASS{1,83}$ ]] || return 1 # unexpected format for hrp
-  [[ "$version" =~ ^0|[1-9][[:digit:]]*$   ]] || return 2 # unexpected format for version
-  if ((version == 0))
+segwitAddress() {
+  local OPTIND OPTARG o
+  if getopts hv: o
   then
-    cat > "$tmpfile"
-    local -i length=$(wc -c < "$tmpfile")
-    if ((length == 20))
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE
+	${FUNCNAME[0]} -h
+	${FUNCNAME[0]} [-v witness-version] HRP WITNESS_PROGRAM
+	END_USAGE
+        ;;
+      v) WITNESS_VERSION=$OPTARG ${FUNCNAME[0]} "$@" ;;
+    esac
+  elif (($# != 2))
+  then return 1
+  elif
+    local hrp="$1"
+    [[ "$hrp"     =~ ^(bc|tb)$ ]]
+  then return 2
+  elif
+    local witness_program="$2"
+    [[ ! "$witness_program" =~ ^[[:xdigit:]]{2}+$ ]]
+  then return 3
+  elif
+    local -i version=${WITNESS_VERSION:-0}
+    ((version < 0))
+  then return 4
+  elif ((version == 0))
+  then
+    if [[ "$witness_program" =~ ^.{2}{20}$ ]]
     then
       # P2WPKH
-      {
-        echo -n "${hrp}1${bech32[$version]}"
-        xxd -p -c 1 "$tmpfile" |
-        while read
-        do printf "%d\n" 0x$REPLY
-        done |
-        convert_bits 8 5 |
-        while read i
-        do echo -n ${bech32[i]}
-        done
-      } |
-      {
-        read
-        echo -n "$REPLY"
-        bech32_create_checksum "$REPLY"
-        echo
-      }
-      rm "$tmpfile"
-    elif ((length == 32))
+      bech32_encode "$hrp" $(
+	echo $version;
+        echo -n "$witness_program" |
+	while read -n 2; do echo 0x$REPLY; done |
+        convertbits 8 5
+      )
+    elif [[ "$witness_program" =~ ^.{2}{32}$ ]]
     then
        1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
        return 4
@@ -37,28 +48,46 @@ segwit_encode() {
        1>&2 echo For version 0, the witness program must be either 20 or 32 bytes long.
        return 5
     fi
-  else
-    1>&2 echo witness version NYI
-    return 6
+  else return 255
   fi
 }
 
 segwit_verify() {
-  if ! bech32_verify "$1"
+  if ! bech32_decode "$1" >/dev/null
   then return 1
-  elif
-    local -l hrp="${1%1*}" data="${1##*1}"
-    [[ ! "$hrp" =~ ^(bc|tb)$ ]]
-  then return 2
-  elif (( "${bech32A[${data:0:1}]}" > 16 ))
-  then return 3
-  else return 0
+  else
+    local hrp
+    local -i witness_version
+    local -ai bytes
+    bech32_decode "$1" |
+    {
+      read hrp
+      [[ "$hrp" =~ ^(bc|tb)$ ]] || return 2
+      read witness_version
+      (( witness_version < 0 || witness_version > 16)) && return 3
+      
+      bytes=($(convertbits 5 8 0)) || return 4
+      if
+	((
+	  ${#bytes[@]} == 0 ||
+	  ${#bytes[@]} <  2 ||
+	  ${#bytes[@]} > 40
+	))
+      then return 7
+      elif ((
+	 witness_version == 0 &&
+	 ${#bytes[@]} != 20 &&
+	 ${#bytes[@]} != 32
+      ))
+      then return 8
+      fi
+    }
   fi
 }
 
-convert_bits() {
+convertbits() {
   local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i
-  readonly maxv=$(((1 << outbits) - 1))
+  local -i maxv=$(( (1 << outbits) - 1 ))
   while read 
   do
     val=$(((val<<inbits)|$REPLY))
@@ -69,14 +98,13 @@ convert_bits() {
       echo $(( (val >> bits) & maxv ))
     done
   done
-  if test -n "$pad"
+  if ((pad > 0))
   then
     if ((bits))
     then echo $(( (val << (outbits - bits)) & maxv ))
     fi
   elif (( ((val << (outbits - bits)) & maxv ) || bits >= inbits))
-  then 
-    1>&2 echo unexpected outcome
-    return 1
+  then return 1
   fi
 }
+

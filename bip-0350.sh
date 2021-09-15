@@ -1,7 +1,5 @@
 #!/usr/env/bin bash
 
-. bech32m.sh
-
 # Translated from javascript.
 #
 # Original code links:
@@ -31,9 +29,11 @@
 # // THE SOFTWARE.
 # 
 
+. bech32.sh
+
 convertbits() {
   local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i
-  local -i maxv=$(((1 << outbits) - 1))
+  local -i maxv=$(( (1 << outbits) - 1 ))
   while read 
   do
     val=$(((val<<inbits)|$REPLY))
