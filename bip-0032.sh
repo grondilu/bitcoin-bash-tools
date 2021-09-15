@@ -12,6 +12,7 @@ BIP32_XKEY_B58CHCK_FORMAT="[xt](prv|pub)[$base58_chars_str]{1,112}"
 BIP32_DERIVATION_FORMAT="/[[:digit:]]+"
 BIP32_HARDENED_DERIVATION_FORMAT="${BIP32_DERIVATION_FORMAT}h?"
 BIP32_DERIVATION_PATH="($BIP32_HARDENED_DERIVATION_FORMAT)*(/N($BIP32_DERIVATION_FORMAT)*)?"
+BIP32_XKEY_FORMAT="$BIP32_XKEY_B58CHCK_FORMAT$BIP32_DERIVATION_PATH"
 
 isPrivate() ((
   $1 == BIP32_TESTNET_PRIVATE_VERSION_CODE ||
@@ -75,6 +76,8 @@ bip32()
 	    else return $?
 	    fi
 	  }
+        elif [[ "$OPTARG" =~ ^$BIP32_XKEY_FORMAT$ ]]
+        then ${FUNCNAME[0]} -p "$(${FUNCNAME[0]} "$OPTARG")"
         else return 2
         fi
         ;;
