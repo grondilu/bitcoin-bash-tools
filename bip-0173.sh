@@ -4,31 +4,43 @@
 
 segwitAddress() {
   local OPTIND OPTARG o
-  if getopts hv: o
+  if getopts hp:tv: o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE
 	${FUNCNAME[0]} -h
-	${FUNCNAME[0]} [-v witness-version] HRP WITNESS_PROGRAM
+	${FUNCNAME[0]} [-t] [-v witness-version] WITNESS_PROGRAM
+	${FUNCNAME[0]} [-t] -p compressed-point
 	END_USAGE
         ;;
+      p)
+        if [[ "$OPTARG" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
+        then ${FUNCNAME[0]} "$@" "$(
+          xxd -p -r <<<"$OPTARG" |
+          openssl dgst -sha256 -binary |
+          openssl dgst -rmd160 -binary |
+          xxd -p -c 20
+        )"
+        else echo "-p option expects a compressed point as argument" >&2
+          return 1
+        fi
+        ;;
+      t) HRP=tb ${FUNCNAME[0]} "$@" ;;
       v) WITNESS_VERSION=$OPTARG ${FUNCNAME[0]} "$@" ;;
     esac
-  elif (($# != 2))
+  elif
+    local hrp="${HPR:-bc}"
+    [[ ! "$hrp"     =~ ^(bc|tb)$ ]]
   then return 1
   elif
-    local hrp="$1"
-    [[ "$hrp"     =~ ^(bc|tb)$ ]]
-  then return 2
-  elif
-    local witness_program="$2"
+    local witness_program="$1"
     [[ ! "$witness_program" =~ ^[[:xdigit:]]{2}+$ ]]
-  then return 3
+  then return 2
   elif
     local -i version=${WITNESS_VERSION:-0}
     ((version < 0))
-  then return 4
+  then return 3
   elif ((version == 0))
   then
     if [[ "$witness_program" =~ ^.{2}{20}$ ]]
@@ -43,10 +55,10 @@ segwitAddress() {
     elif [[ "$witness_program" =~ ^.{2}{32}$ ]]
     then
        1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
-       return 4
+       return 3
     else
        1>&2 echo For version 0, the witness program must be either 20 or 32 bytes long.
-       return 5
+       return 4
     fi
   else return 255
   fi
