@@ -15,7 +15,7 @@ segwitAddress() {
 	END_USAGE
         ;;
       p)
-        if [[ "$OPTARG" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
+        if [[ "$OPTARG" =~ ^0[23][[:xdigit:]]{64}$ ]]
         then ${FUNCNAME[0]} "$@" "$(
           xxd -p -r <<<"$OPTARG" |
           openssl dgst -sha256 -binary |
@@ -43,7 +43,7 @@ segwitAddress() {
   then return 3
   elif ((version == 0))
   then
-    if [[ "$witness_program" =~ ^.{2}{20}$ ]]
+    if [[ "$witness_program" =~ ^.{40}$ ]] # 20 bytes
     then
       # P2WPKH
       bech32_encode "$hrp" $(
@@ -52,7 +52,7 @@ segwitAddress() {
 	while read -n 2; do echo 0x$REPLY; done |
         convertbits 8 5
       )
-    elif [[ "$witness_program" =~ ^.{2}{32}$ ]]
+    elif [[ "$witness_program" =~ ^.{64}$ ]] # 32 bytes
     then
        1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
        return 3

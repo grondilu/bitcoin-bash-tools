@@ -13,8 +13,8 @@ bip32_testnet_private_version_code=0x04358394
 
 bip32_serialization_format="%08x%02x%08x%08x%64s%66s" 
 
-isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{2}{32}$ ]]
-isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{2}{64}$ ]]
+isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{64}$ ]]
+isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{128}$ ]]
 
 isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
 isHexadecimal()    [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
@@ -175,7 +175,7 @@ bx()
 	  $FUNCNAME base58-decode "$1" |
           {
             read
-	    if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?[[:xdigit:]]{2}{4}$ ]]
+	    if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?[[:xdigit:]]{8}$ ]]
             then echo "${BASH_REMATCH[2]}"
             else return 2
             fi

@@ -23,7 +23,7 @@ function bip39() {
   elif [[ $1 =~ ^(128|160|192|224|256)$ ]]
   then
     $FUNCNAME $(openssl rand -hex $(($1/8)))
-  elif [[ "$1" =~ ^[[:xdigit:]]{2}{16,32}$ ]]
+  elif [[ "$1" =~ ^([[:xdigit:]]{2}){16,32}$ ]]
   then
     local hexnoise="${1^^}"
     local -i ENT=${#hexnoise}*4 #bits

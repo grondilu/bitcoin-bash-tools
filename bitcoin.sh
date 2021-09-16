@@ -35,7 +35,7 @@ hash160() {
 }
 
 ser256() {
-  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}{32})$ ]]
+  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{,63})$ ]]
   then ${FUNCNAME[0]} "0x0${BASH_REMATCH[2]}"
@@ -56,7 +56,7 @@ bitcoinAddress() {
         ;;
       t) P2PKH_PREFIX="\x6F" ${FUNCNAME[0]} "$@" ;;
     esac
-  elif [[ "$1" =~ ^0([23][[:xdigit:]]{2}{32}|4[[:xdigit:]]{2}{64})$ ]]
+  elif [[ "$1" =~ ^0([23]([[:xdigit:]]{2}){32}|4([[:xdigit:]]{2}){64})$ ]]
   then
     {
       printf %b "${P2PKH_PREFIX:-\x00}"
@@ -66,7 +66,7 @@ bitcoinAddress() {
   then base58 -x "$1" |
     {
       read -r
-      if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
+      if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
       then
 	local point
         if test -n "${BASH_REMATCH[3]}"
@@ -133,7 +133,7 @@ newBitcoinKey() {
   then base58 -x "$1" |
     {
       read -r
-      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{2}{32})(01)?([[:xdigit:]]{2}{4})$ ]]
+      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
       then cat <<-JSON
 	{
 	  "prefix": $((0x${BASH_REMATCH[1]})),
