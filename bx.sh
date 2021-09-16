@@ -17,7 +17,7 @@ isCompressedPoint()   [[ "$1" =~ ^0[23][[:xdigit:]]{64}$ ]]
 isUncompressedPoint() [[ "$1" =~    ^04[[:xdigit:]]{128}$ ]]
 
 isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
-isHexadecimal()    [[ "$1" =~ ^(0x)?([[:xdigit:]]{2}+)$ ]]
+isHexadecimal()    [[ "$1" =~ ^(0x)?(([[:xdigit:]]{2})+)$ ]]
 isBase64()         [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
 isExtendedKey() {
   base58 -v "$1" &&

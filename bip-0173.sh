@@ -35,7 +35,7 @@ segwitAddress() {
   then return 1
   elif
     local witness_program="$1"
-    [[ ! "$witness_program" =~ ^[[:xdigit:]]{2}+$ ]]
+    [[ ! "$witness_program" =~ ^([[:xdigit:]]{2})+$ ]]
   then return 2
   elif
     local -i version=${WITNESS_VERSION:-0}

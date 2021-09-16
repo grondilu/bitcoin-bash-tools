@@ -61,7 +61,7 @@ base58() {
     } | ${FUNCNAME[0]} 
   elif [[ "$1" =~ ^00 ]]
   then echo -n 1; ${FUNCNAME[0]} "${1:2}"
-  elif [[ "$1" =~ ^[[:xdigit:]]{2}+$ ]]
+  elif [[ "$1" =~ ^([[:xdigit:]]{2})+$ ]]
   then sed -e 'i16i0' -e 's/../100*&+/g' -e 'a[3A~rd0<x]dsxx+f' <<<"${1^^}" |
     dc |
     while read -r; do echo -n ${base58_chars_str:$REPLY:1}; done
