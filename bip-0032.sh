@@ -48,12 +48,12 @@ bip32()
 	Usage:
 	  $FUNCNAME -h
 	  $FUNCNAME [-t]
-	  $FUNCNAME EXTENDED-KEY[DERIVATION-PATH]
+	  $FUNCNAME [-p] EXTENDED-KEY
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
 	
-	With no argument, $FUNCNAME will generate an extended master key from
-	standard input.  With the -t option, it will generate an extended master key
-	for the test network.
+	With no argument, $FUNCNAME will generate an extended master key from a
+	seed read on standard input.  With the -t option, it will generate an extended
+	master key for the test network.
         
 	END_USAGE
         ;;
