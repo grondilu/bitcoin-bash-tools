@@ -39,6 +39,7 @@ debug()
 
 bip32()
   if
+    debug "${FUNCNAME[@]} $@"
     local OPTIND OPTARG o
     getopts hp:t o
   then
