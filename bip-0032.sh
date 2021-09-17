@@ -96,6 +96,37 @@ bip32()
       read
       $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
     }
+  elif (( $# == 6 ))
+  then
+    local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
+    local chaincode=$5 key=$6
+    if ((
+      version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
+      version != BIP32_MAINNET_PRIVATE_VERSION_CODE &&
+      version != BIP32_TESTNET_PUBLIC_VERSION_CODE  &&
+      version != BIP32_MAINNET_PUBLIC_VERSION_CODE
+    ))
+    then return 1
+    elif ((depth < 0 || depth > 255))
+    then return 2
+    elif ((fingerprint < 0 || fingerprint > 0xffffffff))
+    then return 3
+    elif ((childnumber < 0 || childnumber > 0xffffffff))
+    then return 4
+    elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
+    then return 5
+    elif [[ ! "$key" =~ ^[[:xdigit:]]{66}$ ]]
+    then return 6
+    elif isPublic  $version && [[ "$key" =~ ^00    ]]
+    then return 7
+    elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
+    then return 8
+    # TODO: check that the point is on the curve?
+    else
+      printf "%08x%02x%08x%08x%s%s" "$@" |
+      xxd -p -r |
+      base58 -c
+    fi
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v "$1"
   then $FUNCNAME -p "$1" >/dev/null && echo $1
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
@@ -114,8 +145,7 @@ bip32()
            version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
          $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
            version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *)
-           key="$(secp256k1 "0x$key")"
+         *) key="$(secp256k1 "0x$key")" || return 100
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
@@ -154,37 +184,6 @@ bip32()
     } 
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$BIP32_DERIVATION_PATH$ ]]
   then $FUNCNAME "$($FUNCNAME "${1%/*}")/${1##*/}"
-  elif (( $# == 6 ))
-  then
-    local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
-    local chaincode=$5 key=$6
-    if ((
-      version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
-      version != BIP32_MAINNET_PRIVATE_VERSION_CODE &&
-      version != BIP32_TESTNET_PUBLIC_VERSION_CODE  &&
-      version != BIP32_MAINNET_PUBLIC_VERSION_CODE
-    ))
-    then return 1
-    elif ((depth < 0 || depth > 255))
-    then return 2
-    elif ((fingerprint < 0 || fingerprint > 0xffffffff))
-    then return 3
-    elif ((childnumber < 0 || childnumber > 0xffffffff))
-    then return 4
-    elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
-    then return 5
-    elif [[ ! "$key" =~ ^[[:xdigit:]]{66}$ ]]
-    then return 6
-    elif isPublic  $version && [[ "$key" =~ ^00    ]]
-    then return 7
-    elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
-    then return 8
-    # TODO: check that the point is on the curve?
-    else
-      printf "%08x%02x%08x%08x%s%s" "$@" |
-      xxd -p -r |
-      base58 -c
-    fi
   else return 1
   fi
 
@@ -243,7 +242,11 @@ CKDpriv()
       ki="$(secp256k1 "0x$kpar" "0x${REPLY:0:64}")"
       ki="00$(ser256 "$ki" |xxd -p -c 64)"
       ci="${REPLY:64:64}"
-      echo $ki $ci
+      if [[ ! "$ki" =~ ^[[:xdigit:]]{66}$ ]]
+      then echo "could not produce private key" >&2
+        return 105
+      else echo $ki $ci
+      fi
     }
   fi
 
