@@ -132,15 +132,13 @@ newBitcoinKey() {
     while ((${#hex} != 64))
     do hex="0$hex"
     done
-    echo "-----BEGIN EC PRIVATE KEY-----"
-    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
     {
+      # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
       echo "30740201010420${hex}a00706052b8104000aa144034200"
-      secp256k1 -u "${BASH_REMATCH[2]}"
+      secp256k1 -u "0x$hex"
     } |
     xxd -p -r |
-    base64
-    echo "-----END EC PRIVATE KEY-----"
+    openssl ec -inform der -check
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {
