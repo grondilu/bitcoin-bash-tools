@@ -118,34 +118,35 @@ newBitcoinKey() {
   then ${FUNCNAME[0]} "0x$(dc -e "16o$1p")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
   then
+    local hex="${BASH_REMATCH[2]}"
     {
       if [[ "$BITCOIN_NET" = TEST ]]
       then printf "\xEF"
       else printf "\x80"
       fi
-      ser256 "${BASH_REMATCH[2]^^}"
+      ser256 "${hex^^}"
       if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
       then printf "\x01"
       fi
     } | base58 -c
-
+    while ((${#hex} != 64))
+    do hex="0$hex"
+    done
+    echo "-----BEGIN EC PRIVATE KEY-----"
+    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+    {
+      echo "30740201010420${hex}a00706052b8104000aa144034200"
+      secp256k1 -u "${BASH_REMATCH[2]}"
+    } |
+    xxd -p -r |
+    base64
+    echo "-----END EC PRIVATE KEY-----"
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {
       read -r
       if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
-      then
-        echo "-----BEGIN EC PRIVATE KEY-----"
-        # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-        {
-          echo "30740201010420"
-          echo "${BASH_REMATCH[2]}"
-          echo "a00706052b8104000aa144034200"
-          secp256k1 -u "${BASH_REMATCH[2]}"
-        } |
-        xxd -p -r |
-        base64
-        echo "-----END EC PRIVATE KEY-----"
+      then ${FUNCNAME[0]} "0x${BASH_REMATCH[2]}"
       else return 3
       fi
     }
