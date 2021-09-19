@@ -1,9 +1,28 @@
 #!/usr/bin/env bash
 
 . secp256k1.sh
-echo 1..56
+echo 1..60
 
 let -i a b t=0
+
+((t++))
+if [[ "$(secp256k1 0)" = 0 ]]
+then echo "ok $t - 0*G = 0"
+else echo "not ok - 0*G = $(secp256k1 0)"
+fi
+
+((t++))
+if [[ "$(secp256k1 1)" = 0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798 ]]
+then echo "ok $t - 1*G = G"
+else echo "not ok - 1*G = $(secp256k1 0)"
+fi
+
+((t++))
+if [[ "$(secp256k1 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141)" = 0 ]]
+then echo "ok $t - n*G = 0"
+else echo "not ok - n*G = $(secp256k1 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141)"
+fi
+
 for i in {1..10}
 do
   ((a=RANDOM, b=RANDOM, t++))
@@ -12,6 +31,16 @@ do
   else echo "not ok $t - $a*G + $b*G != ($a+$b)*G"
   fi
 done
+
+a="$(openssl rand -hex 32)"
+b="$(openssl rand -hex 32)"
+a="0x${a^^}"
+b="0x${b^^}"
+((t++))
+if [[ "$({ secp256k1 $a; secp256k1 $b; } |secp256k1)" = "$(secp256k1 $(secp256k1 $a $b))" ]]
+then echo "ok $t - $a*G + $b*G = ($a+$b)*G"
+else echo "not ok $t - $a*G + $b*G != ($a+$b)*G"
+fi
 
 ((t++))
 n="0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
