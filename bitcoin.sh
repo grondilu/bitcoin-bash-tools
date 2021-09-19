@@ -135,13 +135,17 @@ newBitcoinKey() {
       read -r
       if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
       then
+        echo "-----BEGIN EC PRIVATE KEY-----"
         # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
         {
-	  echo "30740201010420${BASH_REMATCH[2]}a00706052b8104000aa144034200"
-	  secp256k1 -u "${BASH_REMATCH[2]}"
+          echo "30740201010420"
+          echo "${BASH_REMATCH[2]}"
+          echo "a00706052b8104000aa144034200"
+          secp256k1 -u "${BASH_REMATCH[2]}"
         } |
         xxd -p -r |
-        openssl ec -inform d
+        base64
+        echo "-----END EC PRIVATE KEY-----"
       else return 3
       fi
     }
