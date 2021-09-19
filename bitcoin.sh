@@ -100,8 +100,7 @@ newBitcoinKey() {
 	PRIVATE_KEY is a natural integer in decimal or hexadecimal, with an
 	optional '0x' prefix for hexadecimal.
 	
-	WIF is a private key in Wallet Import Format.  With such argument,
-	${FUNCNAME[0]} will parse it and echo the result in JSON.
+	WIF is a private key in Wallet Import Format.	
 	
 	The '-u' option will use the uncompressed form of the public key.
         
