@@ -134,14 +134,14 @@ newBitcoinKey() {
     {
       read -r
       if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
-      then cat <<-JSON
-	{
-	  "prefix": $((0x${BASH_REMATCH[1]})),
-	  "exponent"   : "${BASH_REMATCH[2]}",
-	  "compression suffix": "${BASH_REMATCH[3]}",
-	  "checksum": "${BASH_REMATCH[4]}"
-	}
-	JSON
+      then
+        # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+        {
+	  echo "30740201010420${BASH_REMATCH[2]}a00706052b8104000aa144034200"
+	  secp256k1 -u "${BASH_REMATCH[2]}"
+        } |
+        xxd -p -r |
+        openssl ec -inform d
       else return 3
       fi
     }
