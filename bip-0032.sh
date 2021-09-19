@@ -41,7 +41,7 @@ bip32()
   if
     debug "${FUNCNAME[0]} $@"
     local OPTIND OPTARG o
-    getopts hp:t o
+    getopts hp:s:t o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -49,6 +49,7 @@ bip32()
 	Usage:
 	  $FUNCNAME -h
 	  $FUNCNAME [-t]
+          $FUNCNAME -s HEX-ENCODED-SEED
 	  $FUNCNAME [-p] EXTENDED-KEY
 	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
 	
@@ -82,6 +83,12 @@ bip32()
         else return 2
         fi
         ;;
+      s)
+         if [[ "$OPTARG" =~ ^([[:xdigit:]]{2})+$ ]]
+         then xxd -p -r <<<"$OPTARG" | ${FUNCNAME[0]} "$@"
+         else return 135
+         fi
+         ;;
       t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
     esac
   elif (($# == 0))
