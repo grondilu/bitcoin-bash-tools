@@ -26,7 +26,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-. secp256k1.sh
 . base58.sh
 
 hash160() {
@@ -63,15 +62,16 @@ bitcoinAddress() {
       echo "$1" | xxd -p -r | hash160
     } | base58 -c
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
-  then base58 -x "$1" |
+  then
+    base58 -x "$1" |
     {
       read -r
       if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
       then
-	local point
+	local point exponent="${BASH_REMATCH[2]^^}"
         if test -n "${BASH_REMATCH[3]}"
-        then point="$(secp256k1 "${BASH_REMATCH[2]}")"
-        else point="$(secp256k1 -u "${BASH_REMATCH[2]}")"
+        then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lEx")"
+        else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
         fi
         if [[ "$REPLY" =~ ^80 ]]
         then ${FUNCNAME[0]} "$point"
@@ -117,27 +117,35 @@ newBitcoinKey() {
   then ${FUNCNAME[0]} "0x$(dc -e "16o$1p")"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
   then
-    local hex="${BASH_REMATCH[2]}"
+    local hex="${BASH_REMATCH[2]^^}"
     {
       if [[ "$BITCOIN_NET" = TEST ]]
       then printf "\xEF"
       else printf "\x80"
       fi
-      ser256 "${hex^^}"
+      ser256 "$hex"
       if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
       then printf "\x01"
       fi
     } | base58 -c
+
+    echo bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx l< 2*2^+[0]Pp")"
+ 
     while ((${#hex} != 64))
     do hex="0$hex"
     done
-    {
-      # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-      echo "30740201010420${hex}a00706052b8104000aa144034200"
-      secp256k1 -u "0x$hex"
-    } |
-    xxd -p -r |
+    
+    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+    if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
+    then
+      xxd -p -r <<<"30740201010420${hex}A00706052B8104000AA144034200"
+      dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
+    else
+      xxd -p -r <<<"30540201010420${hex}A00706052B8104000AA124032200"
+      dc -f secp256k1.dc -e "lG16doi$hex lMx d2%2+l<* rl</r+P"
+    fi |
     openssl ec -inform der -check
+
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then base58 -x "$1" |
     {

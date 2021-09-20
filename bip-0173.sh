@@ -2,6 +2,8 @@
 
 . bech32.sh
 
+p2wpkh() { segwitAddress -p "$1"; }
+
 segwitAddress() {
   local OPTIND OPTARG o
   if getopts hp:tv: o

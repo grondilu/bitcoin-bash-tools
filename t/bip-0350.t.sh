@@ -177,11 +177,10 @@ do
   fi
 
   ((n++))
-  recreated_address="$(
-    echo -n $program |
-    while read -n 2; do echo $((0x$REPLY)); done |
-    segwit_encode -v $version "$hrp"
-  )"
+  if [[ "$address" =~ ^tb ]]
+  then recreated_address="$(segwitAddress -t -v $version "$program")"
+  else recreated_address="$(segwitAddress -v $version "$program")"
+  fi
   if [[ "$recreated_address" = "${address,,}" ]]
   then echo "ok $n - could recreate $address"
   else echo "not ok $n - failed to recreate $address, got $recreated_address instead"

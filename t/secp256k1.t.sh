@@ -1,66 +1,38 @@
 #!/usr/bin/env bash
 
-. secp256k1.sh
-echo 1..60
+echo 1..48
 
 let -i a b t=0
 
-((t++))
-if [[ "$(secp256k1 0)" = 0 ]]
-then echo "ok $t - 0*G = 0"
-else echo "not ok - 0*G = $(secp256k1 0)"
-fi
-
-((t++))
-if [[ "$(secp256k1 1)" = 0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798 ]]
-then echo "ok $t - 1*G = G"
-else echo "not ok - 1*G = $(secp256k1 0)"
-fi
-
-((t++))
-if [[ "$(secp256k1 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141)" = 0 ]]
-then echo "ok $t - n*G = 0"
-else echo "not ok - n*G = $(secp256k1 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141)"
-fi
-
-for i in {1..10}
+while read e p
 do
-  ((a=RANDOM, b=RANDOM, t++))
-  if [[ "$({ secp256k1 $a; secp256k1 $b; } |secp256k1)" = "$(secp256k1 $((a+b)))" ]]
-  then echo "ok $t - $a*G + $b*G = ($a+$b)*G"
-  else echo "not ok $t - $a*G + $b*G != ($a+$b)*G"
+  ((t++))
+  if [[ "$(dc -f secp256k1.dc -e "16doilG$e lMxlEx")" = $p ]]
+  then echo "ok $t - $e*G = $p"
+  else echo "not ok $t - $e*G != $p"
   fi
-done
-
-a="$(openssl rand -hex 32)"
-b="$(openssl rand -hex 32)"
-a="0x${a^^}"
-b="0x${b^^}"
-((t++))
-if [[ "$({ secp256k1 $a; secp256k1 $b; } |secp256k1)" = "$(secp256k1 $(secp256k1 $a $b))" ]]
-then echo "ok $t - $a*G + $b*G = ($a+$b)*G"
-else echo "not ok $t - $a*G + $b*G != ($a+$b)*G"
-fi
-
-((t++))
-n="0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
-if [[ "$(secp256k1 10 $n)" = '0xA' ]]
-then echo "ok $t - 10 + n = 10"
-else echo "not ok $t - 10 + n != 10"
-fi
+done <<edges
+0 0
+1 0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 0
+edges
 
 {
   grep '^[kxy] =' |
-  cut -d ' ' -f 3 |
-  while read k; read x_expected; read y
-  do
-    ((t++))
-    declare x_computed="$(secp256k1 $k)"
-    if [[ "$x_computed" =~ ^0[23]$x_expected$ ]]
-    then echo "ok $t - good x value for exponent $k"
-    else echo "not ok $t - expected value for x was $x_expected, not $x_computed"
-    fi
-  done
+  cut -d ' ' -f 3 | {
+    coproc DC { dc -f secp256k1.dc -; }
+    while read k; read x; read y
+    do
+      ((t++))
+      echo "5d+i$k 8d+o lGrlMx 8d+i$x$y- d*1+1r/p" >&"${DC[1]}"
+      read <&"${DC[0]}"
+      if [[ "$REPLY" = 1 ]]
+      then echo "ok $t - $k"
+      else echo "not ok $t - $k"
+      fi
+    done
+    echo q >&"${DC[1]}"
+  }
 } <<EOF
 # source: https://chuckbatson.wordpress.com/2014/11/26/secp256k1-test-vectors/
 k = 1

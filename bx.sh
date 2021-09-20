@@ -134,7 +134,7 @@ bx()
         elif isHexadecimal "$1"
 	then
           {
-	    echo "16doilG${BASH_REMATCH[2]^^}lMxlm~" 
+	    echo "16doilG${BASH_REMATCH[2]^^}lMxl<~" 
 	    if [[ "$format" = compressed ]]
 	    then echo "2%2+2 2 8^^*+ P"
 	    else echo "r 4 2 2 8^^*+2 2 8^^*+P"
@@ -649,7 +649,7 @@ bx()
           ! isCompressedPoint "$point"
         then return 1
         elif isHexadecimal "$2"
-        then dc -f secp256k1.dc -e "16doi$point dlYxr2 2 8^^%lm*+lG${BASH_REMATCH[2]^^}lMxlAxlEx"
+        then dc -f secp256k1.dc -e "16doi$point dlYxr2 2 8^^%l<*+lG${BASH_REMATCH[2]^^}lMxlAxlEx"
         else return 2
         fi
         ;;

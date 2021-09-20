@@ -1,7 +1,6 @@
 if ! test -v base58
 then . base58.sh
 fi
-. secp256k1.sh
 
 BIP32_MAINNET_PUBLIC_VERSION_CODE=0x0488B21E
 BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
@@ -9,10 +8,11 @@ BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
 
 BIP32_XKEY_B58CHCK_FORMAT="[xt](prv|pub)[$base58_chars_str]{1,112}"
-BIP32_DERIVATION_FORMAT="/[[:digit:]]+"
-BIP32_HARDENED_DERIVATION_FORMAT="${BIP32_DERIVATION_FORMAT}h?"
-BIP32_DERIVATION_PATH="($BIP32_HARDENED_DERIVATION_FORMAT)*(/N($BIP32_DERIVATION_FORMAT)*)?"
-BIP32_XKEY_FORMAT="$BIP32_XKEY_B58CHCK_FORMAT$BIP32_DERIVATION_PATH"
+BIP32_SOFT_DERIVATION_STEP="/([[:digit:]]+|N)"
+BIP32_HARD_DERIVATION_STEP="/[[:digit:]]+h?"
+BIP32_SOFT_DERIVATION_PATH="($BIP32_SOFT_DERIVATION_STEP)+"
+BIP32_HARD_DERIVATION_PATH="($BIP32_HARD_DERIVATION_STEP)+($BIP32_SOFT_DERIVATION_STEP)*"
+BIP32_XKEY_FORMAT="$BIP32_XKEY_B58CHCK_FORMAT($BIP32_SOFT_DERIVATION_PATH|$BIP32_HARD_DERIVATION_PATH)"
 
 isPrivate() ((
   $1 == BIP32_TESTNET_PRIVATE_VERSION_CODE ||
@@ -34,7 +34,7 @@ fingerprint() {
 
 debug()
   if [[ "$DEBUG" = yes ]]
-  then echo "$@"
+  then echo "DEBUG: $@"
   fi >&2
 
 bip32()
@@ -122,7 +122,7 @@ bip32()
     then return 4
     elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
     then return 5
-    elif [[ ! "$key" =~ ^[[:xdigit:]]{66}$ ]]
+    elif [[ ! "$key"       =~ ^[[:xdigit:]]{66}$ ]]
     then return 6
     elif isPublic  $version && [[ "$key" =~ ^00    ]]
     then return 7
@@ -152,7 +152,7 @@ bip32()
            version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
          $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
            version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *) key="$(secp256k1 "0x$key")" || return 100
+         *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
@@ -174,7 +174,7 @@ bip32()
         {
            local ki ci
            read ki ci
-	   fp="0x$(fingerprint "$(secp256k1 "0x$key")")"
+	   fp="0x$(fingerprint "$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")")"
            $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
         }
       elif isPublic $version
@@ -189,8 +189,10 @@ bip32()
       else return 255  # should never happen
       fi
     } 
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$BIP32_DERIVATION_PATH$ ]]
+  elif [[ "$1" =~ ^$BIP32_XKEY_FORMAT$ ]]
   then $FUNCNAME "$($FUNCNAME "${1%/*}")/${1##*/}"
+  elif [[ "$1" =~ ^($BIP32_SOFT_DERIVATION_PATH|$BIP32_HARD_DERIVATION_PATH)$ ]]
+  then ${FUNCNAME[0]} "$(${FUNCNAME[0]})$1"
   else return 1
   fi
 
@@ -215,7 +217,7 @@ CKDpub()
       xxd -p -u -c 64 |
       {
 	read
-	local Ki="$({ secp256k1 "0x${REPLY:0:64}"; echo "${Kpar^^}"; } |secp256k1 )"
+	local Ki="$(dc -f secp256k1.dc -e "16doi${REPLY:0:64} ${Kpar^^}lAxlEx")"
 	local ci="${REPLY:64:64}"
 	echo $Ki $ci
       }
@@ -238,15 +240,15 @@ CKDpriv()
       ser256 "0x$kpar"
       ser32 $i
     else
-      secp256k1 "0x$kpar" |xxd -p -r
+      dc -f secp256k1.dc -e "16doilG${kpar^^}lMxlEx" |xxd -p -r
       ser32 $i
     fi |
     openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
-    xxd -p -c 64 |
+    xxd -p -u -c 64 |
     {
       read
       local ki ci
-      ki="$(secp256k1 "0x$kpar" "0x${REPLY:0:64}")"
+      ki="$(dc -f secp256k1.dc -e "16doi${kpar^^} ${REPLY:0:64}+ln%p")"
       ki="00$(ser256 "$ki" |xxd -p -c 64)"
       ci="${REPLY:64:64}"
       if [[ ! "$ki" =~ ^[[:xdigit:]]{66}$ ]]

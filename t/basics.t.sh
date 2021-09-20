@@ -8,8 +8,8 @@ declare -i n=0
 
 # Example 6 from the bitcoin book, chap. 04
 prv=3aba4162c7251c891207b747840551a71939b0de081f85c4e44cf7c13e41daa6
-point="$(             secp256k1    "$prv")"
-point_uncompressed="$(secp256k1 -u "$prv")"
+point="$(dc -f secp256k1.dc -e "16doilG${prv^^}lMx lEx")"
+point_uncompressed="$(dc -f secp256k1.dc -e "16doilG${prv^^}lMx lUxP" |xxd -p -c 130)"
 
 ((n++))
 if [[ "$point" = 025C0DE3B9C8AB18DD04E3511243EC2952002DBFADC864B9628910169D9B9B00EC ]]
@@ -30,13 +30,13 @@ else echo not ok $n
 fi
 
 ((n++))
-if [[ "$(newBitcoinKey -u "$prv" |head -n 1)" = 5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K ]]
+if [[ "$(newBitcoinKey -u "$prv" 2>/dev/null|head -n 1)" = 5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K ]]
 then echo ok $n
 else echo not ok $n
 fi
 
 ((n++))
-if [[ "$(newBitcoinKey "$prv" |head -n 1)" = KyBsPXxTuVD82av65KZkrGrWi5qLMah5SdNq6uftawDbgKa2wv6S ]]
+if [[ "$(newBitcoinKey "$prv" 2>/dev/null|head -n 1)" = KyBsPXxTuVD82av65KZkrGrWi5qLMah5SdNq6uftawDbgKa2wv6S ]]
 then echo ok $n
 else echo not ok $n
 fi
