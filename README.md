@@ -27,7 +27,6 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     
     $ . bip-0173.sh
     $ segwitAddress -p 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
-    $ bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
 
     $ prove t/*.t.sh
 
