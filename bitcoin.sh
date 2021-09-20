@@ -129,7 +129,7 @@ newBitcoinKey() {
       fi
     } | base58 -c
 
-    echo bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx l< 2*2^+[0]Pp")"
+    bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx lCx[0]Pp")"
  
     while ((${#hex} != 64))
     do hex="0$hex"
@@ -142,7 +142,7 @@ newBitcoinKey() {
       dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
     else
       xxd -p -r <<<"30540201010420${hex}A00706052B8104000AA124032200"
-      dc -f secp256k1.dc -e "lG16doi$hex lMx d2%2+l<* rl</r+P"
+      dc -f secp256k1.dc -e "lG16doi$hex lMx lCx P"
     fi |
     openssl ec -inform der -check
 
