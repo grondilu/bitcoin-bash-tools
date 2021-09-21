@@ -59,11 +59,11 @@ function pbkdf2_bash {
       do echo $((0x$REPLY))
       done
     ))
-    printf "%02x " ${u[@]}; echo
+    printf "PBKFD2 iteration %10d/%d" 1 $iterations >&2
     t=(${u[@]})
     for ((j=1; j<iterations; j++))
     do
-      printf "PBKFD2 iteration %10d/%d\n" $((j+1)) $iterations >&2
+      printf "\rPBKFD2 iteration %10d/%d" $((j+1)) $iterations >&2
       u=($(
 	for c in ${u[@]}
 	do printf '%02x\n' $c
@@ -81,6 +81,7 @@ function pbkdf2_bash {
       do t[k]=$((t[k]^u[k]))
       done
     done
+    echo >&2
     
     destPos=$(( (i-1)*hLen ))
     if ((i == l))
@@ -95,6 +96,9 @@ function pbkdf2_bash {
   printf "%02x" ${dk[@]}
   echo
 }
+
+pbkdf2_bash foo bar 2048 64
+pbkdf2_python sha512 "foo" "bar" 2048
 
 function bip39() {
   if [ ! -L wordlist.txt ]
