@@ -142,7 +142,7 @@ newBitcoinKey() {
       dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
     else
       xxd -p -r <<<"30540201010420${hex}A00706052B8104000AA124032200"
-      dc -f secp256k1.dc -e "lG16doi$hex lMx lCx P"
+      dc -f secp256k1.dc -e "lG16i$hex lMx lCx P"
     fi |
     openssl ec -inform der -check
 
