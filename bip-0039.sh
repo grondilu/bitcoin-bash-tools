@@ -1,6 +1,21 @@
+#!/usr/bin/env bash
 
 ceil() { echo $(( ($1 + $2 + 1)/$2 )); }
 
+pbkdf2_step() {
+  local c hash_name="$1" key="$2"
+  for c in "${@:3}"
+  do printf '%02x\n' "$c"
+  done |
+  while read
+  do printf %b "\x$REPLY"
+  done |
+  openssl dgst -"$hash_name" -hmac "$key" -binary |
+  xxd -p -c 1 |
+  while read
+  do echo $((0x$REPLY))
+  done
+}
 function pbkdf2() {
   case "$PBKDF2_METHOD" in
     python)
@@ -49,37 +64,13 @@ function pbkdf2() {
 	block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
 	block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
 	
-	u=($(
-	  for c in ${block1[@]}
-	  do printf '%02x\n' $c
-	  done |
-	  while read
-	  do printf %b "\x$REPLY"
-	  done |
-	  openssl dgst -sha512 -hmac "$key_str" -binary |
-	  xxd -p -c 1 |
-	  while read
-	  do echo $((0x$REPLY))
-	  done
-	))
+	u=($(pbkdf2_step "$hash_name" "$key_str" "${block1[@]}"))
 	printf "PBKFD2 iteration %10d/%d" 1 $iterations >&2
 	t=(${u[@]})
 	for ((j=1; j<iterations; j++))
 	do
 	  printf "\rPBKFD2 iteration %10d/%d" $((j+1)) $iterations >&2
-	  u=($(
-	    for c in ${u[@]}
-	    do printf '%02x\n' $c
-	    done |
-	    while read
-	    do printf %b "\x$REPLY"
-	    done |
-	    openssl dgst -sha512 -hmac "$key_str" -binary |
-	    xxd -p -c 1 |
-	    while read
-	    do echo $((0x$REPLY))
-	    done
-	  ))
+	  u=($(pbkdf2_step "$hash_name" "$key_str" "${u[@]}"))
 	  for ((k=0; k<hLen; k++))
 	  do t[k]=$((t[k]^u[k]))
 	  done
@@ -103,7 +94,18 @@ function pbkdf2() {
 }
 
 function bip39() {
-  if [ ! -L wordlist.txt ]
+  local OPTIND OPTARG o
+  if getopts hf: o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-USAGE
+	${FUNCNAME[@]} -h
+	${FUNCNAME[@]} entropy-size
+	USAGE
+        ;;
+    esac
+  elif [ ! -L wordlist.txt ]
   then
     1>&2 echo Please create a symbolic link to a wordlist file.
     1>&2 echo Name it wordlist.txt and place it in the current directory.
@@ -115,8 +117,7 @@ function bip39() {
     1>&2 echo unexpected number of words in wordlist file
     return 2
   elif [[ $1 =~ ^(128|160|192|224|256)$ ]]
-  then
-    $FUNCNAME $(openssl rand -hex $(($1/8)))
+  then $FUNCNAME $(openssl rand -hex $(($1/8)))
   elif [[ "$1" =~ ^([[:xdigit:]]{2}){16,32}$ ]]
   then
     local hexnoise="${1^^}"
@@ -146,7 +147,10 @@ function bip39() {
     while read
     do echo ${wordlist[REPLY]}
     done |
-    paste -sd ' '
+    {
+      mapfile -t
+      echo "${MAPFILE[*]}"
+    }
   elif [[ $# =~ ^(12|15|18|21|24)$ ]]
   then 
     {
