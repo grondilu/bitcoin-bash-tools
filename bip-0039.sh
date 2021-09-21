@@ -7,12 +7,12 @@ pbkdf2_step() {
   for c in "${@:3}"
   do printf '%02x\n' "$c"
   done |
-  while read
+  while read -r
   do printf %b "\x$REPLY"
   done |
   openssl dgst -"$hash_name" -hmac "$key" -binary |
   xxd -p -c 1 |
-  while read
+  while read -r
   do echo $((0x$REPLY))
   done
 }
@@ -26,14 +26,15 @@ function pbkdf2() {
     *)
       # Translated from https://github.com/bitpay/bitcore/blob/master/packages/bitcore-mnemonic/lib/pbkdf2.js
       # /**
-      # * PDKBF2
+      # * PBKDF2
       # * Credit to: https://github.com/stayradiated/pbkdf2-sha512
       # * Copyright (c) 2014, JP Richardson Copyright (c) 2010-2011 Intalio Pte, All Rights Reserved
       # */
       local hash_name="$1" key_str="$2" salt_str="$3"
       local -ai key salt u t block1
-      local -i hLen="$(openssl dgst -"$hash_name" -binary <<<"foo" |wc -c)"
-      local -i iterations=$4 dkLen=${5:-hLen} i j k destPos len
+      local -i hLen
+      hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
+      local -i iterations=$4 dkLen=${5:-hLen} i j k destPos hLen len
       
       local -i l=dkLen/hLen
       local -i r=$((dkLen-(l-1)*hLen))
@@ -95,15 +96,29 @@ function pbkdf2() {
 
 function bip39() {
   local OPTIND OPTARG o
-  if getopts hf: o
+  if getopts hPpf: o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-USAGE
 	${FUNCNAME[@]} -h
 	${FUNCNAME[@]} entropy-size
+	${FUNCNAME[@]} [-p|-P] words ...
 	USAGE
         ;;
+      p)
+	read -p "Passphrase: "
+	BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"
+	;;
+      P)
+	local passphrase
+	read -p "Passphrase:" -s passphrase
+	read -p "Confirm passphrase:" -s
+	if [[ "$REPLY" = "$passphrase" ]]
+	then BIP39_PASSPHRASE=$passphrase $FUNCNAME "$@"
+	else echo "passphrase input error" >&2; return 3;
+	fi
+	;;
     esac
   elif [ ! -L wordlist.txt ]
   then
@@ -144,7 +159,7 @@ function bip39() {
       echo "[800 ~r ln1-dsn0<x]dsxx Aof"
     } |
     dc |
-    while read
+    while read -r
     do echo ${wordlist[REPLY]}
     done |
     {
@@ -178,9 +193,7 @@ function bip39() {
       1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
       return 5
     fi
-    local passphrase
-    read -p 'passphrase: ' passphrase
-    pbkdf2 sha512 "$*" "mnemonic$passphrase" 2048
+    pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048
   elif (($# == 0))
   then $FUNCNAME 160
   else

@@ -53,7 +53,7 @@ EOF
     else echo "not ok $n - from $hex, '$words' was expected, but we got '$r1'"
     fi
     ((n++))
-    if declare generatedSeed="$(echo TREZOR| bip39 $words)"
+    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR bip39 $words)"
     then echo "ok $n - good checksum for '$(shorten "$words")'"
     else echo "not ok $n - error code $? when checking words '$words'"
     fi
