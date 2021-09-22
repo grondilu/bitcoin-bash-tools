@@ -47,13 +47,13 @@ EOF
   while IFS=: read hex words seed addr
   do
     ((n++))
-    declare r1="$(bip39 "$hex")"
+    declare r1="$(create-mnemonic "$hex")"
     if [[ "$r1" = "$words" ]]
     then echo "ok $n - $(shorten "$hex") -> $(shorten "$words")"
     else echo "not ok $n - from $hex, '$words' was expected, but we got '$r1'"
     fi
     ((n++))
-    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR bip39 $words)"
+    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR mnemonic-to-seed $words)"
     then echo "ok $n - good checksum for '$(shorten "$words")'"
     else echo "not ok $n - error code $? when checking words '$words'"
     fi

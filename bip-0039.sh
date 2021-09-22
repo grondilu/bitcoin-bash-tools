@@ -94,7 +94,53 @@ function pbkdf2() {
   esac
 }
 
-function bip39() {
+complete -W "$(< wordlist.txt)" mnemonic-to-seed
+function mnemonic-to-seed() {
+  local OPTIND 
+  if getopts hb o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-USAGE_3
+	${FUNCNAME[0]} -h
+	${FUNCNAME[0]} -b word word...
+	USAGE_3
+        ;;
+      b) ${FUNCNAME[0]} "$@" |xxd -p -p ;;
+    esac
+  elif [[ $# =~ ^(12|15|18|21|24)$ ]]
+  then 
+    {
+      echo 16o0
+      for word
+      do
+        grep -n "^$word$" wordlist.txt |
+        cut -d: -f1 |
+        sed "{ s/^/2048*/; s/$/ 1-+ # $word/ }"
+      done
+      echo 2 $(($#*11/33))^ 0k/ f
+    } |
+    dc |
+    {
+      read
+      create-mnemonic $(
+        printf "%$(($#*11*32/33/4))s" $REPLY |
+        sed 's/ /0/g'
+      ) || 1>&2 echo "undocumented error"
+    } |
+    tail -n 1 |
+    if read -a words
+    [[ "${words[@]: -1}" != "${@: -1}" ]]
+    then
+      1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
+      return 5
+    fi
+    pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048
+  else return 1
+  fi
+}
+
+function create-mnemonic() {
   local OPTIND OPTARG o
   if getopts hPpf: o
   then
@@ -166,34 +212,6 @@ function bip39() {
       mapfile -t
       echo "${MAPFILE[*]}"
     }
-  elif [[ $# =~ ^(12|15|18|21|24)$ ]]
-  then 
-    {
-      echo 16o0
-      for word in $@
-      do
-        grep -n "^$word$" wordlist.txt |
-        cut -d: -f1 |
-        sed "{ s/^/2048*/; s/$/ 1-+ # $word/ }"
-      done
-      echo 2 $(($#*11/33))^ 0k/ f
-    } |
-    dc |
-    {
-      read
-       $FUNCNAME $(
-         printf "%$(($#*11*32/33/4))s" $REPLY |
-         sed 's/ /0/g'
-       ) || 1>&2 echo "undocumented error"
-    } |
-    tail -n 1 |
-    if read -a words
-    [[ "${words[@]: -1}" != "${@: -1}" ]]
-    then
-      1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
-      return 5
-    fi
-    pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048
   elif (($# == 0))
   then $FUNCNAME 160
   else
