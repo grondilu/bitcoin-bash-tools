@@ -132,7 +132,7 @@ function mnemonic-to-seed() {
     if read -a words
     [[ "${words[@]: -1}" != "${@: -1}" ]]
     then
-      1>&2 echo "wrong checksum : $REPLY instead of ${@: -1}"
+      1>&2 echo "WARNING: wrong checksum. ${words[@]: -1} was expected instead of ${@: -1}"
       return 5
     fi
     pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048
