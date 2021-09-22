@@ -19,11 +19,21 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
 
     $ newBitcoinKey
 
-    $ . bip-0032.sh
     $ openssl rand 64 > entropy
+
+    $ . bip-0032.sh
     $ m="$(bip32 < entropy)"
     $ bip32 $m/N
     $ bip32 $m/0h/5/7
+    
+    $ . bip-0039.sh
+    $ create-mnemonic
+    attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange claw
+    $ mnemonic-to-seed attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange claw
+    a351a5ea914fcdb2d283835d5325ff1d11df577cdb98c03868c24e90c7bcf3bbb7bcf01e8fbe5f976f600ed2963ae874095947f00d2cbe8c3a6c1c791eb17c98
+    $ mnemonic-to-seed attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange clay
+    WARNING: wrong checksum. claw was expected instead of clay
+    50c6f4549ef15b8a548d1f28f90e203b8e4d54d32672c9e8c23b8771fe2b80537bffda595dcb8cc4d84c25c9554b47725ce64a178f3d0e1c30b05f368fc2270c
     
     $ . bip-0173.sh
     $ segwitAddress -p 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
