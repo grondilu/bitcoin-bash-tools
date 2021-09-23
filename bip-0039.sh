@@ -113,46 +113,22 @@ check-mnemonic()
       sed 's/ /0/g'
     ) |
     grep -q " ${@: -1}$" || return 2
+  else return 3;
   fi
 
 complete -W "$(< wordlist.txt)" mnemonic-to-seed
 function mnemonic-to-seed() {
   local OPTIND 
-  if getopts hb o
+  if getopts hbpP o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-USAGE_3
 	${FUNCNAME[0]} -h
-	${FUNCNAME[0]} -b word word...
+	${FUNCNAME[@]} [-p|-P] [-b] word ...
 	USAGE_3
         ;;
-      b) ${FUNCNAME[0]} "$@" |xxd -p -p ;;
-    esac
-  elif [[ $# =~ ^(12|15|18|21|24)$ ]]
-  then
-    check-mnemonic "$@"
-    case "$?" in
-      1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
-      2) echo "WARNING: wrong mnemonic checksum." >&2 ;;&
-      *) pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
-    esac
-  else return 1
-  fi
-}
-
-function create-mnemonic() {
-  local OPTIND OPTARG o
-  if getopts hPpf: o
-  then
-    shift $((OPTIND - 1))
-    case "$o" in
-      h) cat <<-USAGE
-	${FUNCNAME[@]} -h
-	${FUNCNAME[@]} entropy-size
-	${FUNCNAME[@]} [-p|-P] words ...
-	USAGE
-        ;;
+      b) ${FUNCNAME[0]} "$@" |xxd -p -r ;;
       p)
 	read -p "Passphrase: "
 	BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"
@@ -166,6 +142,29 @@ function create-mnemonic() {
 	else echo "passphrase input error" >&2; return 3;
 	fi
 	;;
+    esac
+  else
+    check-mnemonic "$@"
+    case "$?" in
+      1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
+      2) echo "WARNING: wrong mnemonic checksum."        >&2 ;;&
+      3) echo "WARNING: unexpected number of words."     >&2 ;;&
+      *) pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
+    esac
+  fi
+}
+
+function create-mnemonic() {
+  local OPTIND OPTARG o
+  if getopts h o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-USAGE
+	${FUNCNAME[@]} -h
+	${FUNCNAME[@]} entropy-size
+	USAGE
+        ;;
     esac
   elif [ ! -L wordlist.txt ]
   then
