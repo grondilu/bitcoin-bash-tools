@@ -52,7 +52,7 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
 - [ ] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
 - [x] [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
 - [x] [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
-- [x] use an environment variable for generating addresses on the test network.
+- [x] ~~use an environment variable for generating addresses on the test network.~~
 - [ ] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 - [x] [TAP](http://testanything.org/testing-with-tap/) support
 - [ ] offline transactions
