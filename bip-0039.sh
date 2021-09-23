@@ -94,6 +94,27 @@ function pbkdf2() {
   esac
 }
 
+check-mnemonic()
+  if [[ $# =~ ^(12|15|18|21|24)$ ]]
+  then
+    local word
+    for word
+    do grep -q "^$word$" wordlist.txt || return 1
+    done
+    create-mnemonic $(
+      {
+        echo '16o0'
+	for word; do grep -n "^$word$" wordlist.txt; done |
+	sed -e '{ s/^/2048*/; s/:/ 1-+ # / }'
+	echo 2 $(($#*11/33))^ 0k/ p
+      } |
+      dc |
+      { read -r; printf "%$(($#*11*32/33/4))s" $REPLY; } |
+      sed 's/ /0/g'
+    ) |
+    grep -q " ${@: -1}$" || return 2
+  fi
+
 complete -W "$(< wordlist.txt)" mnemonic-to-seed
 function mnemonic-to-seed() {
   local OPTIND 
@@ -109,33 +130,13 @@ function mnemonic-to-seed() {
       b) ${FUNCNAME[0]} "$@" |xxd -p -p ;;
     esac
   elif [[ $# =~ ^(12|15|18|21|24)$ ]]
-  then 
-    {
-      echo 16o0
-      for word
-      do
-        grep -n "^$word$" wordlist.txt |
-        cut -d: -f1 |
-        sed "{ s/^/2048*/; s/$/ 1-+ # $word/ }"
-      done
-      echo 2 $(($#*11/33))^ 0k/ f
-    } |
-    dc |
-    {
-      read
-      create-mnemonic $(
-        printf "%$(($#*11*32/33/4))s" $REPLY |
-        sed 's/ /0/g'
-      ) || 1>&2 echo "undocumented error"
-    } |
-    tail -n 1 |
-    if read -a words
-    [[ "${words[@]: -1}" != "${@: -1}" ]]
-    then
-      1>&2 echo "WARNING: wrong checksum. ${words[@]: -1} was expected instead of ${@: -1}"
-      return 5
-    fi
-    pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048
+  then
+    check-mnemonic "$@"
+    case "$?" in
+      1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
+      2) echo "WARNING: wrong mnemonic checksum." >&2 ;;&
+      *) pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
+    esac
   else return 1
   fi
 }
