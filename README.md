@@ -27,14 +27,14 @@ to developp bitcoin-bash-tools, aiming at making it a translation of bx into bas
     $ bip32 $m/0h/5/7
     
     $ . bip-0039.sh
-    $ create-mnemonic
-    attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange claw
-    $ mnemonic-to-seed attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange claw
-    a351a5ea914fcdb2d283835d5325ff1d11df577cdb98c03868c24e90c7bcf3bbb7bcf01e8fbe5f976f600ed2963ae874095947f00d2cbe8c3a6c1c791eb17c98
-    $ mnemonic-to-seed attack level coast marriage museum roof settle coil ramp term expand immune clinic exchange clay
-    WARNING: wrong checksum. claw was expected instead of clay
-    50c6f4549ef15b8a548d1f28f90e203b8e4d54d32672c9e8c23b8771fe2b80537bffda595dcb8cc4d84c25c9554b47725ce64a178f3d0e1c30b05f368fc2270c
-    
+    $ create-mnemonic 128
+    drip goose mansion fashion display detail high elder expose rain outdoor poet
+    $ mnemonic-to-seed drip goose mansion fashion display detail high elder expose rain outdoor poet
+    3635d3c21228487465d24a486e8063dc6730b7ced192cfdaed35b382277ac798aab7f779e58a3e253d1ef1c21f0f5442d4d3f419ac766471541d1e20d39f68b0
+    $ mnemonic-to-seed drip duck mansion fashion display detail high elder expose rain outdoor poet
+    WARNING: wrong mnemonic checksum.
+    52491c9b9e7153a23081453e37f86fe61fa1c56769258357a30954018c99637a0b9e7b9d6c41d91805ed23f3f9f5127415dd43cd3a83dc84e6db03111fe231d5
+
     $ . bip-0173.sh
     $ segwitAddress -p 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
 
