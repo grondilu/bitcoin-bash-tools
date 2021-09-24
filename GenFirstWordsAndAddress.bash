@@ -1,18 +1,18 @@
 #!/bin/bash
 #GenFirstWordsAndAddress.bash
 #CREDIT: https://github.com/grondilu/bitcoin-bash-tools Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
-#This script: github:petjal
-#Thu Sep 23 14:59:23 UTC 2021
+#This script: github:petjal Thu Sep 23 14:59:23 UTC 2021
+#VERSION: 2109240339Z
 #TODO: test entropy
-#TODO: insert all external code into this file
 #TODO: trap errors, bail on everything
+#TODO: insert all external code into this file
 #TODO: sign this file when done
-#TODO: test on windows linux terminal, macos,
-#TODO: move this to github
+#TODO: test on windows linux terminal, macos
+#TODO: move this to github - done 2109240339Z https://github.com/petjal/bitcoin-bash-tools/blob/pjdev/GenFirstWordsAndAddress.bash
 
 #USAGE:
-#For use with beginners among family, friends, confidants. 
-#Open a terminal on windows, mac, linux, chromebook.
+#For use by technical folks to help beginners among family, friends, confidants get started safely as simply as possible
+#Open a terminal on gnu/linux. (Not yet tested on windows, mac. Developed initially on chromebook in termux).
 #Get signed file bundle. 
 #Check bundle signature.
 #Extract signed file bundle.
