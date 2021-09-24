@@ -2,13 +2,14 @@
 #GenFirstWordsAndAddress.bash
 #CREDIT: https://github.com/grondilu/bitcoin-bash-tools Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
 #This script: github:petjal Thu Sep 23 14:59:23 UTC 2021
-#VERSION: 2109240339Z
-#TODO: test entropy
+#VERSION: 2109240459Z
+#TODO: test entropy - done 2109240459Z 
 #TODO: trap errors, bail on everything
 #TODO: insert all external code into this file
 #TODO: sign this file when done
-#TODO: test on windows linux terminal, macos
+#TODO: test on windows linux (wsl) terminal, macos
 #TODO: move this to github - done 2109240339Z https://github.com/petjal/bitcoin-bash-tools/blob/pjdev/GenFirstWordsAndAddress.bash
+#TODO: create github action to test script - done 2109240427Z
  
 #USAGE:
 #For use by technical folks to help beginners among family, friends, confidants get started safely as simply as possible
@@ -18,6 +19,9 @@
 #Extract signed file bundle.
 #Run:  cd ./bitcoin-bash-tools
 #Run:  bash GenSimplestAddress.bash
+
+#REQUIREMENTS: Install dc, ent, openssl. 
+
 
 echo
 echo "1.: Generating your secret seed phrase..."
@@ -45,6 +49,13 @@ echo "    https://en.wikipedia.org/wiki/Spaced_repetition"
 . ./bip-0173.sh
 #generate some entropy, by forcing some disk activity, for the openssl random number generator.... 
 find ~ -type f 2> /dev/null | head -n 10000 | xargs cat > /dev/null 2>&1
+#test entropy
+kernel_entropy_avail=$(cat /proc/sys/kernel/random/entropy_avail) # less than 100-200, you have a problem
+if [[ "$kernel_entropy_avail" -lt "200" ]] ; then echo "ERROR: kernel entropy_avail $kernel_entropy_avail less than 100, too low, sorry, cannot proceed." ; exit 1 ; fi
+#Entropy = 1.000000 bits per bit.
+entropy_test_val=$(head -c 1M /dev/urandom > /tmp/out ;  ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
+#echo entropy test value: $entropy_test_val
+if [[ "$entropy_test_val" < "0.9000" ]] ; then echo "ERROR: entropy $entropy_test_val less than 0.9, too low, sorry, cannot proceed." ; fi
 echo
 #echo "generating new sequence of 12 secret words..."
 my_new_secret_words=$(create-mnemonic 128)  # 128 = 12 words, 256 = 24 words of entropy

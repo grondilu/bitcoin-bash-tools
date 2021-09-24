@@ -36,5 +36,8 @@ jobs:
           echo test, and deploy your project.
           # bash GenFirstWordsAndAddress.bash
           date --utc ; hostname -f ; pwd ; whoami
-          sudo apt-get install dc
+          sudo apt-get install dc ent
+          sudo apt-get install ent
+          head -c 1M /dev/urandom > /tmp/out
+          ent /tmp/out
           bash GenFirstWordsAndAddress.bash
