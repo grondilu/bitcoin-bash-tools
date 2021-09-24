@@ -1,3 +1,6 @@
+# My (petjal) goal
+...is to trim this good hard work of grondilu down to a single signed bash file that tech folks can use to help their friends, family, confidants safely simply start stacking sats asap. 2021-09-24
+
 # Bitcoin bash tools
 
 This is a set of bash functions to generate bitcoin private keys and addresses.
