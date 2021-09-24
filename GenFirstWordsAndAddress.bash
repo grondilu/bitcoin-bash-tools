@@ -2,8 +2,8 @@
 #GenFirstWordsAndAddress.bash
 #CREDIT: https://github.com/grondilu/bitcoin-bash-tools Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
 #This script: github:petjal Thu Sep 23 14:59:23 UTC 2021
-#VERSION: 2109240459Z
-#TODO: test entropy - done 2109240459Z 
+#VERSION: 2109240526Z
+#TODO: test entropy - done 2109240526Z
 #TODO: trap errors, bail on everything
 #TODO: insert all external code into this file
 #TODO: sign this file when done
@@ -51,7 +51,8 @@ echo "    https://en.wikipedia.org/wiki/Spaced_repetition"
 #ENTROPY
 
 echo
-echo generating some entropy, by forcing some disk activity, for the openssl random number generator.... 
+echo Entropy is a vital part of bitcoin cryptography.  It must be very, very good.  
+#echo generating some entropy, by forcing some disk activity, for the openssl random number generator.... 
 #This find command fails in github action workspace, that's ok.
 find ~ -type f 2> /dev/null | head -n 10000 | xargs cat > /dev/null 2>&1
 #test entropy
