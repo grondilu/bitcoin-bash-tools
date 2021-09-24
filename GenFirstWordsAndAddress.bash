@@ -9,7 +9,7 @@
 #TODO: sign this file when done
 #TODO: test on windows linux terminal, macos
 #TODO: move this to github - done 2109240339Z https://github.com/petjal/bitcoin-bash-tools/blob/pjdev/GenFirstWordsAndAddress.bash
-
+ 
 #USAGE:
 #For use by technical folks to help beginners among family, friends, confidants get started safely as simply as possible
 #Open a terminal on gnu/linux. (Not yet tested on windows, mac. Developed initially on chromebook in termux).
