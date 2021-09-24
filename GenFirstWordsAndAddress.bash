@@ -52,6 +52,7 @@ echo "    https://en.wikipedia.org/wiki/Spaced_repetition"
 
 echo
 echo generating some entropy, by forcing some disk activity, for the openssl random number generator.... 
+#This find command fails in github action workspace, that's ok.
 find ~ -type f 2> /dev/null | head -n 10000 | xargs cat > /dev/null 2>&1
 #test entropy
 kernel_entropy_avail=$(cat /proc/sys/kernel/random/entropy_avail) # less than 100-200, you have a problem
