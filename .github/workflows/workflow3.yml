@@ -37,3 +37,4 @@ jobs:
           # bash GenFirstWordsAndAddress.bash
           pwd
           ls
+          bash GenFirstWordsAndAddress.bash
