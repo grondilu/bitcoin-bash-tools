@@ -37,4 +37,5 @@ jobs:
           # bash GenFirstWordsAndAddress.bash
           pwd
           ls
+          apt install dc
           bash GenFirstWordsAndAddress.bash
