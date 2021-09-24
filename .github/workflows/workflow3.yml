@@ -35,7 +35,6 @@ jobs:
           echo Add other actions to build,
           echo test, and deploy your project.
           # bash GenFirstWordsAndAddress.bash
-          pwd
-          ls
+          date --utc ; hostname -f ; pwd ; whoami
           sudo apt-get install dc
           bash GenFirstWordsAndAddress.bash
