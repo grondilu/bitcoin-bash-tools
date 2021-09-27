@@ -45,7 +45,7 @@ This is a set of bash functions to generate bitcoin private keys and addresses.
 - [x] [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
 - [x] ~~use an environment variable for generating addresses on the test network.~~
 - [ ] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
-- [x] [TAP](http://testanything.org/testing-with-tap/) support
+- [x] [TAP](http://testanything.org/) support
 - [ ] offline transactions
 - [ ] copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible
 
