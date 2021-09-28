@@ -51,6 +51,7 @@ bitcoinAddress() {
 	${FUNCNAME[0]} -h
 	${FUNCNAME[0]} PUBLIC_POINT
 	${FUNCNAME[0]} WIF_PRIVATE_KEY
+	${FUNCNAME[0]} PUBLIC_EXTENDED_KEY
 	END_USAGE_bitcoinAddress
         ;;
       t) P2PKH_PREFIX="\x6F" ${FUNCNAME[0]} "$@" ;;
