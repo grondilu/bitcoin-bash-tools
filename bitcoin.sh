@@ -80,6 +80,13 @@ bitcoinAddress() {
       else return 2
       fi
     }
+  elif [[ "$1" =~ ^[xt]pub ]] && base58 -v "$1"
+  then
+    base58 -d "$1" |
+    head -c -4 |
+    tail -c 33 |
+    xxd -p -c 33 | 
+    { read; echo $REPLY; ${FUNCNAME[0]} "$REPLY"; }
   else return 1
   fi
 }
