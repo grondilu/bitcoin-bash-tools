@@ -86,7 +86,7 @@ bitcoinAddress() {
     head -c -4 |
     tail -c 33 |
     xxd -p -c 33 | 
-    { read; echo $REPLY; ${FUNCNAME[0]} "$REPLY"; }
+    { read; ${FUNCNAME[0]} "$REPLY"; }
   else return 1
   fi
 }
