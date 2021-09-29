@@ -73,11 +73,11 @@ function pbkdf2() {
 	block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
 	
 	u=($(pbkdf2_step "$hash_name" "$key_str" "${block1[@]}"))
-	printf "\rPBKFD2: bloc %d/%d, iteration %10d/%d" $i $l 1 $iterations >&2
+	printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
 	t=(${u[@]})
 	for ((j=1; j<iterations; j++))
 	do
-	  printf "\rPBKFD2: bloc %d/%d, iteration %10d/%d" $i $l $((j+1)) $iterations >&2
+	  printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
 	  u=($(pbkdf2_step "$hash_name" "$key_str" "${u[@]}"))
 	  for ((k=0; k<hLen; k++))
 	  do t[k]=$((t[k]^u[k]))
