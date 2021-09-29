@@ -1,6 +1,16 @@
 # My (petjal) goal
 ...is to trim this good hard work of grondilu down to a single signed bash file that tech folks can use to help their friends, family, confidants safely simply start stacking sats asap. 2021-09-24
 
+# Requirements
+You need to install openssl, dc, and ent.
+
+
+# Status
+
+So far (2021-09-28), work on raspberry pi OS (debian based; linux/gnu).  
+
+I'm working in branch pjdev https://github.com/petjal/bitcoin-bash-tools/tree/pjdev
+
 # Bitcoin bash tools
 
 This is a set of bash functions to generate bitcoin private keys and addresses.

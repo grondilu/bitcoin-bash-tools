@@ -3202,7 +3202,8 @@ echo "kernel_entropy_avail: $kernel_entropy_avail (greater than 100 is good)"
 
 if [[ "$kernel_entropy_avail" -lt "200" ]] ; then echo "ERROR: kernel entropy_avail $kernel_entropy_avail less than 100, too low, sorry, cannot proceed." ; exit 1 ; fi
 #Entropy = 1.000000 bits per bit.
-entropy_test_val=$(head -c 1M /dev/urandom > /tmp/out ;  ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
+#entropy_test_val=$(head -c 1M /dev/urandom > /tmp/out ; ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
+entropy_test_val=$(head -c 1M /dev/urandom | ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
 echo "entropy test value: $entropy_test_val (1.000 is great)"
 if [[ "$entropy_test_val" < "0.9000" ]] ; then echo "ERROR: entropy $entropy_test_val less than 0.9, too low, sorry, cannot proceed." ; fi
 echo
