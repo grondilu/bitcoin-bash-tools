@@ -28,11 +28,6 @@
 
 . base58.sh
 
-hash160() {
-  openssl dgst -sha256 -binary |
-  openssl dgst -rmd160 -binary
-}
-
 ser256() {
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
@@ -60,7 +55,9 @@ bitcoinAddress() {
   then
     {
       printf %b "${P2PKH_PREFIX:-\x00}"
-      echo "$1" | xxd -p -r | hash160
+      echo "$1" | xxd -p -r |
+      openssl dgst -sha256 -binary |
+      openssl dgst -rmd160 -binary
     } | base58 -c
   elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
   then
