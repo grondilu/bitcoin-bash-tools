@@ -52,25 +52,25 @@ function pbkdf2() {
 
       for ((i=1;i<=l;i++))
       do
-	block1[${#salt[@]}+0]=$((i >> 24 & 0xff))
-	block1[${#salt[@]}+1]=$((i >> 16 & 0xff))
-	block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
-	block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
-	
-	u=($(pbkdf2_step "$hash_name" "$key_str" "${block1[@]}"))
-	printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
-	t=(${u[@]})
-	for ((j=1; j<iterations; j++))
-	do
-	  printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
-	  u=($(pbkdf2_step "$hash_name" "$key_str" "${u[@]}"))
-	  for ((k=0; k<hLen; k++))
-	  do t[k]=$((t[k]^u[k]))
-	  done
-	done
-	echo >&2
-	
-	dk+=(${t[@]})
+        block1[${#salt[@]}+0]=$((i >> 24 & 0xff))
+        block1[${#salt[@]}+1]=$((i >> 16 & 0xff))
+        block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
+        block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
+        
+        u=($(pbkdf2_step "$hash_name" "$key_str" "${block1[@]}"))
+        printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
+        t=(${u[@]})
+        for ((j=1; j<iterations; j++))
+        do
+          printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
+          u=($(pbkdf2_step "$hash_name" "$key_str" "${u[@]}"))
+          for ((k=0; k<hLen; k++))
+          do t[k]=$((t[k]^u[k]))
+          done
+        done
+        echo >&2
+        
+        dk+=(${t[@]})
 
       done
       printf "%02x" "${dk[@]:0:dkLen}"
