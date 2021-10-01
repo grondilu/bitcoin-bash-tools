@@ -4,9 +4,7 @@ ceil() { echo $(( ($1 + $2 - 1)/$2 )); }
 
 pbkdf2_step() {
   local c hash_name="$1" key="$2"
-  for c in "${@:3}"
-  do printf '%02x\n' "$c"
-  done |
+  printf '%02x\n' "${@:3}" |
   while read -r
   do printf %b "\x$REPLY"
   done |
@@ -41,29 +39,18 @@ function pbkdf2() {
       local -ai key salt u t block1
       local -i hLen
       hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
-      local -i iterations=$4 dkLen=${5:-hLen} i j k destPos hLen len
-      
-      local -i l=$(ceil $dkLen $hLen)
-      local -i r=$((dkLen-(l-1)*hLen))
+      local -i iterations=$4 dkLen=${5:-hLen}
+      local -i i j k l=$(ceil $dkLen $hLen)
 
-      local c
       for ((i=0; i<${#key_str}; i++))
-      do
-	printf -v c "%d" "'${key_str:i:1}"
-	key+=($c)
+      do printf -v "key[$i]" "%d" "'${key_str:i:1}"
       done
 
       for ((i=0; i<${#salt_str}; i++))
-      do
-	printf -v c "%d" "'${salt_str:i:1}"
-	salt+=($c)
+      do printf -v "salt[$i]" "%d" "'${salt_str:i:1}"
       done
 
-      for ((i=0; i<dKlen; i++)); do dk+=(0); done
-      for ((i=0; i< hLen; i++)); do u+=(0); t+=(0); done
-
-      for c in ${salt[@]}; do block1+=($c); done
-      for i in {1..4}; do block1+=(0); done
+      block1=(${salt[@]} 0 0 0 0)
 
       for ((i=1;i<=l;i++))
       do
@@ -85,17 +72,10 @@ function pbkdf2() {
 	done
 	echo >&2
 	
-	destPos=$(( (i-1)*hLen ))
-	if ((i == l))
-	then len=r
-	else len=hLen
-	fi
-	for ((k=0; k<len; k++))
-	do dk[destPos+k]=${t[k]}
-	done
-	
+	dk+=(${t[@]})
+
       done
-      printf "%02x" ${dk[@]}
+      printf "%02x" "${dk[@]:0:dkLen}"
       echo
     ;;
   esac
