@@ -4,10 +4,8 @@ ceil() { echo $(( ($1 + $2 - 1)/$2 )); }
 
 pbkdf2_step() {
   local c hash_name="$1" key="$2"
-  printf '%02x\n' "${@:3}" |
-  while read -r
-  do printf %b "\x$REPLY"
-  done |
+  printf '%02x' "${@:3}" |
+  xxd -p -r |
   openssl dgst -"$hash_name" -hmac "$key" -binary |
   xxd -p -c 1 |
   while read -r
