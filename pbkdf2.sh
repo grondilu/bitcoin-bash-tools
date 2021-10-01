@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-ceil() { echo $(( ($1 + $2 - 1)/$2 )); }
-
 pbkdf2_step() {
   local c hash_name="$1" key="$2"
   printf '%02x' "${@:3}" |
@@ -38,7 +36,7 @@ function pbkdf2() {
       local -i hLen
       hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
       local -i iterations=$4 dkLen=${5:-hLen}
-      local -i i j k l=$(ceil $dkLen $hLen)
+      local -i i j k l=$(( (dkLen+hLen-1)/hLen ))
 
       for ((i=0; i<${#key_str}; i++))
       do printf -v "key[$i]" "%d" "'${key_str:i:1}"
