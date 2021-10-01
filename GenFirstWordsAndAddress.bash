@@ -25,7 +25,52 @@
 
 #CONSTANTS
 
+#secp256k1.dc
+#CREDIT: https://raw.githubusercontent.com/grondilu/bitcoin-bash-tools/master/secp256k1.dc
+# Copyright (C) 2013-2021 Lucien Grondin (grondilu@yahoo.fr)
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+#
 
+secp256k1_dc='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
+483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+2 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*
++sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]
+SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#
+LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1
+rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<
+%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+
+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#
+L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*x
+lyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]d
+SLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0
+=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]
+Pp]sE'
+
+
+
+
+
+
+#WORDLIST
 #CREDIT: gronilu https://github.com/grondilu/bitcoin-bash-tools/discussions/35
 #!/usr/bin/env bash
 #. pbkdf2.sh  # TODO: need to import here?  Maybe not, seems ok so far. 
@@ -442,8 +487,8 @@ bitcoinAddress() {
       then
 	local point exponent="${BASH_REMATCH[2]^^}"
         if test -n "${BASH_REMATCH[3]}"
-        then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lCx[0]Pp")"
-        else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
+        then point="$(echo "${secp256k1_dc}" | dc -e "lG16doi$exponent lMx lCx[0]Pp")"
+        else point="$(echo "${secp256k1_dc}" | dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
         fi
         if [[ "$REPLY" =~ ^80 ]]
         then ${FUNCNAME[0]} "$point"
@@ -455,6 +500,8 @@ bitcoinAddress() {
   else return 1
   fi
 }
+        #ORIGINAL: then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lCx[0]Pp")"
+        #ORIGINAL: else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
 
 newBitcoinKey() {
   local OPTIND o
@@ -501,20 +548,23 @@ newBitcoinKey() {
       fi
     } | base58 -c
 
-    bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx lCx[0]Pp")"
+    #ORIGINAL bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx lCx[0]Pp")"
+    bitcoinAddress  "$(echo "${secp256k1_dc}" | dc -e "lG16doi$hex lMx lCx[0]Pp")"
  
     while ((${#hex} != 64))
     do hex="0$hex"
     done
     
     # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+      #ORIGINAL: dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
+      #ORIGINAL: dc -f secp256k1.dc -e "lG16i$hex lMx lCx P"
     if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
     then
       xxd -p -r <<<"30740201010420${hex}A00706052B8104000AA144034200"
-      dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
+      echo "${secp256k1_dc}" | dc -e "lG16i$hex lMx l< 2*2^+P"
     else
       xxd -p -r <<<"30540201010420${hex}A00706052B8104000AA124032200"
-      dc -f secp256k1.dc -e "lG16i$hex lMx lCx P"
+      echo "${secp256k1_dc}" | dc -e "lG16i$hex lMx lCx P"
     fi |
     openssl ec -inform der -check
 
@@ -884,7 +934,7 @@ bip32()
            version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
          $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
            version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
+         *) key="$(echo "${secp256k1_dc}" | dc -e "16doilG${key^^}lMxlEx")" || return 100
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
@@ -906,7 +956,7 @@ bip32()
         {
            local ki ci
            read ki ci
-	   fp="0x$(fingerprint "$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")")"
+	   fp="0x$(fingerprint "$(echo "${secp256k1_dc}" | dc -e "16doilG${key^^}lMxlEx")")"
            $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
         }
       elif isPublic $version
@@ -949,7 +999,7 @@ CKDpub()
       xxd -p -u -c 64 |
       {
 	read
-	local Ki="$(dc -f secp256k1.dc -e "16doi${REPLY:0:64} ${Kpar^^}lAxlEx")"
+	local Ki="$(echo "${secp256k1_dc}" | dc -e "16doi${REPLY:0:64} ${Kpar^^}lAxlEx")"
 	local ci="${REPLY:64:64}"
 	echo $Ki $ci
       }
@@ -972,7 +1022,7 @@ CKDpriv()
       ser256 "0x$kpar"
       ser32 $i
     else
-      dc -f secp256k1.dc -e "16doilG${kpar^^}lMxlEx" |xxd -p -r
+      echo "${secp256k1_dc}" | dc -e "16doilG${kpar^^}lMxlEx" |xxd -p -r
       ser32 $i
     fi |
     openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
@@ -980,7 +1030,7 @@ CKDpriv()
     {
       read
       local ki ci
-      ki="$(dc -f secp256k1.dc -e "16doi${kpar^^} ${REPLY:0:64}+ln%p")"
+      ki="$(echo "${secp256k1_dc}" | dc -e "16doi${kpar^^} ${REPLY:0:64}+ln%p")"
       ki="00$(ser256 "$ki" |xxd -p -c 64)"
       ci="${REPLY:64:64}"
       if [[ ! "$ki" =~ ^[[:xdigit:]]{66}$ ]]
@@ -1355,11 +1405,17 @@ echo
 echo "This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi..."
 
 root_seed=$(mnemonic-to-seed "$my_new_secret_words" 2> /dev/null)  # takes a very long time due to pbkdf2; 128 bytes
+echo "cksum root_seed = $(echo -n "$root_seed" | cksum)"
 m=$(bip32 -s "$root_seed")  # private key
+echo "m = $m"
 private_key_details=$(bip32 -p "$m")
+echo "private_key_details = $private_key_details"
 M=$(bip32 "$m/N") # public key
+echo "M = $M"
 public_key_details=$(bip32 -p "$M")
+echo "public_key_details = $public_key_details"
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+echo "p = $p"
 echo
 
 
