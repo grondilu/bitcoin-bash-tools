@@ -819,6 +819,8 @@ debug()
   then echo "DEBUG: $@"
   fi >&2
 
+
+#####################
 bip32()
   if
     debug "${FUNCNAME[0]} $@"
@@ -889,6 +891,8 @@ bip32()
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
     local chaincode=$5 key=$6
+    >&2 echo version=$1 depth=$2 fingerprint=$3 childnumber=$4 chaincode=$5 key=$6
+    >&2 echo BIP32_MAINNET_PUBLIC_VERSION_CODE = $BIP32_MAINNET_PUBLIC_VERSION_CODE , BIP32_MAINNET_PRIVATE_VERSION_CODE = $BIP32_MAINNET_PRIVATE_VERSION_CODE
     if ((
       version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
       version != BIP32_MAINNET_PRIVATE_VERSION_CODE &&
@@ -1410,8 +1414,9 @@ m=$(bip32 -s "$root_seed")  # private key
 echo "m = $m"
 private_key_details=$(bip32 -p "$m")
 echo "private_key_details = $private_key_details"
-M=$(bip32 "$m/N") # public key
-echo "M = $M"
+bip32 "$m/N" ; echo $? # new public key from private key
+M=$(bip32 "$m/N") # new public key from private
+echo "M (new public key) = $M"
 public_key_details=$(bip32 -p "$M")
 echo "public_key_details = $public_key_details"
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
