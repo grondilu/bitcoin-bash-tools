@@ -39,10 +39,9 @@ pbkdf2()
 
       (
 	step() {
-	  local c hash_name="$1" key="$2"
-	  printf '%02x' "${@:3}" |
+	  printf '%02x' "$@" |
 	  xxd -p -r |
-	  openssl dgst -"$hash_name" -hmac "$key" -binary |
+	  openssl dgst -"$hash_name" -hmac "$key_str" -binary |
 	  xxd -p -c 1 |
           sed 's/^/0x/'
 	}
@@ -53,13 +52,13 @@ pbkdf2()
 	  block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
 	  block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
 	  
-	  u=($(step "$hash_name" "$key_str" "${block1[@]}"))
+	  u=($(step "${block1[@]}"))
 	  printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
 	  t=(${u[@]})
 	  for ((j=1; j<iterations; j++))
 	  do
 	    printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
-	    u=($(step "$hash_name" "$key_str" "${u[@]}"))
+	    u=($(step "${u[@]}"))
 	    for ((k=0; k<hLen; k++))
 	    do t[k]=$((t[k]^u[k]))
 	    done
