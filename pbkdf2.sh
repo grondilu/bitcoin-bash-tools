@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function pbkdf2() {
+pbkdf2()
   case "$PBKDF2_METHOD" in
     python)
       python -c "import hashlib; \
@@ -77,5 +77,4 @@ function pbkdf2() {
       echo
     ;;
   esac
-}
 
