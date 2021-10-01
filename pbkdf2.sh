@@ -22,9 +22,8 @@ pbkdf2()
       # * Copyright (c) 2014, JP Richardson Copyright (c) 2010-2011 Intalio Pte, All Rights Reserved
       # */
       local hash_name="$1" key_str="$2" salt_str="$3"
-      local -ai key salt u t block1
-      local -i hLen
-      hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
+      local -ai key salt u t block1 dk
+      local -i hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
       local -i iterations=$4 dkLen=${5:-hLen}
       local -i i j k l=$(( (dkLen+hLen-1)/hLen ))
 
@@ -45,9 +44,7 @@ pbkdf2()
 	  xxd -p -r |
 	  openssl dgst -"$hash_name" -hmac "$key" -binary |
 	  xxd -p -c 1 |
-	  while read -r
-	  do echo $((0x$REPLY))
-	  done
+          sed 's/^/0x/'
 	}
 	for ((i=1;i<=l;i++))
 	do
