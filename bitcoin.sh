@@ -59,25 +59,19 @@ bitcoinAddress() {
       openssl dgst -sha256 -binary |
       openssl dgst -rmd160 -binary
     } | base58 -c
-  elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
+  elif
+    base58 -v "$1" && 
+    [[ "$(base58 -x "$1")" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
   then
-    base58 -x "$1" |
-    {
-      read -r
-      if [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
-      then
-	local point exponent="${BASH_REMATCH[2]^^}"
-        if test -n "${BASH_REMATCH[3]}"
-        then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lCx[0]Pp")"
-        else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
-        fi
-        if [[ "$REPLY" =~ ^80 ]]
-        then ${FUNCNAME[0]} "$point"
-        else ${FUNCNAME[0]} -t "$point"
-        fi
-      else return 2
-      fi
-    }
+    local point exponent="${BASH_REMATCH[2]^^}"
+    if test -n "${BASH_REMATCH[3]}"
+    then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lCx[0]Pp")"
+    else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 130)"
+    fi
+    if [[ "$REPLY" =~ ^80 ]]
+    then ${FUNCNAME[0]} "$point"
+    else ${FUNCNAME[0]} -t "$point"
+    fi
   elif [[ "$1" =~ ^[xt]pub ]] && base58 -v "$1"
   then
     base58 -d "$1" |
@@ -132,10 +126,13 @@ newBitcoinKey() {
       if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
       then printf "\x01"
       fi
-    } | base58 -c
+    } | base58 -c |
+    {
+      read wif
+      echo "$wif"
+      bitcoinAddress "$wif"
+    }
 
-    bitcoinAddress  "$(dc -f secp256k1.dc -e "lG16doi$hex lMx lCx[0]Pp")"
- 
     while ((${#hex} != 64))
     do hex="0$hex"
     done
