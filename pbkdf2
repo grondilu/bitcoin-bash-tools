@@ -20,11 +20,11 @@ case "$PBKDF2_METHOD" in
     # * Credit to: https://github.com/stayradiated/pbkdf2-sha512
     # * Copyright (c) 2014, JP Richardson Copyright (c) 2010-2011 Intalio Pte, All Rights Reserved
     # */
-    local hash_name="$1" key_str="$2" salt_str="$3"
-    local -ai key salt u t block1 dk
-    local -i hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
-    local -i iterations=$4 dkLen=${5:-hLen}
-    local -i i j k l=$(( (dkLen+hLen-1)/hLen ))
+    declare hash_name="$1" key_str="$2" salt_str="$3"
+    declare -ai key salt u t block1 dk
+    declare -i hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
+    declare -i iterations=$4 dkLen=${5:-hLen}
+    declare -i i j k l=$(( (dkLen+hLen-1)/hLen ))
 
     for ((i=0; i<${#key_str}; i++))
     do printf -v "key[$i]" "%d" "'${key_str:i:1}"
