@@ -1328,11 +1328,16 @@ echo $my_new_secret_words
 echo
 echo "This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi..."
 root_seed=$(mnemonic-to-seed "$my_new_secret_words" 2> /dev/null)  # takes a very long time due to pbkdf2; 128 bytes
+echo -n "root_seed cksum : " ; echo -n $root_seed | cksum
 m=$(bip32 -s "$root_seed")  # private key
+echo "m = $m" 
 bip32 "$m/N" # ; echo $? # new public key from private key
 M=$(bip32 "$m/N") # new public key from private
+echo "M = $M"
 public_key_details=$(bip32 -p "$M")
+echo public_key_details = $public_key_details
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+echo p = $p
 
 echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS:"
 segwitAddress -p $p
