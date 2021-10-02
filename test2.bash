@@ -28,23 +28,31 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-secp256k1_dc='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
-483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-2 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*
-+sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]
-SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#
-LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1
-rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<
-%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+
-l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#
-L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*x
-lyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]d
-SLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0
-=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]
-Pp]sE'
+#secp256k1_dc='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~
+#483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+#79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+#2 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*
+#+sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]
+#SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#
+#LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1
+#rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<
+#%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+
+#l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#
+#L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*x
+#lyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]d
+#SLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0
+#=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]
+#Pp]sE'
 
 
+
+#secp256k1_dc=I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B879BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817982 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*+sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]dSLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE
+
+
+#secp256k1_dc="I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B879BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817982 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*+sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]dSLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE"
+
+
+secp256k1_dc='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/rl%xLms#]s~483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B879BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817982 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*+sGi[_1*l%x]s_[+l%x]s+[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lrl%x]sI[lpd1+4/r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1rdS2r[L0s#L1s#L2s#Lds#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rs.0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]dSLxs#LPs#LQs#]sM[[d2%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE'
 
 
 
@@ -471,7 +479,7 @@ bip32()
            version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
          $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
            version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *) key="$(echo "${secp256k1_dc}" | dc -e "16doilG${key^^}lMxlEx")" || return 100
+         *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
       esac
       $FUNCNAME $version $depth $pfp $index $cc $key
     }
@@ -1320,9 +1328,9 @@ convertbits() {
 
 
 
-
+#set -x
 my_new_secret_words=$(create-mnemonic 128)  # 128 = 12 words, 256 = 24 words of entropy
-check-mnemonic "$my_new_secret_words" # ; echo $?  returns 3
+check-mnemonic $my_new_secret_words # ; echo $?  returns 3
 echo "HERE IS YOUR BITCOIN SECRET SEED PHRASE:"
 echo $my_new_secret_words
 echo
@@ -1331,7 +1339,7 @@ root_seed=$(mnemonic-to-seed "$my_new_secret_words" 2> /dev/null)  # takes a ver
 echo -n "root_seed cksum : " ; echo -n $root_seed | cksum
 m=$(bip32 -s "$root_seed")  # private key
 echo "m = $m" 
-bip32 "$m/N" # ; echo $? # new public key from private key
+#bip32 "$m/N" # ; echo $? # new public key from private key
 M=$(bip32 "$m/N") # new public key from private
 echo "M = $M"
 public_key_details=$(bip32 -p "$M")
