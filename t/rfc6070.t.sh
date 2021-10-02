@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-. pbkdf2.sh
-
 declare -i t=0
 
 echo 1..$(grep -c '^_' "$BASH_SOURCE")

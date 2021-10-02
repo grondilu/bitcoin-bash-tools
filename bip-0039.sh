@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-. pbkdf2.sh
-
 # list of words from
 # https://github.com/trezor/python-mnemonic/blob/master/src/mnemonic/wordlist/english.txt
 declare -a bip39_wordlist=(
