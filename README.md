@@ -55,7 +55,7 @@ This is a set of bash functions to generate bitcoin private keys and addresses.
 
 ## Feedback
 
-To discuss this project without necessarily open an issue, feel free to use the
+To discuss this project without necessarily opening an issue, feel free to use the
 [discussions](https://github.com/grondilu/bitcoin-bash-tools/discussions) tab.
 
 ## License
