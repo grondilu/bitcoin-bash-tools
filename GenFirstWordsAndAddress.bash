@@ -891,8 +891,8 @@ bip32()
   then
     local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
     local chaincode=$5 key=$6
-    >&2 echo version=$1 depth=$2 fingerprint=$3 childnumber=$4 chaincode=$5 key=$6
-    >&2 echo BIP32_MAINNET_PUBLIC_VERSION_CODE = $BIP32_MAINNET_PUBLIC_VERSION_CODE , BIP32_MAINNET_PRIVATE_VERSION_CODE = $BIP32_MAINNET_PRIVATE_VERSION_CODE
+    #>&2 echo version=$1 depth=$2 fingerprint=$3 childnumber=$4 chaincode=$5 key=$6
+    #>&2 echo BIP32_MAINNET_PUBLIC_VERSION_CODE = $BIP32_MAINNET_PUBLIC_VERSION_CODE , BIP32_MAINNET_PRIVATE_VERSION_CODE = $BIP32_MAINNET_PRIVATE_VERSION_CODE
     if ((
       version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
       version != BIP32_MAINNET_PRIVATE_VERSION_CODE &&
@@ -1386,17 +1386,19 @@ echo "Gathering and testing entropy..."
 #If you don't get enough entropy, increase this "head" count from 100 to 1000 or 10000, but the script will take that much longer.
 find ~ -type f 2> /dev/null | head -n 100 | xargs cat > /dev/null 2>&1
 #test entropy
+
+#works on linux, windows linux wsl terminal.  fails on chromebook termux, and macos.TODO
 kernel_entropy_avail=$(cat /proc/sys/kernel/random/entropy_avail) # less than 100-200, you have a problem
 echo "kernel_entropy_avail: $kernel_entropy_avail (greater than 100 is good)"
-
 if [[ "$kernel_entropy_avail" -lt "200" ]] ; then echo "ERROR: kernel entropy_avail $kernel_entropy_avail less than 100, too low, sorry, cannot proceed." ; exit 1 ; fi
+
 #Entropy = 1.000000 bits per bit.
 #entropy_test_val=$(head -c 1M /dev/urandom > /tmp/out ; ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
-entropy_test_val=$(head -c 1M /dev/urandom | ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
-echo "entropy test value: $entropy_test_val (1.000 is great)"
-if [[ "$entropy_test_val" < "0.9000" ]] ; then echo "ERROR: entropy $entropy_test_val less than 0.9, too low, sorry, cannot proceed." ; fi
-echo
+#TODO remove requirement for ent, I think...: entropy_test_val=$(head -c 1M /dev/urandom | ent -b /tmp/out | grep Entropy | cut -d ' ' -f 3)
+#echo "entropy test value: $entropy_test_val (1.000 is great)"
+#if [[ "$entropy_test_val" < "0.9000" ]] ; then echo "ERROR: entropy $entropy_test_val less than 0.9, too low, sorry, cannot proceed." ; fi
 
+echo
 
 #echo "generating new sequence of 12 secret words..."
 my_new_secret_words=$(create-mnemonic 128)  # 128 = 12 words, 256 = 24 words of entropy
@@ -1409,19 +1411,33 @@ echo
 echo "This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi..."
 
 root_seed=$(mnemonic-to-seed "$my_new_secret_words" 2> /dev/null)  # takes a very long time due to pbkdf2; 128 bytes
-echo "cksum root_seed = $(echo -n "$root_seed" | cksum)"
-m=$(bip32 -s "$root_seed")  # private key
-echo "m = $m"
-private_key_details=$(bip32 -p "$m")
-echo "private_key_details = $private_key_details"
-bip32 "$m/N" ; echo $? # new public key from private key
-M=$(bip32 "$m/N") # new public key from private
-echo "M (new public key) = $M"
-public_key_details=$(bip32 -p "$M")
-echo "public_key_details = $public_key_details"
-p=$(echo "$public_key_details" | cut -d ' ' -f 6)
-echo "p = $p"
 echo
+#echo "cksum root_seed = $(echo -n "$root_seed" | cksum)"
+m=$(bip32 -s "$root_seed")  # generate private key from root_seed
+echo
+#echo "m = $m"
+#private_key_details=$(bip32 -p "$m")
+#echo "private_key_details = $private_key_details"
+echo
+#echo testing 'bip32 "$m/N"'...
+#bip32 "$m/N" ; >&2 echo $? # new public key from private key
+#echo done testing..
+echo
+M=$(bip32 "$m/N") # new public key from private key
+echo
+#echo testing it manually... 
+#bip32 "xprv9s21ZrQH143K47W7iRCN3Xpw73tZNYG9TsxXXSFeef56GR8fjoDM8Gzhp2zfm8Y2zjcYHuD84ghrVx9paKaZWmhwwH23rni5JPFVWtBo4Es/N"
+#echo done testing
+#echo
+
+echo "M (new public key) = \'$M" # M = new public key
+echo
+#public_key_details=$(bip32 -p "$M")
+#echo "public_key_details = $public_key_details"
+p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+echo
+#echo "p = $p"
+#echo
 
 
 echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS:"
