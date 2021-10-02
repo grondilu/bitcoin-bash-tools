@@ -253,7 +253,7 @@ function mnemonic-to-seed() {
       1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
       2) echo "WARNING: wrong mnemonic checksum."        >&2 ;;&
       3) echo "WARNING: unexpected number of words."     >&2 ;;&
-      *) pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
+      *) ./pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
     esac
   fi
 }
