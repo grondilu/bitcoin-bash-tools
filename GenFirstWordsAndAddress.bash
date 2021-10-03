@@ -398,7 +398,8 @@ debug()
   fi >&2
 
 
-bip32()
+bip32() {
+  #set -x
   if
     debug "${FUNCNAME[0]} $@"
     local OPTIND OPTARG o
@@ -556,7 +557,7 @@ END_USAGE
   then ${FUNCNAME[0]} "$(${FUNCNAME[0]})$1"
   else return 1
   fi
-
+}
 
 CKDpub()
   if [[ ! "$1" =~ ^0[23]([[:xdigit:]]{2}){32}$ ]]
@@ -1470,8 +1471,8 @@ echo "root_seed: $root_seed"
   #$ bip32 $m/N
   #$ bip32 $m/0h/5/7
 m=$(bip32 -s "$root_seed")  # private key
-bip32 "$m/N" || echo $? # new public key from private key
-M="$(bip32 "$m/N")" # new public key from private key
+bip32 $m/N || echo $? # new public key from private key
+M="$(bip32 $m/N)" # new public key from private key
 public_key_details=$(bip32 -p "$M")
 echo public_key_details = $public_key_details
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
@@ -1480,8 +1481,8 @@ echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
 echo
 echo "don't use that, we need to create a hardened derived child public key..."
 echo
-M="$(bip32 "$m/0h/0h/0h")" # new hardened derived public key from private key
-public_key_details=$(bip32 -p "$M")
+M="$(bip32 $m/0h/5/7)" # new hardened derived public key from private key
+public_key_details=$(bip32 -p $M)
 echo public_key_details = $public_key_details
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
 echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
