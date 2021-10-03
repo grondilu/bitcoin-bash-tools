@@ -68,7 +68,7 @@ bitcoinAddress() {
     then point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lCx[0]Pp")"
     else point="$(dc -f secp256k1.dc -e "lG16doi$exponent lMx lUxP" |xxd -p -c 65)"
     fi
-    if [[ "$REPLY" =~ ^80 ]]
+    if [[ "${BASH_REMATCH[1]}" = 80 ]]
     then ${FUNCNAME[0]} "$point"
     else ${FUNCNAME[0]} -t "$point"
     fi
