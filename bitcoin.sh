@@ -27,6 +27,7 @@
 # SOFTWARE.
 
 . base58.sh
+. bip-0173.sh
 
 ser256() {
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
@@ -72,13 +73,37 @@ bitcoinAddress() {
     then ${FUNCNAME[0]} "$point"
     else ${FUNCNAME[0]} -t "$point"
     fi
-  elif [[ "$1" =~ ^[xt]pub ]] && base58 -v "$1"
+  elif [[ "$1" =~ ^[[:alpha:]]pub ]] && base58 -v "$1"
   then
     base58 -d "$1" |
     head -c -4 |
     tail -c 33 |
-    xxd -p -c 33 | 
-    { read; ${FUNCNAME[0]} "$REPLY"; }
+    xxd -p -c 33 |
+    {
+      read
+      case "${1::1}" in
+	x) ${FUNCNAME[0]} "$REPLY" ;;
+	t) ${FUNCNAME[0]} -t "$REPLY" ;;
+        y) 
+	  {
+	    printf %b "\x05"
+            {
+	      printf %b%b "\x00\x14"
+	      echo "${REPLY}" | xxd -p -r |
+	      openssl dgst -sha256 -binary |
+	      openssl dgst -rmd160 -binary
+            } | 
+	    openssl dgst -sha256 -binary |
+	    openssl dgst -rmd160 -binary
+	  } | base58 -c
+          ;;
+        z) segwitAddress -p "$REPLY" ;;
+	*)
+	  echo "${1::4} addresses NYI" >&2
+	  return 2
+	  ;;
+      esac
+    }
   else return 1
   fi
 }
