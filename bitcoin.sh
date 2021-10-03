@@ -126,7 +126,13 @@ newBitcoinKey() {
       if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
       then printf "\x01"
       fi
-    } | base58 -c
+    } |
+    base58 -c |
+    {
+      read -r
+      echo "$REPLY"
+      bitcoinAddress "$REPLY"
+    }
 
     while ((${#hex} != 64))
     do hex="0$hex"
