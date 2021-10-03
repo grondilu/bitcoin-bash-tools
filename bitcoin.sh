@@ -82,26 +82,26 @@ bitcoinAddress() {
     {
       read
       case "${1::1}" in
-	x) ${FUNCNAME[0]} "$REPLY" ;;
-	t) ${FUNCNAME[0]} -t "$REPLY" ;;
+        x) ${FUNCNAME[0]} "$REPLY" ;;
+        t) ${FUNCNAME[0]} -t "$REPLY" ;;
         y) 
-	  {
-	    printf %b "\x05"
+          {
+            printf %b "\x05"
             {
-	      printf %b%b "\x00\x14"
-	      echo "${REPLY}" | xxd -p -r |
-	      openssl dgst -sha256 -binary |
-	      openssl dgst -rmd160 -binary
+              printf %b%b "\x00\x14"
+              echo "${REPLY}" | xxd -p -r |
+              openssl dgst -sha256 -binary |
+              openssl dgst -rmd160 -binary
             } | 
-	    openssl dgst -sha256 -binary |
-	    openssl dgst -rmd160 -binary
-	  } | base58 -c
+            openssl dgst -sha256 -binary |
+            openssl dgst -rmd160 -binary
+          } | base58 -c
           ;;
         z) segwitAddress -p "$REPLY" ;;
-	*)
-	  echo "${1::4} addresses NYI" >&2
-	  return 2
-	  ;;
+        *)
+          echo "${1::4} addresses NYI" >&2
+          return 2
+          ;;
       esac
     }
   else return 1
@@ -124,7 +124,7 @@ newBitcoinKey() {
 	PRIVATE_KEY is a natural integer in decimal or hexadecimal, with an
 	optional '0x' prefix for hexadecimal.
 	
-	WIF is a private key in Wallet Import Format.	
+	WIF is a private key in Wallet Import Format.
 	
 	The '-u' option will use the uncompressed form of the public key.
         
