@@ -1445,8 +1445,10 @@ convertbits() {
 
 
 
-
-
+#generate as much entropy as reasonably practical
+find ~ -maxdepth 5 -type f | head -n 20 | xargs sha512sum > /dev/null 2>&1
+if [[ "$(uname)" -eq "Linux" ]] ; then echo "$(uname) entropy_avail: $(cat /proc/sys/kernel/random/entropy_avail) : greater than 200 is good" ; fi
+#heard on the internet: "Mac OS X simply lacks of any reasonable amount of randomness to be even slightly considered as secure"
 my_new_secret_words=$(create-mnemonic 128)  # 128 = 12 words, 256 = 24 words of entropy
 check-mnemonic $my_new_secret_words || echo WARNING: mnemonic is wrong, error code is $?
 echo "HERE IS YOUR BITCOIN SECRET SEED PHRASE: $my_new_secret_words"
@@ -1456,17 +1458,88 @@ then echo "This next step will take up to two minutes or more on a low-powered c
 fi
 root_seed=$(mnemonic-to-seed $my_new_secret_words)  # takes a very long time due to pbkdf2; 128 bytes
 echo "root_seed: $root_seed"
+
+
+
+#https://github.com/grondilu/bitcoin-bash-tools/discussions/35#discussioncomment-1418085
+#An other point is that you should not directly use the master key to generate a bitcoin address. 
+#Use a derived key, such as m/0h/0/0.  
+#In particular, you should almost certainly use a hardened child key.
+  #$ . bip-0032.sh
+  #$ m="$(bip32 < entropy)"
+  #$ bip32 $m/N
+  #$ bip32 $m/0h/5/7
 m=$(bip32 -s "$root_seed")  # private key
-echo "m = $m" 
 bip32 "$m/N" || echo $? # new public key from private key
-M="$(bip32 "$m/N")" # new public key from private
-echo "M = $M"
+M="$(bip32 "$m/N")" # new public key from private key
 public_key_details=$(bip32 -p "$M")
 echo public_key_details = $public_key_details
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
-echo p = $p
+echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
 
-
-echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS:"
-segwitAddress -p $p
 echo
+echo "don't use that, we need to create a hardened derived child public key..."
+echo
+M="$(bip32 "$m/0h/0h/0h")" # new hardened derived public key from private key
+public_key_details=$(bip32 -p "$M")
+echo public_key_details = $public_key_details
+p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
+echo
+
+exit
+#REFERENCE
+m=$(bip32 -s "$root_seed")  # private key
+bip32 "$m/N" || echo $? # new public key from private key
+M="$(bip32 "$m/N")" # new public key from private key
+public_key_details=$(bip32 -p "$M")
+p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+segwitAddress -p $p
+WORKS: but not child, not hardened:
+
+petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ DEBUG=yes bash GenFirstWordsAndAddress.bash
+Linux entropy_avail: 3550 : greater than 200 is good
+HERE IS YOUR BITCOIN SECRET SEED PHRASE: patient income patrol city current pole broom course sponsor renew water twice
+
+This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi...
+PBKFD2: bloc 1/1, iteration 2048/2048
+root_seed: f108729377d605747469276074c0b835f594e0bd9c057f3fb3d615ff250bffa1d4be8190de2505edd9ddda8c990f2ff5f7951dd2827214bd4ece64b2004405b9
+DEBUG: bip32 -s f108729377d605747469276074c0b835f594e0bd9c057f3fb3d615ff250bffa1d4be8190de2505edd9ddda8c990f2ff5f7951dd2827214bd4ece64b2004405b9
+DEBUG: bip32
+DEBUG: bip32 76066276 0 0 0 4C8A40DE78C8D7888F61C89F388FFB5D4B2DBE677E448812E6D654811D6C4A8F 00F5729DD1B1F58CC40152C29BB8851EB01B90C10391EF0AEA7751981576FCDB3B
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/N
+DEBUG: bip32 -p xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8
+DEBUG: bip32 0x0488ade4 0x00 0x00000000 0x00000000 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 00f5729dd1b1f58cc40152c29bb8851eb01b90c10391ef0aea7751981576fcdb3b
+DEBUG: bip32 76067358 0 0 0 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 037CDAED589ADBC9C0C1F60B259623FC048BB382C450390AF4EE9C6BE73404690E
+xpub661MyMwAqRbcFJdd8mycwQxdHpunzzNttjdRyjqV3WJaGYZFnisRybr23DDEmeLRyVXN8us55qqtRhMU364jZZ9C5axeLuzYT1ZwWHgxFzF
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/N
+DEBUG: bip32 -p xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8
+DEBUG: bip32 0x0488ade4 0x00 0x00000000 0x00000000 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 00f5729dd1b1f58cc40152c29bb8851eb01b90c10391ef0aea7751981576fcdb3b
+DEBUG: bip32 76067358 0 0 0 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 037CDAED589ADBC9C0C1F60B259623FC048BB382C450390AF4EE9C6BE73404690E
+DEBUG: bip32 -p xpub661MyMwAqRbcFJdd8mycwQxdHpunzzNttjdRyjqV3WJaGYZFnisRybr23DDEmeLRyVXN8us55qqtRhMU364jZZ9C5axeLuzYT1ZwWHgxFzF
+DEBUG: bip32 0x0488b21e 0x00 0x00000000 0x00000000 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 037cdaed589adbc9c0c1f60b259623fc048bb382c450390af4ee9c6be73404690e
+public_key_details = 0x0488b21e 0x00 0x00000000 0x00000000 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 037cdaed589adbc9c0c1f60b259623fc048bb382c450390af4ee9c6be73404690e
+HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1q643ra0jh6nsr56r7gxa4c02g420vc97kz2vnj2
+
+don't use that, we need to create a hardened derived child public key...
+
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/0h/0/0
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/0h/0
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/0h
+DEBUG: bip32 xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8/2147483648
+DEBUG: bip32 -p xprv9s21ZrQH143K2pZA2kScaH1tjo5JbXf3XWhqBMRsVAmbPkE7FBZBRoXYBw9qXVdp5QXaMLTZ6xkeeLxh7y5BTMdq4QGtHm3TCeiKYcTaiL8
+DEBUG: bip32 0x0488ade4 0x00 0x00000000 0x00000000 4c8a40de78c8d7888f61c89f388ffb5d4b2dbe677e448812e6d654811d6c4a8f 00f5729dd1b1f58cc40152c29bb8851eb01b90c10391ef0aea7751981576fcdb3b
+DEBUG: bip32 76066276 1 3579985598 2147483648 8D1D7E8CBF5A1C76EFE7B03E6520AE2755FE80BB1E4C47C8C331DDB6C8EB5115 00108a5615ac013a6617ccdb4b4f06a320f0a796ebb6964ffda0f3a57555bbcda1
+DEBUG: bip32 xprv9vU7Z85Wq4DKve2vJnE5HwEmY98nonhuWDoRnaKZSaerdoG7DLMBnuRsP5SsQkbJ48Phu534456iiJEKiWW1trquExPYJ18yvDeaP3p5FCh/0
+DEBUG: bip32 -p xprv9vU7Z85Wq4DKve2vJnE5HwEmY98nonhuWDoRnaKZSaerdoG7DLMBnuRsP5SsQkbJ48Phu534456iiJEKiWW1trquExPYJ18yvDeaP3p5FCh
+DEBUG: bip32 0x0488ade4 0x01 0xd5623ebe 0x80000000 8d1d7e8cbf5a1c76efe7b03e6520ae2755fe80bb1e4c47c8c331ddb6c8eb5115 00108a5615ac013a6617ccdb4b4f06a320f0a796ebb6964ffda0f3a57555bbcda1
+DEBUG: bip32 76066276 2 2776096816 0 D57B3EDB48524A0E2D9D7824B251CE46584EB5F032BFAEAAC3A4471C2B99C80E 00046373a05762258888fe24e8c2a93e8eb505bb0769d1e3f7f4bd9efc38a8cb21
+DEBUG: bip32 xprv9wzpesZSYF8o3Kr8UsRUFr9ZEF3xYu57VTcABJiJuLLYTxX3FEHD8k5vnEiqnb4E82vZaewgTEU34YMsqphAF679toLxJ7Tm4YhQbvYYj1R/0
+DEBUG: bip32 -p xprv9wzpesZSYF8o3Kr8UsRUFr9ZEF3xYu57VTcABJiJuLLYTxX3FEHD8k5vnEiqnb4E82vZaewgTEU34YMsqphAF679toLxJ7Tm4YhQbvYYj1R
+DEBUG: bip32 0x0488ade4 0x02 0xa577e030 0x00000000 d57b3edb48524a0e2d9d7824b251ce46584eb5f032bfaeaac3a4471c2b99c80e 00046373a05762258888fe24e8c2a93e8eb505bb0769d1e3f7f4bd9efc38a8cb21
+DEBUG: bip32 76066276 3 3689795732 0 3BADAD6D67D03C34A7CED2B76CF423646D2009B8B2A65B996A69E16E3CD9935D 0026a0dd258d220b700dc4fdfef8e8fe34a387ec7e116710b9919ecef9b171f9a6
+DEBUG: bip32 -p xprv9zHB7DC3JV3XQgVRjLUZAWiDDZAupyYgHPcwZ6BbZtFzLvDSBppmBJyg114424Y1VcdqXA5i8g5Fh2UA1v6ErhbqgS6B8nhX6YpT5n7Eiyx
+DEBUG: bip32 0x0488ade4 0x03 0xdbedd094 0x00000000 3badad6d67d03c34a7ced2b76cf423646d2009b8b2a65b996a69e16e3cd9935d 0026a0dd258d220b700dc4fdfef8e8fe34a387ec7e116710b9919ecef9b171f9a6
+public_key_details = 0x0488ade4 0x03 0xdbedd094 0x00000000 3badad6d67d03c34a7ced2b76cf423646d2009b8b2a65b996a69e16e3cd9935d 0026a0dd258d220b700dc4fdfef8e8fe34a387ec7e116710b9919ecef9b171f9a6
+-p option expects a compressed point as argument
+HERE IS YOUR PUBLIC BITCOIN ADDRESS:
