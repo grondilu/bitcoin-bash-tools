@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-. bech32.sh
+if ! test -v bech32_sh
+then . bech32.sh
+fi
 
 p2wpkh() { segwitAddress -p "$1"; }
 

@@ -29,7 +29,9 @@
 # // THE SOFTWARE.
 # 
 
-. bech32.sh
+if ! test -v bech32_sh
+then . bech32.sh
+fi
 
 convertbits() {
   local -i inbits=$1 outbits=$2 pad=${3:-1} val=0 bits=0 i

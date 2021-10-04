@@ -1,4 +1,8 @@
-if ! test -v base58
+#!/usr/bin/env bash
+
+declare bip32_sh
+
+if ! test -v base58_sh
 then . base58.sh
 fi
 

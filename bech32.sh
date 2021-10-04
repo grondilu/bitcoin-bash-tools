@@ -27,6 +27,7 @@
 # // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # // THE SOFTWARE.
 
+readonly bech32_sh
 declare BECH32_CHARSET="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 declare -A BECH32_CHARSET_REVERSE
 for i in {0..31}

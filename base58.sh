@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+readonly base58_sh
 declare base58_chars_str="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 

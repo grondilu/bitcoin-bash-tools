@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-. bip-0032.sh
+if ! test -v bip32_sh
+then . bip-0032.sh
+fi
 
 bip49() {
   BIP32_MAINNET_PUBLIC_VERSION_CODE=0x049d7cb2 \
