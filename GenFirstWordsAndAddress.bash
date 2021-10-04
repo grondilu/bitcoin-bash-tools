@@ -1471,8 +1471,10 @@ echo "root_seed: $root_seed"
   #$ bip32 $m/N
   #$ bip32 $m/0h/5/7
 m=$(bip32 -s "$root_seed")  # private key
-bip32 $m/N || echo $? # new public key from private key
+bip32 $m/N || echo $? # /N creates new public key from private key, https://github.com/grondilu/bitcoin-bash-tools/discussions/35#discussioncomment-1422194
+echo 'M="$(bip32 $m/N)" # new public key from private key'
 M="$(bip32 $m/N)" # new public key from private key
+echo "M = $M"
 public_key_details="$(bip32 -p "$M")"
 echo public_key_details = $public_key_details
 p=$(echo "$public_key_details" | cut -d ' ' -f 6)
@@ -1481,14 +1483,15 @@ echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
 echo
 echo "but don't use that, we need to create a hardened derived child public key..."
 echo
-M="$(bip32 $m/0h/0/0)" # new hardened derived public key from private key
+echo 'M="$(bip32 $m/0h/0/0/N)" # new hardened derived public key from private key'
+M="$(bip32 $m/0h/0/0/N)" # new hardened derived public key from private key
 echo "M = $M" 
 
 #public_key_details="$(bip32 -p $M)"
 #echo public_key_details = "$public_key_details"
 #p=$(echo "$public_key_details" | cut -d ' ' -f 6)
 
-public_key_details=($(bip32 -p $M))
+public_key_details=($(bip32 -p $M/N))
 echo public_key_details = "${public_key_details[@]}"
 p="$(echo ${public_key_details[5]})"
 
@@ -1496,6 +1499,43 @@ echo "p = $p"
 
 echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
 echo
+
+
+echo running test vector from https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vector-1
+root_seed="000102030405060708090a0b0c0d0e0f"
+echo "root_seed: $root_seed"
+m=$(bip32 -s "$root_seed")  # private key
+echo "m = $m"
+#bip32 $m/N || echo $? # new public key from private key
+echo 'running M="$(bip32 $m/N)..." # new public key from private key'
+M="$(bip32 $m/N)" # new public key from private key
+echo "M = $M (should be xpub?)"
+public_key_details="$(bip32 -p "$M")"
+echo public_key_details = "$public_key_details"
+p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
+
+echo 'running M="$(bip32 $m/0h/0/0/N)" # new hardened derived public key from private key...'
+M="$(bip32 $m/0h/0/0/N)" # new hardened derived public key from private key
+echo "M = $M (should be xpub?)" 
+
+#public_key_details="$(bip32 -p $M/N)"
+#echo public_key_details = "$public_key_details"
+#p=$(echo "$public_key_details" | cut -d ' ' -f 6)
+
+public_key_details=($(bip32 -p $M/N))
+echo public_key_details = "${public_key_details[@]}"
+p="$(echo ${public_key_details[5]})"
+
+echo "p = $p"
+
+echo "HERE IS YOUR PUBLIC BITCOIN ADDRESS: $(segwitAddress -p $p)"
+echo
+
+
+
+
+
 
 exit
 #REFERENCE
