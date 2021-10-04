@@ -142,24 +142,28 @@ bip32()
   then $FUNCNAME -p "$1" >/dev/null && echo $1
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
   then
-    $FUNCNAME -p "${1::-2}" |
-    {
-      local -i version depth pfp index
-      local    cc key
-      read version depth pfp index cc key
-      case $version in
-         $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
-           ;;
-         $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
-           ;;
-         $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-           version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
-         $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
-           version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-         *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
-      esac
-      $FUNCNAME $version $depth $pfp $index $cc $key
-    }
+    if $FUNCNAME -p "${1::-2}" >/dev/null
+    then
+      $FUNCNAME -p "${1::-2}" |
+      {
+	local -i version depth pfp index
+	local    cc key
+	read version depth pfp index cc key
+	case $version in
+	   $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+	     ;;
+	   $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+	     ;;
+	   $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+	     version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+	   $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+	     version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+	   *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
+	esac
+	$FUNCNAME $version $depth $pfp $index $cc $key
+      }
+    else return 200
+    fi
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/([[:digit:]]+)h$ ]]
   then $FUNCNAME "${1%/*}/$((${BASH_REMATCH[2]} + (1<<31)))" 
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/[[:digit:]]+$ ]]
