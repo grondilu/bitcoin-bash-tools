@@ -47,7 +47,7 @@ Example for the generator point (so exponent is 1) :
 
     $ newBitcoinKey 1
     KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
-    1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
+    1BgGZ9tcN4rmREDACTEDprQz87SZ26SAMH
     read EC key
     EC Key valid.
     writing EC key
@@ -143,22 +143,22 @@ A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
 extended, and displays the corresponding bitcoin address. 
 
     $ bitcoinAddress KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
-    1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
+    1BgGZ9tcN4rmREDACTEDprQz87SZ26SAMH
 
 Right now, for extended keys, only neutered keys are processed.  So if you want
 the bitcoin address of an extended private key, you must neuter it first.
 
     $ openssl rand 64 > seed
     $ bitcoinAddress "$(xkey /N < seed)"
-    18kuHbLe1BhefqrDg4P9gzHtnKh1Fm3LCQ
+    18kuHbLe1BheREDACTEDgzHtnKh1Fm3LCQ
 
 *xpub*, *ypub* and *zpub* keys produce addresses of different formats, as
 specified in their respective BIPs :
 
     $ bitcoinAddress "$(ykey /N < seed)"
-    3JASVbGLpb4W9oD1CiNkxJB6dSWRGQ9gJm
+    3JASVbGLpb4W9oREDACTEDB6dSWRGQ9gJm
     $ bitcoinAddress "$(zkey /N < seed)"
-    bc1q4r9k3p9t8cwhedd2w3c49v5v775f55at9jcqqe
+    bc1q4r9k3p9t8cwhedREDACTED5v775f55at9jcqqe
 
 
 ## Requirements
