@@ -33,7 +33,7 @@
 ## Description
 
 This repository contains bitcoin-related bash functions and programs, allowing
-bitcoin private keys generation in various formats.
+bitcoin private keys generation and processing from and to various formats.
 
 ### Vanilla keys
 
