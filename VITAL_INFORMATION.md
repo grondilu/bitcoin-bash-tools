@@ -1,13 +1,13 @@
 Here is an example run of this script:
 
-petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ bash GenFirstWordsAndAddress.bash
-generating as much entropy as reasonably practical, will take a few seconds...
-....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ bash GenFirstWordsAndAddress.bash\
+generating as much entropy as reasonably practical, will take a few seconds...\
+....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\
 Linux entropy_avail: 3441 : greater than 200 is good
 
 HERE IS YOUR BITCOIN SECRET SEED PHRASE: short scheme assault kidney quote bargain blush dinosaur great photo palm usual
 
-This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi...
+This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi...\
 PBKFD2: bloc 1/1, iteration 2048/2048
 
 HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1qeyp9e2fz54t3vc005l54z45qn46qvgcutxl4c6
