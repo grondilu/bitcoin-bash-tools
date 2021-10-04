@@ -32,7 +32,7 @@ segwitAddress() {
       v) WITNESS_VERSION=$OPTARG ${FUNCNAME[0]} "$@" ;;
     esac
   elif
-    local hrp="${HPR:-bc}"
+    local hrp="${HRP:-bc}"
     [[ ! "$hrp"     =~ ^(bc|tb)$ ]]
   then return 1
   elif

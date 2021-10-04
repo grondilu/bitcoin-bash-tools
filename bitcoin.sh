@@ -98,6 +98,7 @@ bitcoinAddress() {
           } | base58 -c
           ;;
         z) segwitAddress -p "$REPLY" ;;
+        v) segwitAddress -t -p "$REPLY" ;;
         *)
           echo "${1::4} addresses NYI" >&2
           return 2
