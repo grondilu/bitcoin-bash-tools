@@ -101,6 +101,42 @@ openssl dgst -sha512 -hmac "Bitcoin seed" -binary
 The output of this command is then split in two to produce a *chain code* and a private exponent,
 as described in bip-0032.
 
+### Mnemonic
+
+A seed can be produced from a *mnemonic*, a.k.a a *secret phrase*, as described
+in [BIP-0039](https://en.bitcoin.it/wiki/BIP_0039).
+
+To create a mnemonic, a function `create-mnemonic` takes as argument an amount of entropy in bits
+either 128, 160, 192, 224 or 256.  Default is 160.
+
+    $ create-mnemonic 128
+    invest hedgehog slogan unfold liar thunder cream leaf kiss combine minor document
+
+Alternatively, the function can take as argument some noise in hexadecimal (the
+corresponding number of bits must be a multiple of 32).
+
+    $ create-mnemonic "$(openssl rand -hex 20)"
+    poem season process confirm meadow hidden will direct seed void height shadow live visual sauce
+
+To create a seed from a mnemonic, there is a function `mnemonic-to-seed`.
+
+    $ mnemonic=($(create-mnemonic))
+    $ mnemonic-to-seed "${mnemonic[@]}"
+
+This function expects several words as arguments, not a long string of space-separated words, so mind
+the parameter expansion (`@` or `*` in arrays for instance).
+
+By default, the ouput is in hexadecimal.  For a binary output that can be fed directly to say `xkey`,
+use the `-b` option.
+
+    $ mnemonic-to-seed -b "${mnemonic[@]}" |xkey /N
+
+This function is a bit slow as it uses bash code to compute
+[PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For a faster execution, set
+the environment variable `PBKDF2_METHOD` to "python".
+
+    $ PBKDF2_METHOD=python mnemonic-to-seed -b "${mnemonic[@]}" |xkey /N
+
 ### Address generation
 
 A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
