@@ -29,6 +29,13 @@
 . base58.sh
 . bip-0173.sh
 
+. bip-0032.sh
+. bip-0049.sh
+. bip-0084.sh
+alias xkey=bip32
+alias ykey=bip49
+alias zkey=bip84
+
 ser256() {
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
