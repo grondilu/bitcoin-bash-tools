@@ -1,5 +1,6 @@
 Here is an example run of this script:
 
+```
 petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ bash GenFirstWordsAndAddress.bash\
 generating as much entropy as reasonably practical, will take a few seconds...\
 ....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\
@@ -11,18 +12,16 @@ This next step will take up to two minutes or more on a low-powered computer suc
 PBKFD2: bloc 1/1, iteration 2048/2048
 
 HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1qeyp9e2fz54t3vc005l54z45qn46qvgcutxl4c6
-
-
-
+```
 
 This script generates two very important strings of characters.
-- The first is your BITCOIN SECRET SEED PHRASE.
-- The second is your PUBLIC BITCOIN ADDRESS.
+- The first is your `BITCOIN SECRET SEED PHRASE`.
+- The second is your `PUBLIC BITCOIN ADDRESS`.
 
 
 Entropy is a vital part of bitcoin cryptography.  It must be very, very good.
 
-Regarding you BITCOIN SECRET SEED PHRASE:
+Regarding you `BITCOIN SECRET SEED PHRASE`:
 - Order matters. 
     - The sequence of the secret seed phrase words matters.
 - Do not lose them. 
@@ -45,10 +44,10 @@ Regarding you BITCOIN SECRET SEED PHRASE:
 Buy bitcoin.  Sign up on a bitcoin exchange to buy bitcoin every week or so (dollar-cost averaging, "stacking sats"). Consider swanbitcoin.com, pro.coinbase.com ("pro" is cheaper than regular coinbase.com).
 
 Possess your bitcoin.
-Regarding your PUBLIC BITCOIN ADDRESS:
-- Arrange for the bitcoin exchange to automatically withdraw or send your bitcoin to your PUBLIC BITCOIN ADDRESS, as much as possible, as often as possible, as soon as possible. 
+Regarding your `PUBLIC BITCOIN ADDRESS`:
+- Arrange for the bitcoin exchange to automatically withdraw or send your bitcoin to your `PUBLIC BITCOIN ADDRESS`, as much as possible, as often as possible, as soon as possible. 
 - "Not your keys, not your coin." 
-- You really don't own your bitcoin until they have been sent by the exchange to your PUBLIC BITCOIN ADDRESS, which is protected by your private seed phrase (and thus your private key).
+- You really don't own your bitcoin until they have been sent by the exchange to your `PUBLIC BITCOIN ADDRESS`, which is protected by your private seed phrase (and thus your private key).
 
 Study bitcoin. 
 - It is changing the world.  
