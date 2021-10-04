@@ -3,17 +3,19 @@
 Here is an example run of this script:
 
 ```
-petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ bash GenFirstWordsAndAddress.bash\
-generating as much entropy as reasonably practical, will take a few seconds...\
-....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\
-Linux entropy_avail: 3441 : greater than 200 is good
+petjal@petjal-ThinkPad-E520:~/dev/github/petjal/bitcoin-bash-tools$ bash MyFirstBitcoinSeedWordsAndAddress.bash
+You must understand and following the guidance provided at https://github.com/petjal/bitcoin-bash-tools/blob/pjdev/VITAL_INFORMATION.md
 
-HERE IS YOUR BITCOIN SECRET SEED PHRASE: short scheme assault kidney quote bargain blush dinosaur great photo palm usual
+generating as much entropy as reasonably practical, will take a few seconds...
+....................
+Linux entropy_avail: 3696 : greater than 200 is good
 
-This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi...\
+HERE IS YOUR BITCOIN SECRET SEED PHRASE: iron cinnamon obtain talk power badge library group since diagram utility west
+
+This next step will take up to two minutes or more on a low-powered computer such as a raspberry pi...
 PBKFD2: bloc 1/1, iteration 2048/2048
 
-HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1qeyp9e2fz54t3vc005l54z45qn46qvgcutxl4c6
+HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1qy6j4m00ndu9h5dszyk3p7fand6xw37d9nezyw0
 ```
 
 # This script generates two very important strings of characters.
@@ -59,3 +61,4 @@ Regarding your `PUBLIC BITCOIN ADDRESS`:
 - Improve your bitcoin security over time.
 - It is changing the world.  
 - Introduce someone else to bitcoin.
+- Ask if you need help. 
