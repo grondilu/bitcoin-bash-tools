@@ -36,6 +36,8 @@ alias xkey=bip32
 alias ykey=bip49
 alias zkey=bip84
 
+. bip-0039.sh
+
 ser256() {
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
