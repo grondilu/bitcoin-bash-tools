@@ -10,24 +10,23 @@ This is a set of bash functions to generate bitcoin private keys and addresses.
 
     $ newBitcoinKey
 
-    $ openssl rand 64 > entropy
+    $ openssl rand 64 > seed
 
-    $ . bip-0032.sh
-    $ m="$(bip32 < entropy)"
-    $ bip32 $m/N
-    $ bip32 $m/0h/5/7
+    $ xkey /N < seed
+    $ ykey /N < seed
+    $ zkey /N < seed
     
-    $ . bip-0039.sh
-    $ create-mnemonic 128
-    drip goose mansion fashion display detail high elder expose rain outdoor poet
-    $ mnemonic-to-seed drip goose mansion fashion display detail high elder expose rain outdoor poet
-    3635d3c21228487465d24a486e8063dc6730b7ced192cfdaed35b382277ac798aab7f779e58a3e253d1ef1c21f0f5442d4d3f419ac766471541d1e20d39f68b0
-    $ mnemonic-to-seed drip duck mansion fashion display detail high elder expose rain outdoor poet
-    WARNING: wrong mnemonic checksum.
-    52491c9b9e7153a23081453e37f86fe61fa1c56769258357a30954018c99637a0b9e7b9d6c41d91805ed23f3f9f5127415dd43cd3a83dc84e6db03111fe231d5
+    $ bitcoinAddress "$(xkey /44h/0h/0h/0/0/N < seed)"
+    $ bitcoinAddress "$(ykey /49h/0h/0h/0/0/N < seed)"
+    $ bitcoinAddress "$(zkey /84h/0h/0h/0/0/N < seed)"
+    
+    $ m="$(xkey < seed)"
+    $ M="$(xkey $m/N)"
 
-    $ . bip-0173.sh
-    $ segwitAddress -p 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+    $ mnemonic=($(create-mnemonic 128))
+    $ echo "${mnemonic[@]}"
+
+    $ mnemonic-to-seed -b "${mnemonic[@]}" > seed
 
     $ prove t/*.t.sh
 
