@@ -16,8 +16,8 @@ HERE IS YOUR PUBLIC BITCOIN ADDRESS: bc1qeyp9e2fz54t3vc005l54z45qn46qvgcutxl4c6
 
 
 This script generates two very important strings of characters.
-  The first is your BITCOIN SECRET SEED PHRASE.
-  The second is your PUBLIC BITCOIN ADDRESS.
+- The first is your BITCOIN SECRET SEED PHRASE.
+- The second is your PUBLIC BITCOIN ADDRESS.
 
 
 Entropy is a vital part of bitcoin cryptography.  It must be very, very good.
