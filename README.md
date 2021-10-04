@@ -45,16 +45,16 @@ exponent as argument and displays the following corresponding strings :
 
 Example for the generator point (so exponent is 1) :
 
-  $ newBitcoinKey 1
-  KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
-  1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
-  read EC key
-  EC Key valid.
-  writing EC key
-  -----BEGIN EC PRIVATE KEY-----
-  MFQCAQEEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABoAcGBSuBBAAK
-  oSQDIgACeb5mfvncu6xVoGKVzocLBwKb/NstzijZWfKBWxb4F5g=
-  -----END EC PRIVATE KEY-----
+    $ newBitcoinKey 1
+    KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
+    1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
+    read EC key
+    EC Key valid.
+    writing EC key
+    -----BEGIN EC PRIVATE KEY-----
+    MFQCAQEEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABoAcGBSuBBAAK
+    oSQDIgACeb5mfvncu6xVoGKVzocLBwKb/NstzijZWfKBWxb4F5g=
+    -----END EC PRIVATE KEY-----
 
 The three lines about 'EC key' are stderr output from `openssl ec ... -check`.
 They can serve a verification step for the calculation of the public point.
