@@ -53,11 +53,11 @@ case "$PBKDF2_METHOD" in
       block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
       
       u=($(step "${block1[@]}"))
-      printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
+      printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
       t=(${u[@]})
       for ((j=1; j<iterations; j++))
       do
-	printf "\rPBKFD2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
+	printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
 	u=($(step "${u[@]}"))
 	for ((k=0; k<hLen; k++))
 	do t[k]=$((t[k]^u[k]))
