@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
+. bip-0039.sh
+
 declare -i t=0
 
 echo 1..$(grep -c '^_' "$BASH_SOURCE")
 
 function _test() {
   ((t++))
-  if ./pbkdf2 $1 | grep -q "$2"
+  if pbkdf2 $1 | grep -q "$2"
   then echo ok $t
   else echo not ok $t
   fi
