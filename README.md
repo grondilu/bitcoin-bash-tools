@@ -2,7 +2,7 @@
 
 [Bitcoin](http://bitcoin.org)-related functions in [Bash](https://www.gnu.org/software/bash/).
 
-* TOC
+  * TOC
 {:toc}
 
 ## Synopsis
