@@ -2,6 +2,9 @@
 
 [Bitcoin](http://bitcoin.org)-related functions in [Bash](https://www.gnu.org/software/bash/).
 
+* TOC
+{:toc}
+
 ## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
