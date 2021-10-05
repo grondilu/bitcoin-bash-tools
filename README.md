@@ -112,6 +112,13 @@ either 128, 160, 192, 224 or 256.  Default is 160.
     $ create-mnemonic 128
     invest hedgehog slogan unfold liar thunder cream leaf kiss combine minor document
 
+To use words in an other language, you can set the `BIP39_LANG` environment
+variable.  Currently supported languages are `english` (default),
+`chinese_simplified`, `chinese_traditional`, `japanese` and `french`.
+
+    $ BIP39_LANG=chinese_traditional create-mnemonic
+    凍 濾 槍 斷 覆 捉 斷 山 未 飛 沿 始 瓦 曰 撐
+
 Alternatively, the function can take as argument some noise in hexadecimal (the
 corresponding number of bits must be a multiple of 32).
 
