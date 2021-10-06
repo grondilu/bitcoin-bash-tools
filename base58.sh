@@ -7,13 +7,13 @@ unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 base58() {
   if
     local OPTIND OPTARG o
-    getopts hxdvc o
+    getopts hdvc o
   then
     shift $((OPTIND - 1))
     local input
     case $o in
-      d|v) read -r input < "${1:-/dev/stdin}";;&
       d)
+	read -r input < "${1:-/dev/stdin}"
 	if [[ "$input" =~ ^1.+ ]]
 	then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
 	elif [[ "$input" =~ ^[$base58_chars_str]+$ ]]
@@ -24,12 +24,17 @@ base58() {
 	fi
         ;;
       v)
-	${FUNCNAME[0]} -d <<<"$input" |
-	head -c -4 |
-	${FUNCNAME[0]} -c |
-	grep -q "^$input$"
+        tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
+        uniq | wc -l |
+	grep -q '^1$'
         ;;
-      c) BASE58_USE_CHECKSUM=yes ${FUNCNAME[0]} "$@";;
+      c)
+	tee >(
+           openssl dgst -sha256 -binary |
+	   openssl dgst -sha256 -binary |
+	   head -c 4
+        ) | ${FUNCNAME[0]} "$@"
+        ;;
       h)
         cat <<-END_USAGE
 	${FUNCNAME[0]} [options] [FILE]
@@ -44,14 +49,7 @@ base58() {
         ;;
     esac
   else
-    cat "${1:-/dev/stdin}" |
-    if [[ "$BASE58_USE_CHECKSUM" = yes ]]
-    then tee >(openssl dgst -sha256 -binary |
-       openssl dgst -sha256 -binary |
-       head -c 4)
-    else cat
-    fi |
-    xxd -p -c 1 |
+    xxd -p -c 1 "${1:-/dev/stdin}" |
     sed 's/^/0x/' |
     {
       local -i bytes
