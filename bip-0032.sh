@@ -64,9 +64,10 @@ bip32()
 	END_USAGE
         ;;
       p)
-        if [[ "$OPTARG" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v "$OPTARG"
+        if [[ "$OPTARG" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v <<<"$OPTARG"
         then
-	  base58 -x "$OPTARG" |
+	  base58 -d <<<"$OPTARG" |
+          xxd -p -c 78 |
 	  {
 	    read
 	    local -a args=(
@@ -138,7 +139,7 @@ bip32()
       xxd -p -r |
       base58 -c
     fi
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v "$1"
+  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v <<<"$1"
   then $FUNCNAME -p "$1" >/dev/null && echo $1
   elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
   then

@@ -20,7 +20,7 @@ isDecimal()        [[ "$1" =~ ^[[:digit:]]+$ ]]
 isHexadecimal()    [[ "$1" =~ ^(0x)?(([[:xdigit:]]{2})+)$ ]]
 isBase64()         [[ "$1" =~ ^[A-Za-z0-9+/]+=*$ ]]
 isExtendedKey() {
-  base58 -v "$1" &&
+  base58 -v <<<"$1" &&
   bx base58-decode "$1" |
   bx base16-decode |
   wc -c |
@@ -170,7 +170,7 @@ bx()
       wif-to-ec)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        elif base58 -v "$1"
+        elif base58 -v <<<"$1"
         then
 	  $FUNCNAME base58-decode "$1" |
           {
@@ -502,14 +502,14 @@ bx()
       base58-decode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
-        else base58 -x "$1"
+        else base58 -d <<<"$1" |xxd -p
         fi
         ;;
       base58-encode)
         if (($# == 0))
         then read; $FUNCNAME $command "$REPLY"
         elif isHexadecimal "$1"
-        then base58 "$1"
+        then base58 <<<"$1"
         else return 1
         fi
         ;;

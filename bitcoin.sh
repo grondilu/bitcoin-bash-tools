@@ -70,8 +70,8 @@ bitcoinAddress() {
       openssl dgst -rmd160 -binary
     } | base58 -c
   elif
-    base58 -v "$1" && 
-    [[ "$(base58 -x "$1")" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
+    base58 -v <<<"$1" && 
+    [[ "$(base58 -d <<<"$1" |xxd -p -c 38)" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
   then
     local point exponent="${BASH_REMATCH[2]^^}"
     if test -n "${BASH_REMATCH[3]}"
@@ -82,9 +82,9 @@ bitcoinAddress() {
     then ${FUNCNAME[0]} "$point"
     else ${FUNCNAME[0]} -t "$point"
     fi
-  elif [[ "$1" =~ ^[[:alpha:]]pub ]] && base58 -v "$1"
+  elif [[ "$1" =~ ^[[:alpha:]]pub ]] && base58 -v <<<"$1"
   then
-    base58 -d "$1" |
+    base58 -d <<<"$1" |
     head -c -4 |
     tail -c 33 |
     xxd -p -c 33 |
@@ -184,8 +184,9 @@ newBitcoinKey() {
     fi |
     openssl ec -inform der -check
 
-  elif [[ "$1" =~ ^[5KL] ]] && base58 -v "$1"
-  then base58 -x "$1" |
+  elif [[ "$1" =~ ^[5KL] ]] && base58 -v <<<"$1"
+  then base58 -d <<<"$1" |
+    xxd -p -c 38 |
     {
       read -r
       if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]

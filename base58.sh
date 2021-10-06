@@ -5,68 +5,73 @@ declare base58_chars_str="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuv
 unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 
 base58() {
-  if (($# == 0))
-  then ${FUNCNAME[0]} "$(xxd -p |tr -d '\n')"
-  elif
+  if
     local OPTIND OPTARG o
     getopts hxdvc o
   then
     shift $((OPTIND - 1))
+    local input
     case $o in
-      d) BASE58_OPERATION=decode-to-binary ${FUNCNAME[0]} "$@";;
-      v) BASE58_OPERATION=verify-checksum  ${FUNCNAME[0]} "$@";;
-      x) ${FUNCNAME[0]} -d "$@" |
-         xxd -p |
-         tr -d '\n'
-         echo
+      d|v) read -r input < "${1:-/dev/stdin}";;&
+      d)
+	if [[ "$input" =~ ^1.+ ]]
+	then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
+	elif [[ "$input" =~ ^[$base58_chars_str]+$ ]]
+	then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input" | dc
+        elif [[ -z "$input" ]]
+        then return 0
+	else return 2
+	fi
+        ;;
+      v)
+	${FUNCNAME[0]} -d <<<"$input" |
+	head -c -4 |
+	${FUNCNAME[0]} -c |
+	grep -q "^$input$"
         ;;
       c) BASE58_USE_CHECKSUM=yes ${FUNCNAME[0]} "$@";;
       h)
         cat <<-END_USAGE
-	${FUNCNAME[0]} [options] [hex or base58 string]
+	${FUNCNAME[0]} [options] [FILE]
 	
 	options are:
 	  -h:	show this help
 	  -d:	decode from base58 to binary
-	  -x:	decode from base58 to hexadecimal
 	  -c:	append checksum
           -v:	verify checksum
 	END_USAGE
         return
         ;;
     esac
-  elif [[ "$BASE58_OPERATION" = decode-to-binary ]]
-  then
-    if [[ "$1" =~ ^1+ ]]
-    then printf "\x00"; ${FUNCNAME[0]} "${1:1}"
-    elif [[ "$1" =~ ^[$base58_chars_str]+$ ]]
-    then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$1" | dc
-    else return 2
-    fi
-  elif [[ "$BASE58_OPERATION" = verify-checksum ]]
-  then
-    unset BASE58_OPERATION
-    ${FUNCNAME[0]} -d "$1" |
-    head -c -4 |
-    ${FUNCNAME[0]} -c |
-    grep -q "^$1$"
-  elif [[ "$BASE58_USE_CHECKSUM" = yes ]]
-  then
-    unset BASE58_USE_CHECKSUM
+  else
+    cat "${1:-/dev/stdin}" |
+    if [[ "$BASE58_USE_CHECKSUM" = yes ]]
+    then tee >(openssl dgst -sha256 -binary |
+       openssl dgst -sha256 -binary |
+       head -c 4)
+    else cat
+    fi |
+    xxd -p -c 1 |
+    sed 's/^/0x/' |
     {
-       xxd -p -r <<<"$1"
-       xxd -p -r <<<"$1" |
-       openssl dgst -sha256 -binary |
-       openssl dgst -sha256 -binary |
-       head -c 4
-    } | ${FUNCNAME[0]} 
-  elif [[ "$1" =~ ^00 ]]
-  then echo -n 1; ${FUNCNAME[0]} "${1:2}"
-  elif [[ "$1" =~ ^([[:xdigit:]]{2})+$ ]]
-  then sed -e 'i16i0' -e 's/../100*&+/g' -e 'a[3A~rd0<x]dsxx+f' <<<"${1^^}" |
-    dc |
-    while read -r; do echo -n ${base58_chars_str:$REPLY:1}; done
-    echo
-  else return 9
+      local -i bytes
+      mapfile -t bytes
+      while ((${#bytes[@]} > 0)) && ((${bytes[0]} == 0))
+      do echo -n 1; bytes=(${bytes[@]:1})
+      done
+      if ((${#bytes[@]} > 0))
+      then
+	{
+	  echo 0
+	  printf "256*%d+\n" ${bytes[@]}
+	  echo '[58~rd0<x]dsxx+f'
+	} |
+	dc |
+	while read -r
+	do echo -n "${base58_chars_str:$REPLY:1}"
+	done
+      fi
+      echo
+    }
   fi
 }
