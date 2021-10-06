@@ -21,6 +21,9 @@ base58() {
         elif [[ -z "$input" ]]
         then return 0
 	else return 2
+	fi |
+	if [[ -t 1 ]]
+	then cat -v
 	fi
         ;;
       v)
