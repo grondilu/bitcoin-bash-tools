@@ -20,7 +20,7 @@ base58() {
 	then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input" | dc
         elif [[ -z "$input" ]]
         then return 0
-	else return 2
+	else return 1
 	fi |
 	if [[ -t 1 ]]
 	then cat -v
