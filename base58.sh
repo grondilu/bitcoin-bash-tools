@@ -24,6 +24,7 @@ base58() {
 	fi |
 	if [[ -t 1 ]]
 	then cat -v
+        else cat
 	fi
         ;;
       v)
