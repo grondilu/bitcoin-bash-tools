@@ -10,9 +10,9 @@ base58() {
     getopts hdvc o
   then
     shift $((OPTIND - 1))
-    local input
     case $o in
       d)
+	local input
 	read -r input < "${1:-/dev/stdin}"
 	if [[ "$input" =~ ^1.+ ]]
 	then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
