@@ -45,11 +45,16 @@ base58() {
 	
 	options are:
 	  -h:	show this help
-	  -d:	decode from base58 to binary
+	  -d:	decode
 	  -c:	append checksum
           -v:	verify checksum
+	
+	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
+
+	With no FILE, encode standard input.
+	
+	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
 	END_USAGE
-        return
         ;;
     esac
   else
