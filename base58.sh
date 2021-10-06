@@ -6,11 +6,28 @@ unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 
 base58() {
   if
-    local OPTIND OPTARG o
+    local OPTIND o
     getopts hdvc o
   then
     shift $((OPTIND - 1))
     case $o in
+      h)
+        cat <<-END_USAGE
+	${FUNCNAME[0]} [options] [FILE]
+	
+	options are:
+	  -h:	show this help
+	  -d:	decode
+	  -c:	append checksum
+          -v:	verify checksum
+	
+	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
+
+	With no FILE, encode standard input.
+	
+	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
+	END_USAGE
+        ;;
       d)
 	local input
 	read -r input < "${1:-/dev/stdin}"
@@ -38,23 +55,6 @@ base58() {
 	   openssl dgst -sha256 -binary |
 	   head -c 4
         ) | ${FUNCNAME[0]} "$@"
-        ;;
-      h)
-        cat <<-END_USAGE
-	${FUNCNAME[0]} [options] [FILE]
-	
-	options are:
-	  -h:	show this help
-	  -d:	decode
-	  -c:	append checksum
-          -v:	verify checksum
-	
-	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
-
-	With no FILE, encode standard input.
-	
-	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
-	END_USAGE
         ;;
     esac
   else
