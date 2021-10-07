@@ -6,7 +6,7 @@ unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 
 base58() {
   if
-    local OPTIND o
+    local OPTIND OPTARG o
     getopts hdvc o
   then
     shift $((OPTIND - 1))
