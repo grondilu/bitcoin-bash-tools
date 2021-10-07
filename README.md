@@ -90,6 +90,11 @@ Example for the generator point (so exponent is 1) :
 The three lines about 'EC key' are stderr output from `openssl ec ... -check`.
 They can serve a verification step for the calculation of the public point.
 
+With the `-u` option, the uncompressed version is returned.
+
+With the `-t` option, the [testnet](https://en.bitcoin.it/wiki/Testnet)
+version is returned.
+
 ### Extended keys
 
 Generation and derivation of *eXtended keys*, as described in
