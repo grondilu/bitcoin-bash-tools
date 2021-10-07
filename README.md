@@ -10,18 +10,18 @@
 
     $ newBitcoinKey
 
-    $ openssl rand 64 |tee seed |xkey
+    $ openssl rand 64 |tee seed |xkey -s m
 
-    $ xkey /N < seed
-    $ ykey /N < seed
-    $ zkey /N < seed
+    $ xkey -s /N < seed
+    $ ykey -s /N < seed
+    $ zkey -s /N < seed
     
-    $ bitcoinAddress "$(xkey /44h/0h/0h/0/0/N < seed)"
-    $ bitcoinAddress "$(ykey /49h/0h/0h/0/0/N < seed)"
-    $ bitcoinAddress "$(zkey /84h/0h/0h/0/0/N < seed)"
+    $ bitcoinAddress "$(xkey -s /44h/0h/0h/0/0/N < seed |base58 -c)"
+    $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
+    $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
     
-    $ m="$(xkey < seed)"
-    $ M="$(xkey $m/N)"
+    $ m="$(xkey -s < seed |base58 -c)"
+    $ M="$(xkey -s /N < seed |base58 -c)"
 
     $ mnemonic=($(create-mnemonic 128))
     $ echo "${mnemonic[@]}"
@@ -201,13 +201,13 @@ the parameter expansion (`@` or `*` in arrays for instance).
 `mnemonic-to-seed` output is in binary, but when writing to a terminal, it will escape non-printable charaters.
 Otherwise, output is pure binary so it can be fed to a bip-0032-style function directly :
 
-    $ mnemonic-to-seed "${mnemonic[@]}" |xkey /N
+    $ mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
 `mnemonic-to-seed` is a bit slow as it uses bash code to compute
 [PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For faster execution, set
 the environment variable `PBKDF2_METHOD` to "python".
 
-    $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey /N
+    $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
 ### Address generation
 
