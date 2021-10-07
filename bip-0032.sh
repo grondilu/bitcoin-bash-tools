@@ -226,7 +226,7 @@ CKDpub()
       xxd -p -u -c 64 |
       {
 	read
-	local Ki="$(dc -f secp256k1.dc -e "16doi${REPLY:0:64} ${Kpar^^}lAxlEx")"
+	local Ki="$(dc -f secp256k1.dc -e "16doilG${REPLY:0:64}lMx ${Kpar^^}l>xlAxlEx")"
 	local ci="${REPLY:64:64}"
 	echo $Ki $ci
       }
