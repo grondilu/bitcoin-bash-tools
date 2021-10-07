@@ -903,7 +903,7 @@ check-mnemonic()
   else return 3;
   fi
 
-complete -W "${bip39_wordlist[*]}" mnemonic-to-seed
+complete -W "${english[*]}" mnemonic-to-seed
 function mnemonic-to-seed() {
   local OPTIND 
   if getopts hbpP o
