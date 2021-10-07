@@ -35,6 +35,35 @@
 This repository contains bitcoin-related bash functions and programs, allowing
 bitcoin private keys generation and processing from and to various formats.
 
+### Base-58 encoding
+
+`base58` is a simple filter implementing [Satoshi Nakamoto's binary-to-text encoding](https://en.bitcoin.it/wiki/Base58Check_encoding).
+Its interface is inspired from [coreutils' base64](https://www.gnu.org/software/coreutils/base64).
+
+    $ openssl rand 20 |base58
+    2xkZS9xy8ViTSrJejTjgd2RpkZRn
+
+With the `-c` option, the checksum is added.
+
+    $ echo foo |base58 -c
+    J8kY46kF5y6
+
+Decoding is done with the `-d` option.
+
+    $ base58 -d <<<J8kY46kF5y6
+    foo
+    M-MDjM-^E
+
+As seen above, when writing to a terminal, `base58` will escape non-printable characters.
+
+Input can be coming from a file when giving the filename as positional parameter:
+
+    $ base58 <(echo foo)
+    3csAed
+
+A large file will take a very long time to process though, as this encoding is absolutely not
+optimized to deal with large data.
+
 ### Vanilla keys
 
 The most basic function is `newBitcoinKey` wich takes a [secp256k1](https://en.bitcoin.it/wiki/Secp256k1)
