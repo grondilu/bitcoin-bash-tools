@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 declare bip32_sh
+shopt -s extglob
 
 if ! test -v base58_sh
 then . base58.sh
@@ -10,13 +11,6 @@ BIP32_MAINNET_PUBLIC_VERSION_CODE=0x0488B21E
 BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
 BIP32_TESTNET_PUBLIC_VERSION_CODE=0x043587CF
 BIP32_TESTNET_PRIVATE_VERSION_CODE=0x04358394
-
-BIP32_XKEY_B58CHCK_FORMAT="[[:alpha:]](prv|pub)[$base58_chars_str]{1,112}"
-BIP32_SOFT_DERIVATION_STEP="/([[:digit:]]+|N)"
-BIP32_HARD_DERIVATION_STEP="/[[:digit:]]+h?"
-BIP32_SOFT_DERIVATION_PATH="($BIP32_SOFT_DERIVATION_STEP)+"
-BIP32_HARD_DERIVATION_PATH="($BIP32_HARD_DERIVATION_STEP)+($BIP32_SOFT_DERIVATION_STEP)*"
-BIP32_XKEY_FORMAT="$BIP32_XKEY_B58CHCK_FORMAT($BIP32_SOFT_DERIVATION_PATH|$BIP32_HARD_DERIVATION_PATH)"
 
 isPrivate() ((
   $1 == BIP32_TESTNET_PRIVATE_VERSION_CODE ||
@@ -29,11 +23,9 @@ isPublic() ((
 ))
 
 fingerprint() {
-  xxd -p -r <<<"$1" |
   openssl dgst -sha256 -binary |
   openssl dgst -rmd160 -binary |
-  head -c 4 |
-  xxd -p -u -c 8
+  head -c 4
 }
 
 debug()
@@ -41,11 +33,16 @@ debug()
   then echo "DEBUG: $@"
   fi >&2
 
+bip32_header() {
+  printf "%08x%02x%08x%08x" "$@" |
+  xxd -p -r
+}
+
 bip32()
   if
     debug "${FUNCNAME[0]} $@"
     local OPTIND OPTARG o
-    getopts hp:s:t o
+    getopts hts o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -53,219 +50,225 @@ bip32()
 	Usage:
 	  $FUNCNAME -h
 	  $FUNCNAME [-t]
-          $FUNCNAME -s HEX-ENCODED-SEED
-	  $FUNCNAME [-p] EXTENDED-KEY
-	  $FUNCNAME version depth parent-fingerprint child-number chain-code key
+	  $FUNCNAME [-s] derivation-path
 	
-	With no argument, $FUNCNAME will generate an extended master key from a
-	seed read on standard input.  With the -t option, it will generate an extended
-	master key for the test network.
-        
+	$FUNCNAME generates extended keys as defined by BIP-0032.
+	When writing to a terminal, $FUNCNAME will print the base58-checked version of the
+	serialized key.  Otherwise, it will print the serialized key.
+	
+	With no argument, $FUNCNAME will generate an extended master key from a binary
+	seed read on standard input.  With the -t option, it will generate such key
+	for the test network.
+	
+	With a derivation path as an argument, $FUNCNAME will read a
+	seralized extended key from stdin and generate the corresponding derived key.
+	
+	If the derivation path begins with 'm', $FUNCNAME will expect a master private key as input.
+	If the derivation path begins with 'M', $FUNCNAME will expect a master public key as input.
+	Otherwise the derivation path begins with '/', then $FUNCNAME will derive any key read from
+	standard input.
+	
+	When expecting a serialized key from stdin, $FUNCNAME will only read the first 78 bytes.
+	
+	With the -s option, input is interpreted as a seed, not as a serialized key.
+	With the -t option, input is interpreted as a seed, and a testnet master key is generated.
 	END_USAGE
         ;;
-      p)
-        if [[ "$OPTARG" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v <<<"$OPTARG"
-        then
-	  base58 -d <<<"$OPTARG" |
-          xxd -p -c 78 |
-	  {
-	    read
-	    local -a args=(
-	      "0x${REPLY:0:8}"   # 4 bytes:  version
-	      "0x${REPLY:8:2}"   # 1 byte:   depth
-	      "0x${REPLY:10:8}"  # 4 bytes:  fingerprint of the parent's key
-	      "0x${REPLY:18:8}"  # 4 bytes:  child number
-	      "${REPLY:26:64}"   # 32 bytes: chain code
-	      "${REPLY:90:66}"   # 33 bytes: public or private key data
-	    )
-	    if $FUNCNAME "${args[@]}" >/dev/null
-	    then echo "${args[@]}"
-	    else return $?
-	    fi
-	  }
-        elif [[ "$OPTARG" =~ ^$BIP32_XKEY_FORMAT$ ]]
-        then ${FUNCNAME[0]} -p "$(${FUNCNAME[0]} "$OPTARG")"
-        else return 2
+      s) 
+        local -i version
+        if [[ "$BITCOIN_NET" = 'TEST' ]]
+        then version=$BIP32_TESTNET_PRIVATE_VERSION_CODE
+        else version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
         fi
+        {
+          bip32_header $version 0 0 0
+          openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+          xxd -u -p -c 32 |
+          tac |
+          sed 2i00 |
+          xxd -p -r
+        } |
+        ${FUNCNAME[0]} "$@"
         ;;
-      s)
-         if [[ "$OPTARG" =~ ^([[:xdigit:]]{2})+$ ]]
-         then xxd -p -r <<<"$OPTARG" | ${FUNCNAME[0]} "$@"
-         else return 135
-         fi
-         ;;
-      t) BITCOIN_NET=TEST $FUNCNAME "$@" ;;
+      t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
     esac
-  elif (($# == 0))
+  elif (( $# > 1 ))
   then
-    local -i version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
-    if [[ "$BITCOIN_NET" = 'TEST' ]]
-    then version=$BIP32_TESTNET_PRIVATE_VERSION_CODE
+    echo "too many parameters given : $@" >&2
+    return 1
+  elif [[ "$1" =~ ^[mM]?(/([[:digit:]]+h?|N))*$ ]]
+  then
+    local path="$1"
+
+    local hexdump="$(head -c 78 |xxd -p -c 78)"
+    if (( ${#hexdump} < 2*78 ))
+    then echo "input is too short" >&2; return 2
     fi
-    openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-    xxd -u -p -c 64 |
-    {
-      read
-      $FUNCNAME $version 0 0 0 "${REPLY:64:64}" "00${REPLY:0:64}"
-    }
-  elif (( $# == 6 ))
-  then
-    local -i version=$1 depth=$2 fingerprint=$3 childnumber=$4
-    local chaincode=$5 key=$6
-    if ((
+
+    local -i      version="0x${hexdump:0:8}"
+    local -i        depth="0x${hexdump:8:2}"
+    local -i    parent_fp="0x${hexdump:10:8}"
+    local -i child_number="0x${hexdump:18:8}"
+    local      chain_code="${hexdump:26:64}"
+    local             key="${hexdump:90:66}"
+
+    # sanity checks
+    if [[ "$path" =~ ^m ]] && ((
+      version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
+      version != BIP32_MAINNET_PRIVATE_VERSION_CODE
+    ))
+    then return 2
+    elif [[ "$path" =~ ^M ]] && ((
+      version != BIP32_TESTNET_PUBLIC_VERSION_CODE &&
+      version != BIP32_MAINNET_PUBLIC_VERSION_CODE
+    ))
+    then return 3
+    elif [[ "$path" =~ ^[mM] ]] && ((depth > 0))
+    then return 4
+    elif [[ "$path" =~ ^[mM] ]] && ((parent_fp > 0))
+    then return 5
+    elif [[ "$path" =~ ^[mM] ]] && ((child_number > 0))
+    then return 6
+    elif [[ ! "$key" =~ ^0[023] ]]
+    then echo "unexpected key: $key (hexdump is $hexdump)" >&2; return 7
+    elif ((
       version != BIP32_TESTNET_PRIVATE_VERSION_CODE &&
       version != BIP32_MAINNET_PRIVATE_VERSION_CODE &&
       version != BIP32_TESTNET_PUBLIC_VERSION_CODE  &&
       version != BIP32_MAINNET_PUBLIC_VERSION_CODE
     ))
-    then return 1
-    elif ((depth < 0 || depth > 255))
-    then return 2
-    elif ((fingerprint < 0 || fingerprint > 0xffffffff))
-    then return 3
-    elif ((childnumber < 0 || childnumber > 0xffffffff))
-    then return 4
-    elif [[ ! "$chaincode" =~ ^[[:xdigit:]]{64}$ ]]
-    then return 5
-    elif [[ ! "$key"       =~ ^[[:xdigit:]]{66}$ ]]
-    then return 6
-    elif isPublic  $version && [[ "$key" =~ ^00    ]]
-    then return 7
-    elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
     then return 8
+    elif ((depth < 0 || depth > 255))
+    then return 9
+    elif ((parent_fp < 0 || parent_fp > 0xffffffff))
+    then return 10
+    elif ((child_number < 0 || child_number > 0xffffffff))
+    then return 11
+    elif isPublic  $version && [[ "$key" =~ ^00    ]]
+    then return 12
+    elif isPrivate $version && [[ "$key" =~ ^0[23] ]]
+    then return 13
     # TODO: check that the point is on the curve?
-    else
-      printf "%08x%02x%08x%08x%s%s" "$@" |
-      xxd -p -r |
-      base58 -c
     fi
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT$ ]] && base58 -v <<<"$1"
-  then $FUNCNAME -p "$1" >/dev/null && echo $1
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/N$ ]]
-  then
-    if $FUNCNAME -p "${1::-2}" >/dev/null
+    
+    path="${path#[mM]}"
+    if test -z "$path"
     then
-      $FUNCNAME -p "${1::-2}" |
-      {
-	local -i version depth pfp index
-	local    cc key
-	read version depth pfp index cc key
-	case $version in
-	   $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
-	     ;;
-	   $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
-	     ;;
-	   $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-	     version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
-	   $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
-	     version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-	   *) key="$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")" || return 100
-	esac
-	$FUNCNAME $version $depth $pfp $index $cc $key
-      }
-    else return 200
-    fi
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/([[:digit:]]+)h$ ]]
-  then $FUNCNAME "${1%/*}/$((${BASH_REMATCH[2]} + (1<<31)))" 
-  elif [[ "$1" =~ ^$BIP32_XKEY_B58CHCK_FORMAT/[[:digit:]]+$ ]]
-  then
-    local xkey="${1%/*}" 
-    local -i childIndex=${1##*/}
-    $FUNCNAME -p "$xkey" |
-    {
-      local -i version depth pfp index    fp
-      local    cc key
-      read version depth pfp index cc key
-      
-      if isPrivate $version
-      then
-        CKDpriv "$key" "$cc" $childIndex |
-        {
-           local ki ci
-           read ki ci
-	   fp="0x$(fingerprint "$(dc -f secp256k1.dc -e "16doilG${key^^}lMxlEx")")"
-           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $ki
-        }
-      elif isPublic $version
-      then
-        CKDpub "$key" "$cc" $childIndex |
-        {
-           local Ki ci
-           read Ki ci
-	   fp="0x$(fingerprint "$key")"
-           $FUNCNAME $version $((depth+1)) $fp $childIndex $ci $Ki
-        }
-      else return 255  # should never happen
+      xxd -p -r <<<"$hexdump" |
+      if [[ -t 1 ]]
+      then base58 -c
+      else cat
       fi
-    } 
-  elif [[ "$1" =~ ^$BIP32_XKEY_FORMAT$ ]]
-  then $FUNCNAME "$($FUNCNAME "${1%/*}")/${1##*/}"
-  elif [[ "$1" =~ ^($BIP32_SOFT_DERIVATION_PATH|$BIP32_HARD_DERIVATION_PATH)$ ]]
-  then ${FUNCNAME[0]} "$(${FUNCNAME[0]})$1"
-  else return 1
-  fi
-
-CKDpub()
-  if [[ ! "$1" =~ ^0[23]([[:xdigit:]]{2}){32}$ ]]
-  then return 1
-  elif [[ ! "$2" =~ ^([[:xdigit:]]{2}){32}$ ]]
-  then return 2
-  elif local Kpar="$1" cpar="$2"
-       local -i i=$3
-    ((i < 0 || i > 1<<32))
-  then return 3
-  else
-    if (( i >= (1 << 31) ))
-    then return 4
-    else
-      {
-	xxd -p -r <<<"$Kpar"
-	ser32 $i
-      } |
-      openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
-      xxd -p -u -c 64 |
-      {
-	read
-	local Ki="$(dc -f secp256k1.dc -e "16doilG${REPLY:0:64}lMx ${Kpar^^}l>xlAxlEx")"
-	local ci="${REPLY:64:64}"
-	echo $Ki $ci
-      }
+      return
     fi
-  fi
 
-CKDpriv()
-  if [[ ! "$1" =~ ^00([[:xdigit:]]{2}){32}$ ]]
-  then return 1
-  elif [[ ! "$2" =~ ^([[:xdigit:]]{2}){32}$ ]]
-  then return 2
-  elif local kpar="${1:2}" cpar="$2"
-       local -i i=$3
-    ((i < 0 || i > 1<<32))
-  then return 3
-  else
-    if (( i >= (1 << 31) ))
-    then
-      printf "\x00"
-      ser256 "0x$kpar"
-      ser32 $i
-    else
-      dc -f secp256k1.dc -e "16doilG${kpar^^}lMxlEx" |xxd -p -r
-      ser32 $i
-    fi |
-    openssl dgst -sha512 -mac hmac -macopt hexkey:$cpar -binary |
-    xxd -p -u -c 64 |
+    coproc DC { dc -f secp256k1.dc -; }
+    while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
+    do  
+      path="${path#/${BASH_REMATCH[1]}}"
+      local operator="${BASH_REMATCH[1]}" 
+      case "$operator" in
+        N)
+          case $version in
+             $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+               ;;
+             $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+               ;;
+             $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+               version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+             $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+               version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+             *)
+              echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+              read key <&"${DC[0]}"
+          esac
+          ;;
+        +([[:digit:]])h)
+          child_number=$(( ${operator%h} + (1 << 31) ))
+          ;&
+        +([[:digit:]]))
+
+          if [[ ! "$operator" =~ h$ ]]
+          then child_number=$operator
+          fi
+
+          if isPrivate "$version"
+          then # CKDpriv
+
+            echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+            read point <&"${DC[0]}"
+            parent_fp="0x$(xxd -p -r <<<"$point"|fingerprint |xxd -p)"
+            {
+	      {
+		if (( child_number >= (1 << 31) ))
+		then
+		  printf "\x00"
+		  ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
+		else
+		  xxd -p -r <<<"$point"
+		fi
+		ser32 $child_number
+	      } |
+	      openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
+	      xxd -p -u -c 32 |
+	      {
+		 read left
+		 read right
+		 echo "8d+doi$right ${key^^} $left+ln%p"
+	      }
+            } >&"${DC[1]}"
+
+            read key <&"${DC[0]}"
+
+            while ((${#key} < 66))
+            do key="0$key"
+            done
+          elif isPublic "$version"
+          then # CKDpub
+            parent_fp="0x$(xxd -p -r <<<"$key"|fingerprint |xxd -p)"
+            if (( child_number >= (1 << 31) ))
+            then return 4
+            else
+              {
+		{
+		  xxd -p -r <<<"$key"
+		  ser32 $child_number
+		} |
+		openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
+		xxd -p -u -c 32 |
+		{
+		   read left
+		   read right
+		   echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
+		}
+              } >&"${DC[1]}"
+              read key <&"${DC[0]}"
+            fi
+          else
+            echo "version is neither private nor public?!" >&2
+            return 111
+          fi
+          echo rp >&"${DC[1]}"
+	  read chain_code <&"${DC[0]}"
+          while ((${#chain_code} < 64))
+          do chain_code="0$chain_code"
+          done
+          ((depth++))
+          ;;
+      esac 
+    done
+    echo q >&"${DC[1]}"
+
     {
-      read
-      local ki ci
-      ki="$(dc -f secp256k1.dc -e "16doi${kpar^^} ${REPLY:0:64}+ln%p")"
-      ki="00$(ser256 "$ki" |xxd -p -c 64)"
-      ci="${REPLY:64:64}"
-      if [[ ! "$ki" =~ ^[[:xdigit:]]{66}$ ]]
-      then echo "could not produce private key" >&2
-        return 105
-      else echo $ki $ci
-      fi
-    }
+      bip32_header $version $depth $parent_fp $child_number
+      xxd -p -r <<<"$chain_code$key"
+    } |
+    if [[ -t 1 ]]
+    then base58 -c
+    else cat
+    fi
+
+  else return 255
   fi
 
 ser32()
@@ -279,7 +282,9 @@ ser32()
   fi
 
 ser256()
-  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
+  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{65,})$ ]]
+  then echo "unexpectedly large parameter" >&2; return 1
+  elif   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
   then xxd -p -r <<<"${BASH_REMATCH[2]}"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,63})$ ]]
   then $FUNCNAME "0x0${BASH_REMATCH[2]}"

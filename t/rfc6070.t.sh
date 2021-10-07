@@ -8,7 +8,7 @@ echo 1..$(grep -c '^_' "$BASH_SOURCE")
 
 function _test() {
   ((t++))
-  if pbkdf2 $1 | grep -q "$2"
+  if diff <(pbkdf2 $1) <(xxd -p -r <<<"$2")
   then echo ok $t
   else echo not ok $t
   fi

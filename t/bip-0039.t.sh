@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+. base58.sh
 . bip-0039.sh
 . bip-0032.sh
 
@@ -36,7 +37,7 @@ shorten()
     else echo "not ok $n - wrong seed generated for '$words' : $generatedSeed instead of $seed"
     fi
     ((n++))
-    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32)"
+    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32 -s m |base58 -c)"
        [[ "$generatedExtendedKey" = "$addr" ]]
     then echo "ok $n - good key generated from seed : $(shorten $seed) -> $(shorten $generatedExtendedKey)"
     else echo "$generatedExtendedKey"

@@ -37,7 +37,7 @@ bitcoin private keys generation and processing from and to various formats.
 
 ### Base-58 encoding
 
-`base58` is a simple filter implementing [Satoshi Nakamoto's binary-to-text encoding](https://en.bitcoin.it/wiki/Base58Check_encoding).
+`base58` is a simple [filter](https://en.wikipedia.org/wiki/Filter_\(software\)) implementing [Satoshi Nakamoto's binary-to-text encoding](https://en.bitcoin.it/wiki/Base58Check_encoding).
 Its interface is inspired from [coreutils' base64](https://www.gnu.org/software/coreutils/base64).
 
     $ openssl rand 20 |base58
@@ -99,36 +99,65 @@ version is returned.
 
 Generation and derivation of *eXtended keys*, as described in
 [BIP-0032](https://en.bitcoin.it/wiki/BIP_0032) and its successors BIP-0044,
-BIP-0049 and BIP-0084, are supported by three functions : `xkey`, `ykey` and
-`zkey`.  These functions read either a binary seed from standard input, or use
-an argument given as a serialized key with an optional derivation path :
+BIP-0049 and BIP-0084, are supported by three filters : `xkey`, `ykey` and
+`zkey`.
 
-    $ openssl rand 64 |xkey
-    xprv9s21ZrQH143K2Ygi8BSgCox77K5jyh3eVhRj6CMWp2D8bgzi9iBQ2GDgttvbtm7eJf2gox4Aty7LkoSwXHfUrkkHgVutoKx8VPhRsy9gkwv
+To discourage the handling of keys in plain text, these functions mainly
+read and print keys in *binary*.  The base58check version is only printed
+when writing to a terminal.
 
-    $ m="$(openssl rand 64 |xkey)"; xkey $m/0h/N
+Unless the option `-s` or `-t` is used, these functions read 78 bytes
+from stdin and interpret these as a serialized extended key.   Then the
+extended key derived according to a derivation path provided as a positional
+parameter is computed and printed on stdout.
+
+To feed a base58check-encoded key as input, it must first be decoded with `base58`.
+
+    $ myxprvkey=xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U
+    $ base58 -d <<<"$myxprvkey" |xkey /0
+    xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt
+
+To capture the base58check-encoded result, encoding must be performed explicitely with `base58 -c`.
+
+    $ myXkey="$(base58 -d <<<"$myxprvkey"| xkey /0 |base58 -c)"
+
+When the `-s` option is used, stdin is used as a binary seed instead
+of an extended key.  This option is thus required to generate a master key :
+
+    $ openssl rand 64 |tee myseed |xkey -s m
+    xprv9s21ZrQHREDACTEDtahEqxcVoeTTAS5dMAqREDACTEDDZd7Av8eHm6cWFRLz5P5C6YporfPgTxC6rREDACTEDn5kJBuQY1v4ZVejoHFQxUg
+
+Any key in the key tree can be generated from a seed, though:
+
+    $ cat myseed |xkey -s m/0h/0/0
+
+When the `-t` option is used, stdin is used as a binary seed and the generated
+key will be a testnet key.
+
+    $ cat myseed |xkey -t m
+    tprv8ZgxMBicQKsPen8dPzk2REDACTEDiRWqeNcdvrrxLsJ7UZCB3wH5tQsUbCBEPDREDACTEDfTh3skpif3GFENREDACTEDgemFAhG914qE5EC
 
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
 
+    $ base58 -d <<<"$myxprvkey" |xkey /N
+    xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
+
 `ykey` and `zkey` differ from `xkey` mostly by their serialization format, as described in bip-0049 and bip-0084.
 
-    $ openssl rand 64 |ykey
+    $ openssl rand 64 |tee myseed
+    $ ykey -s m < myseed
     yprvABrGsX5C9jantX14t9AjGYHoPw5LV3wdRD9JH3UxsEkMsxv3BcdzSFnqNidrmQ82nnLCmu3w6PWMZjPTmLKSAdBFBnXhqoE3VgBQLN6xJzg
-    $ openssl rand 64 |zkey
+    $ zkey -s m < myseed
     zprvAWgYBBk7JR8GjieqUJjUQTqxVwy22Z7ZMPTUXJf2tsHG5Wa83ez3TQFqWWNCTVfyEc3tk7PxY2KTytxCMvW4p7obDWvymgbk2AmoQq1qL8Q
 
 You can feed any file to these functions, and such file doesn't have to be 64 bytes long.
 It should, however, contain at least that much entropy.
 
-If the argument consists only of a derivation path, then the functions reads the seed from stdin as for master key generation, and then applies the derivation path.
+If the derivation path begins with `m` or `M`, and unless the option `-s` or
+`-t` is used, additional checks are performed to ensure that the input is a
+master private key or a master public key respectively.
 
-    $ openssl rand 64 |tee seed |xkey /0h/0/0/N
-
-In that case one should make sure the seed is being saved somewhere, since the
-master key itself was not saved anywhere.  Thus in the example above the seed
-was saved in a file, using the `tee` command.
-
-Under the hood, the seed feeds the following openssl command :
+When reading a binary seed, under the hood the seed feeds the following openssl command :
 
 ```bash
 openssl dgst -sha512 -hmac "Bitcoin seed" -binary

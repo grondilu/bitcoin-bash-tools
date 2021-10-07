@@ -16,10 +16,11 @@ do
   ((n++))
   xxd -p -r <<<"$seed" |
   case "${path::4}" in
-    /49h) bip49 "$path/N" ;;
-    /84h) bip84 "$path/N" ;;
-    *)    bip32 "$path/N" ;;
+    /49h) bip49 -s "$path/N" ;;
+    /84h) bip84 -s "$path/N" ;;
+    *)    bip32 -s "$path/N" ;;
   esac |
+  base58 -c |
   {
     read -r pubkey
     if [[ "$(bitcoinAddress "$pubkey")" = $address ]]
