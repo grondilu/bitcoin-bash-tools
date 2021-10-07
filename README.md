@@ -56,7 +56,9 @@ Decoding is done with the `-d` option.
 
 As seen above, when writing to a terminal, `base58` will escape non-printable characters.
 
-Input can be coming from a file when giving the filename as positional parameter:
+Input can be coming from a file when giving the filename
+(or say a [process substitution](https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html))
+as positional parameter :
 
     $ base58 <(echo foo)
     3csAed
