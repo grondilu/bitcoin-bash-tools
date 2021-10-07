@@ -4,7 +4,7 @@ readonly base58_sh
 declare base58_chars_str="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
 
-base58() {
+base58()
   if
     local OPTIND OPTARG o
     getopts hdvc o
@@ -80,4 +80,3 @@ base58() {
       echo
     }
   fi
-}
