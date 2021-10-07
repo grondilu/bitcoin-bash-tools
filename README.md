@@ -26,7 +26,7 @@
     $ mnemonic=($(create-mnemonic 128))
     $ echo "${mnemonic[@]}"
 
-    $ mnemonic-to-seed -b "${mnemonic[@]}" > seed
+    $ mnemonic-to-seed "${mnemonic[@]}" > seed
 
     $ prove t/*.t.sh
 
@@ -133,16 +133,16 @@ To create a seed from a mnemonic, there is a function `mnemonic-to-seed`.
 This function expects several words as arguments, not a long string of space-separated words, so mind
 the parameter expansion (`@` or `*` in arrays for instance).
 
-By default, the ouput is in hexadecimal.  For a binary output that can be fed directly to say `xkey`,
-use the `-b` option.
+`mnemonic-to-seed` output is in binary, but when writing to a terminal, it will escape non-printable charaters.
+Otherwise, output is pure binary so it can be fed to a bip-0032-style function directly :
 
-    $ mnemonic-to-seed -b "${mnemonic[@]}" |xkey /N
+    $ mnemonic-to-seed "${mnemonic[@]}" |xkey /N
 
-This function is a bit slow as it uses bash code to compute
-[PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For a faster execution, set
+`mnemonic-to-seed` is a bit slow as it uses bash code to compute
+[PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For faster execution, set
 the environment variable `PBKDF2_METHOD` to "python".
 
-    $ PBKDF2_METHOD=python mnemonic-to-seed -b "${mnemonic[@]}" |xkey /N
+    $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey /N
 
 ### Address generation
 

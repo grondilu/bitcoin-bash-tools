@@ -26,7 +26,7 @@ shorten()
     else echo "not ok $n - from $hex, '$words' was expected, but we got '$r1'"
     fi
     ((n++))
-    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR mnemonic-to-seed $words)"
+    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR mnemonic-to-seed $words |xxd -p|tr -d '\n')"
     then echo "ok $n - good checksum for '$(shorten "$words")'"
     else echo "not ok $n - error code $? when checking words '$words'"
     fi

@@ -865,7 +865,12 @@ pbkdf2() {
       )
       echo
     ;;
-  esac
+  esac |
+  xxd -p -r |
+  if [[ -t 1 ]]
+  then cat -v
+  else cat
+  fi
 }
 
 check-mnemonic()
@@ -910,7 +915,6 @@ function mnemonic-to-seed() {
 	${FUNCNAME[@]} [-p|-P] [-b] word ...
 	USAGE_3
         ;;
-      b) ${FUNCNAME[0]} "$@" |xxd -p -r ;;
       p)
 	read -p "Passphrase: "
 	BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"
