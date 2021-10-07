@@ -5,7 +5,7 @@
 echo 1..$(grep -c ^_test $BASH_SOURCE)
 
 declare -i n=0
-declare seed master
+declare seed master key
 
 function _test() {
   local path="$1" expectation="$2"
@@ -17,6 +17,20 @@ function _test() {
   else echo "not ok $n - seed $seed path $path, $expectation expected, got $result"
   fi
 }
+
+function _test2() {
+  local path1="$1" path2="$2"
+
+  ((n++))
+  if diff <(bip32 $key$path1) <(bip32 $key$path2)
+  then echo "ok $n - key$path1 = key$path2"
+  else echo "not ok $n - key$path1 != key$path2"
+  fi
+}
+
+key="$(bip32 < $BASH_SOURCE)"
+_test2 /N/0 /0/N
+_test2 /57/35/N /57/N/35
 
 seed="000102030405060708090a0b0c0d0e0f"
 master="$(xxd -p -r <<<"$seed"|bip32)"
