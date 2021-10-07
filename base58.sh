@@ -46,8 +46,7 @@ base58() {
         ;;
       v)
         tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
-        uniq | wc -l |
-	grep -q '^1$'
+        uniq | { read -r && ! read -r; }
         ;;
       c)
 	tee >(
