@@ -29,29 +29,29 @@ base58()
 	END_USAGE
         ;;
       d)
-	local input
-	read -r input < "${1:-/dev/stdin}"
-	if [[ "$input" =~ ^1.+ ]]
-	then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-	elif [[ "$input" =~ ^[$base58_chars_str]+$ ]]
-	then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input" | dc
+        local input
+        read -r input < "${1:-/dev/stdin}"
+        if [[ "$input" =~ ^1.+ ]]
+        then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
+        elif [[ "$input" =~ ^[$base58_chars_str]+$ ]]
+        then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input" | dc
         elif [[ -z "$input" ]]
         then return 0
-	else return 1
-	fi |
-	if [[ -t 1 ]]
-	then cat -v
+        else return 1
+        fi |
+        if [[ -t 1 ]]
+        then cat -v
         else cat
-	fi
+        fi
         ;;
       v)
         tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
         uniq | { read -r && ! read -r; }
         ;;
       c)
-	tee >(
+        tee >(
            openssl dgst -sha256 -binary |
-	   openssl dgst -sha256 -binary |
+           openssl dgst -sha256 -binary |
 	   head -c 4
         ) | ${FUNCNAME[0]} "$@"
         ;;
@@ -67,15 +67,15 @@ base58()
       done
       if ((${#bytes[@]} > 0))
       then
-	{
-	  echo 0
-	  printf "256*%d+\n" ${bytes[@]}
-	  echo '[58~rd0<x]dsxx+f'
-	} |
-	dc |
-	while read -r
-	do echo -n "${base58_chars_str:$REPLY:1}"
-	done
+        {
+          echo 0
+          printf "256*%d+\n" ${bytes[@]}
+          echo '[58~rd0<x]dsxx+f'
+        } |
+        dc |
+        while read -r
+        do echo -n "${base58_chars_str:$REPLY:1}"
+        done
       fi
       echo
     }
