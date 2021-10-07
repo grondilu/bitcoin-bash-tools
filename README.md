@@ -221,15 +221,15 @@ Right now, for extended keys, only neutered keys are processed.  So if you want
 the bitcoin address of an extended private key, you must neuter it first.
 
     $ openssl rand 64 > seed
-    $ bitcoinAddress "$(xkey /N < seed)"
+    $ bitcoinAddress "$(xkey -s /N < seed |base58 -c)"
     18kuHbLe1BheREDACTEDgzHtnKh1Fm3LCQ
 
 *xpub*, *ypub* and *zpub* keys produce addresses of different formats, as
 specified in their respective BIPs :
 
-    $ bitcoinAddress "$(ykey /N < seed)"
+    $ bitcoinAddress "$(ykey -s /N < seed |base58 -c)"
     3JASVbGLpb4W9oREDACTEDB6dSWRGQ9gJm
-    $ bitcoinAddress "$(zkey /N < seed)"
+    $ bitcoinAddress "$(zkey -s /N < seed |base58 -c)"
     bc1q4r9k3p9t8cwhedREDACTED5v775f55at9jcqqe
 
 
