@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-
-declare bip32_sh
 shopt -s extglob
 
-if ! test -v base58_sh
-then . base58.sh
-fi
+. base58.sh
 
 BIP32_MAINNET_PUBLIC_VERSION_CODE=0x0488B21E
 BIP32_MAINNET_PRIVATE_VERSION_CODE=0x0488ADE4
