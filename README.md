@@ -191,7 +191,7 @@ supported, it will use English.
 Apart from English, currently supported languages are simplified Chinese,
 traditional Chinese, Japanese, Spanish and French.
 
-To override locale language settings, set the `LANG` environment variable :
+To override local language settings, set the `LANG` environment variable :
 
     $ LANG=zh_TW create-mnemonic
     凍 濾 槍 斷 覆 捉 斷 山 未 飛 沿 始 瓦 曰 撐
