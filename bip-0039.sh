@@ -1101,6 +1101,13 @@ function mnemonic-to-seed() {
 	${FUNCNAME[@]} [-p|-P] [-b] word ...
 	USAGE_3
         ;;
+      p|P)
+       if ! test -t 1
+       then
+         echo "stdout is not a terminal, cannot prompt passphrase" >&2
+         return 1
+       fi
+       ;;&
       p)
 	read -p "Passphrase: "
 	BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"

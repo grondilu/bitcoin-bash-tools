@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+LANG=C
 . base58.sh
 . bip-0039.sh
 . bip-0032.sh
