@@ -67,12 +67,10 @@ base58()
       done
       if ((${#bytes[@]} > 0))
       then
-        {
-          echo 0
-          printf "256*%d+\n" ${bytes[@]}
-          echo '[58~rd0<x]dsxx+f'
-        } |
-        dc |
+        local x
+	printf -v x "256*%d+" ${bytes[@]}
+  
+        dc -e "0 $x[58~rd0<x]dsxx+f" |
         while read -r
         do echo -n "${base58_chars_str:$REPLY:1}"
         done
