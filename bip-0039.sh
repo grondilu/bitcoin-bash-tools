@@ -1092,7 +1092,7 @@ check-mnemonic()
 complete -W "${english[*]}" mnemonic-to-seed
 function mnemonic-to-seed() {
   local OPTIND 
-  if getopts hbpP o
+  if getopts hpP o
   then
     shift $((OPTIND - 1))
     case "$o" in
