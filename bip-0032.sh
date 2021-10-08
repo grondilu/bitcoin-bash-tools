@@ -188,6 +188,7 @@ bip32()
           ;&
         +([[:digit:]]))
 
+          local parent_id
           if [[ ! "$operator" =~ h$ ]]
           then child_number=$operator
           fi
@@ -196,8 +197,7 @@ bip32()
           then # CKDpriv
 
             echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
-            read point <&"${DC[0]}"
-            parent_fp="0x$(xxd -p -r <<<"$point"|fingerprint |xxd -p)"
+            read parent_id <&"${DC[0]}"
             {
 	      {
 		if (( child_number >= (1 << 31) ))
@@ -205,7 +205,7 @@ bip32()
 		  printf "\x00"
 		  ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
 		else
-		  xxd -p -r <<<"$point"
+		  xxd -p -r <<<"$parent_id"
 		fi
 		ser32 $child_number
 	      } |
@@ -225,7 +225,7 @@ bip32()
             done
           elif isPublic "$version"
           then # CKDpub
-            parent_fp="0x$(xxd -p -r <<<"$key"|fingerprint |xxd -p)"
+            parent_id="$key"
             if (( child_number >= (1 << 31) ))
             then return 4
             else
@@ -248,6 +248,7 @@ bip32()
             echo "version is neither private nor public?!" >&2
             return 111
           fi
+	  parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
           echo rp >&"${DC[1]}"
 	  read chain_code <&"${DC[0]}"
           while ((${#chain_code} < 64))
