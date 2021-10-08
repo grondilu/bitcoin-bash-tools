@@ -208,6 +208,9 @@ Otherwise, output is pure binary so it can be fed to a bip-0032-style function d
 
     $ mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
+With the '-p' option, `mnemonic-to-seed` will prompt a passphrase.  With the `-P` option, it
+will prompt it twice and will not echo the input.
+
 `mnemonic-to-seed` is a bit slow as it uses bash code to compute
 [PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For faster execution, set
 the environment variable `PBKDF2_METHOD` to "python".
