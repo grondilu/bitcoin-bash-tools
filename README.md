@@ -185,7 +185,7 @@ either 128, 160, 192, 224 or 256.  Default is 160.
     invest hedgehog slogan unfold liar thunder cream leaf kiss combine minor document
 
 The function will attempt to read the [locale](https://man7.org/linux/man-pages/man1/locale.1.html)
-settings to figure out which language to use.  If it fails, or if the locale language is not
+settings to figure out which language to use.  If it fails, or if the local language is not
 supported, it will use English.
 
 Apart from English, currently supported languages are simplified Chinese,
