@@ -48,6 +48,13 @@ With the `-c` option, the checksum is added.
     $ echo foo |base58 -c
     J8kY46kF5y6
 
+With the `-v` option, the checksum is verified.
+
+    $ echo foo |base58   |base58 -v || echo wrong checksum
+    wrong checksum
+    $ echo foo |base58 -c|base58 -v && echo good checksum
+    good checksum
+
 Decoding is done with the `-d` option.
 
     $ base58 -d <<<J8kY46kF5y6
