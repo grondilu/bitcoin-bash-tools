@@ -10,7 +10,7 @@
 
     $ newBitcoinKey
 
-    $ openssl rand 64 |tee seed |xkey -s m
+    $ openssl rand 64 |tee seed |xkey -s
 
     $ xkey -s /N < seed
     $ ykey -s /N < seed
@@ -131,7 +131,7 @@ To capture the base58check-encoded result, encoding must be performed explicitel
 When the `-s` option is used, stdin is used as a binary seed instead
 of an extended key.  This option is thus required to generate a master key :
 
-    $ openssl rand 64 |tee myseed |xkey -s m
+    $ openssl rand 64 |tee myseed |xkey -s
     xprv9s21ZrQHREDACTEDtahEqxcVoeTTAS5dMAqREDACTEDDZd7Av8eHm6cWFRLz5P5C6YporfPgTxC6rREDACTEDn5kJBuQY1v4ZVejoHFQxUg
 
 Any key in the key tree can be generated from a seed, though:
@@ -141,7 +141,7 @@ Any key in the key tree can be generated from a seed, though:
 When the `-t` option is used, stdin is used as a binary seed and the generated
 key will be a testnet key.
 
-    $ cat myseed |xkey -t m
+    $ cat myseed |xkey -t
     tprv8ZgxMBicQKsPen8dPzk2REDACTEDiRWqeNcdvrrxLsJ7UZCB3wH5tQsUbCBEPDREDACTEDfTh3skpif3GFENREDACTEDgemFAhG914qE5EC
 
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
@@ -152,9 +152,9 @@ key will be a testnet key.
 `ykey` and `zkey` differ from `xkey` mostly by their serialization format, as described in bip-0049 and bip-0084.
 
     $ openssl rand 64 |tee myseed
-    $ ykey -s m < myseed
+    $ ykey -s < myseed
     yprvABrGsX5C9jantX14t9AjGYHoPw5LV3wdRD9JH3UxsEkMsxv3BcdzSFnqNidrmQ82nnLCmu3w6PWMZjPTmLKSAdBFBnXhqoE3VgBQLN6xJzg
-    $ zkey -s m < myseed
+    $ zkey -s < myseed
     zprvAWgYBBk7JR8GjieqUJjUQTqxVwy22Z7ZMPTUXJf2tsHG5Wa83ez3TQFqWWNCTVfyEc3tk7PxY2KTytxCMvW4p7obDWvymgbk2AmoQq1qL8Q
 
 You can feed any file to these functions, and such file doesn't have to be 64 bytes long.
