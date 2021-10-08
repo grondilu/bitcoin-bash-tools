@@ -188,9 +188,6 @@ The function will attempt to read the [locale](https://man7.org/linux/man-pages/
 settings to figure out which language to use.  If it fails, or if the local language is not
 supported, it will use English.
 
-Apart from English, currently supported languages are simplified Chinese,
-traditional Chinese, Japanese, Spanish and French.
-
 To override local language settings, set the `LANG` environment variable :
 
     $ LANG=zh_TW create-mnemonic
