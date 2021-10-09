@@ -30,13 +30,13 @@ else echo not ok $n
 fi
 
 ((n++))
-if [[ "$(newBitcoinKey -u "$prv" 2>/dev/null|head -n 1)" = 5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K ]]
+if [[ "$(xxd -p -r <<<"$prv" |wif -u)" = 5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K ]]
 then echo ok $n
 else echo not ok $n
 fi
 
 ((n++))
-if [[ "$(newBitcoinKey "$prv" 2>/dev/null|head -n 1)" = KyBsPXxTuVD82av65KZkrGrWi5qLMah5SdNq6uftawDbgKa2wv6S ]]
+if [[ "$(xxd -p -r <<<"$prv"|wif)" = KyBsPXxTuVD82av65KZkrGrWi5qLMah5SdNq6uftawDbgKa2wv6S ]]
 then echo ok $n
 else echo not ok $n
 fi

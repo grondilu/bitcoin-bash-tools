@@ -8,7 +8,7 @@
     $ cd bitcoin-bash-tools/
     $ . bitcoin.sh
 
-    $ newBitcoinKey
+    $ openssl rand 32 |wif
 
     $ openssl rand 64 |tee seed |xkey -s
 
@@ -35,9 +35,14 @@
 This repository contains bitcoin-related bash functions and programs, allowing
 bitcoin private keys generation and processing from and to various formats.
 
+To discourage the handling of keys in plain text, most of these functions
+mainly read and print keys in *binary*.  The base58check version is only read
+or printed when reading from or writing to a terminal.
+
 ### Base-58 encoding
 
-`base58` is a simple [filter](https://en.wikipedia.org/wiki/Filter_\(software\)) implementing [Satoshi Nakamoto's binary-to-text encoding](https://en.bitcoin.it/wiki/Base58Check_encoding).
+`base58` is a simple [filter](https://en.wikipedia.org/wiki/Filter_\(software\))
+implementing [Satoshi Nakamoto's binary-to-text encoding](https://en.bitcoin.it/wiki/Base58Check_encoding).
 Its interface is inspired from [coreutils' base64](https://www.gnu.org/software/coreutils/base64).
 
     $ openssl rand 20 |base58
@@ -75,32 +80,26 @@ optimized to deal with large data.
 
 ### Vanilla keys
 
-The most basic function is `newBitcoinKey` wich takes a [secp256k1](https://en.bitcoin.it/wiki/Secp256k1)
-exponent as argument and displays the following corresponding strings :
- - the private key in [Wallet Import Format](https://en.bitcoin.it/wiki/Wallet_import_format);
- - the [P2PKH invoice address](https://en.bitcoin.it/wiki/Invoice_address);
- - the private key in the PEM format used by [openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html);
+The function `wif` reads 32 bytes from stdin,
+interprets them as a [secp256k1](https://en.bitcoin.it/wiki/Secp256k1) exponent
+and displays the corresponding private key in [Wallet Import
+Format](https://en.bitcoin.it/wiki/Wallet_import_format).
 
-Example for the generator point (so exponent is 1) :
-
-    $ newBitcoinKey 1
-    KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
-    1BgGZ9tcN4rmREDACTEDprQz87SZ26SAMH
-    read EC key
-    EC Key valid.
-    writing EC key
-    -----BEGIN EC PRIVATE KEY-----
-    MFQCAQEEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABoAcGBSuBBAAK
-    oSQDIgACeb5mfvncu6xVoGKVzocLBwKb/NstzijZWfKBWxb4F5g=
-    -----END EC PRIVATE KEY-----
-
-The three lines about 'EC key' are stderr output from `openssl ec ... -check`.
-They can serve a verification step for the calculation of the public point.
+    $ openssl rand 32 |wif
+    L1zAdArjAUgbDKj8LYxs5NsFk5JB7dTKGLCNMNQXyzE4tWZBGqs9
 
 With the `-u` option, the uncompressed version is returned.
 
 With the `-t` option, the [testnet](https://en.bitcoin.it/wiki/Testnet)
 version is returned.
+
+With the `-d` option, the reverse operation is performed : reading a
+key in WIF from stdin and printing 32 bytes to stdout.  Non-printable
+charaters are escaped when writing to a terminal.
+
+With the `-p` option, the function reads a key in WIF from stdin and
+prints the corresponding private key in the format used by 
+[openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
 
 ### Extended keys
 
@@ -108,10 +107,6 @@ Generation and derivation of *eXtended keys*, as described in
 [BIP-0032](https://en.bitcoin.it/wiki/BIP_0032) and its successors BIP-0044,
 BIP-0049 and BIP-0084, are supported by three filters : `xkey`, `ykey` and
 `zkey`.
-
-To discourage the handling of keys in plain text, these functions mainly read
-and print keys in *binary*.  The base58check version is only read or printed
-when reading from or writing to a terminal.
 
 Unless the option `-s` or `-t` is used, these functions read 78 bytes
 from stdin and interpret these as a serialized extended key.   Then the
@@ -231,6 +226,10 @@ the environment variable `PBKDF2_METHOD` to "python".
 
 A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
 extended, and displays the corresponding bitcoin address. 
+
+For a vanilla private key in WIF,
+the [P2PKH invoice address](https://en.bitcoin.it/wiki/Invoice_address)
+is produced :
 
     $ bitcoinAddress KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
     1BgGZ9tcN4rmREDACTEDprQz87SZ26SAMH

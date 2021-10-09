@@ -118,86 +118,65 @@ bitcoinAddress() {
   fi
 }
 
-newBitcoinKey() {
-  local OPTIND o
-  if getopts hut o
+wif()
+  if
+    local OPTIND o
+    getopts hutdp o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE
-	${FUNCNAME[0]} -h
-	${FUNCNAME[0]} [-t][-u] [PRIVATE_KEY]
-        ${FUNCNAME[0]} WIF
+	${FUNCNAME[0]} reads 32 bytes from stdin and interprets them
+	as a bitcoin private key to display in Wallet Import Format (WIF).
+	
+	Usage:
+	  ${FUNCNAME[0]} -h
+	  ${FUNCNAME[0]} -d
+	  ${FUNCNAME[0]} [-t][-u]
 	
 	The '-h' option displays this message.
 	
-	PRIVATE_KEY is a natural integer in decimal or hexadecimal, with an
-	optional '0x' prefix for hexadecimal.
-	
-	WIF is a private key in Wallet Import Format.
-	
-	The '-u' option will use the uncompressed form of the public key.
-        
-        If no PRIVATE_KEY is provided, a random one will be generated.
+	The '-u' option will place a suffix indicating that the key will be
+	associated with a public key in uncompressed form.
 	
 	The '-t' option will generate addresses for the test network.
+	
+	The '-d' option performs the reverse operation : it reads a key in WIF
+	and prints 32 bytes on stdout.  When writing to a terminal, non-printable
+	characters will be escaped.
 	END_USAGE
-        return
+        ;;
+      d) base58 -d |
+         tail -c +2 |
+         head -c 32 |
+         if test -t 1
+         then cat -v
+         else cat
+         fi
+         ;;
+      p)
+        ${FUNCNAME[0]} -d |
+        {
+          # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+          xxd -p -r <<<"302E0201010420"
+          cat
+          xxd -p -r <<<"A00706052B8104000A"
+        } |
+        openssl ec -inform der
         ;;
       u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed ${FUNCNAME[0]} "$@";;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} "$@";;
     esac
-  elif [[ "$1" =~ ^[1-9][0-9]*$ ]]
-  then ${FUNCNAME[0]} "0x$(dc -e "16o$1p")"
-  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,64})$ ]]
-  then
-    local hex="${BASH_REMATCH[2]^^}"
+  else
     {
       if [[ "$BITCOIN_NET" = TEST ]]
       then printf "\xEF"
       else printf "\x80"
       fi
-      ser256 "$hex"
+      head -c 32
       if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
       then printf "\x01"
       fi
     } |
-    base58 -c |
-    {
-      read -r
-      echo "$REPLY"
-      bitcoinAddress "$REPLY"
-    }
-
-    while ((${#hex} != 64))
-    do hex="0$hex"
-    done
-    
-    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-    if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" = uncompressed ]]
-    then
-      xxd -p -r <<<"30740201010420${hex}A00706052B8104000AA144034200"
-      dc -f secp256k1.dc -e "lG16i$hex lMx l< 2*2^+P"
-    else
-      xxd -p -r <<<"30540201010420${hex}A00706052B8104000AA124032200"
-      dc -f secp256k1.dc -e "lG16i$hex lMx lCx P"
-    fi |
-    openssl ec -inform der -check
-
-  elif [[ "$1" =~ ^[5KL] ]] && base58 -v <<<"$1"
-  then base58 -d <<<"$1" |
-    xxd -p -c 38 |
-    {
-      read -r
-      if   [[ "$REPLY" =~ ^(80|EF)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
-      then ${FUNCNAME[0]} "0x${BASH_REMATCH[2]}"
-      else return 3
-      fi
-    }
-  elif test -z "$1"
-  then ${FUNCNAME[0]} "0x$(openssl rand -hex 32)"
-  else
-    echo unknown key format "$1" >&2
-    return 2
+    base58 -c
   fi
-}
