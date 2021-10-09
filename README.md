@@ -148,7 +148,7 @@ key will be a testnet key.
 
 `ykey` and `zkey` differ from `xkey` mostly by their serialization format, as described in bip-0049 and bip-0084.
 
-    $ openssl rand 64 |tee myseed
+    $ openssl rand 64 > myseed
     $ ykey -s < myseed
     yprvABrGsX5C9jantX14t9AjGYHoPw5LV3wdRD9JH3UxsEkMsxv3BcdzSFnqNidrmQ82nnLCmu3w6PWMZjPTmLKSAdBFBnXhqoE3VgBQLN6xJzg
     $ zkey -s < myseed
