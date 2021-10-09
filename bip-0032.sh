@@ -182,6 +182,7 @@ bip32()
 	    ;&
 	  +([[:digit:]]))
 
+	    ((depth++))
 	    local parent_id
 	    if [[ ! "$operator" =~ h$ ]]
 	    then child_number=$operator
@@ -212,11 +213,6 @@ bip32()
 		}
 	      } >&"${DC[1]}"
 
-	      read key <&"${DC[0]}"
-
-	      while ((${#key} < 66))
-	      do key="0$key"
-	      done
 	    elif isPublic "$version"
 	    then # CKDpub
 	      parent_id="$key"
@@ -238,19 +234,21 @@ bip32()
 		     echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
 		  }
 		} >&"${DC[1]}"
-		read key <&"${DC[0]}"
 	      fi
 	    else
 	      echo "version is neither private nor public?!" >&2
 	      return 111
 	    fi
-	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
+	    read key <&"${DC[0]}"
+	    while ((${#key} < 66))
+	    do key="0$key"
+	    done
 	    echo rp >&"${DC[1]}"
 	    read chain_code <&"${DC[0]}"
 	    while ((${#chain_code} < 64))
 	    do chain_code="0$chain_code"
 	    done
-	    ((depth++))
+	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
 	    ;;
 	esac 
       done
