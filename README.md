@@ -225,7 +225,10 @@ the environment variable `PBKDF2_METHOD` to "python".
 ### Address generation
 
 A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
-extended, and displays the corresponding bitcoin address. 
+extended, and displays the corresponding bitcoin address. Unlike functions
+described above, `bitcoinAddress` currently takes input as positional parameters,
+and not from stdin.  This might change in future versions, as it is probably
+not a good idea to write bitcoin private keys in plain text on the command line.
 
 For a vanilla private key in WIF,
 the [P2PKH invoice address](https://en.bitcoin.it/wiki/Invoice_address)
