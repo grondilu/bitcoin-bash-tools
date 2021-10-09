@@ -221,7 +221,9 @@ bip32()
 	    then # CKDpub
 	      parent_id="$key"
 	      if (( child_number >= (1 << 31) ))
-	      then return 4
+	      then
+                echo "extented public key can't produce a hardened child" >&2
+                return 4
 	      else
 		{
 		  {
