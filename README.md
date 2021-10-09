@@ -109,16 +109,18 @@ Generation and derivation of *eXtended keys*, as described in
 BIP-0049 and BIP-0084, are supported by three filters : `xkey`, `ykey` and
 `zkey`.
 
-To discourage the handling of keys in plain text, these functions mainly
-read and print keys in *binary*.  The base58check version is only printed
-when writing to a terminal.
+To discourage the handling of keys in plain text, these functions mainly read
+and print keys in *binary*.  The base58check version is only read or printed
+when reading from or writing to a terminal.
 
 Unless the option `-s` or `-t` is used, these functions read 78 bytes
 from stdin and interpret these as a serialized extended key.   Then the
 extended key derived according to a derivation path provided as a positional
 parameter is computed and printed on stdout.
 
-To feed a base58check-encoded key as input, it must first be decoded with `base58`.
+A base58check-encoded key can be passed as input if it is pasted
+in the terminal, but to pass it through a pipe, it must first be decoded with
+`base58 -d`:
 
     $ myxprvkey=xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U
     $ base58 -d <<<"$myxprvkey" |xkey /0
@@ -212,7 +214,7 @@ Otherwise, output is pure binary so it can be fed to a bip-0032-style function d
 
     $ mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
-With the '-p' option, `mnemonic-to-seed` will prompt a passphrase.  With the `-P` option, it
+With the `-p` option, `mnemonic-to-seed` will prompt a passphrase.  With the `-P` option, it
 will prompt it twice and will not echo the input.
 
 The passphrase can also be given with the `BIP39_PASSPHRASE` environment variable :

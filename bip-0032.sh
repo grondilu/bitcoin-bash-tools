@@ -94,9 +94,14 @@ bip32()
     return 1
   elif [[ "$1" =~ ^[mM]?(/([[:digit:]]+h?|N))*$ ]]
   then
-    local path="$1"
-
-    local hexdump="$(head -c 78 |xxd -p -c 78)"
+    local path="$1" hexdump="$(
+      if test -t 0 
+      then base58 -d
+      else cat
+      fi |
+      head -c 78 |
+      xxd -p -c 78
+    )"
     if (( ${#hexdump} < 2*78 ))
     then echo "input is too short" >&2; return 2
     fi
@@ -148,113 +153,106 @@ bip32()
     fi
     
     path="${path#[mM]}"
-    if test -z "$path"
+    if test -n "$path"
     then
-      xxd -p -r <<<"$hexdump" |
-      if [[ -t 1 ]]
-      then base58 -c
-      else cat
-      fi
-      return
-    fi
+      coproc DC { dc -f secp256k1.dc -; }
+      trap 'echo q >&"${DC[1]}"' RETURN
+      while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
+      do  
+	path="${path#/${BASH_REMATCH[1]}}"
+	local operator="${BASH_REMATCH[1]}" 
+	case "$operator" in
+	  N)
+	    case $version in
+	       $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+		 ;;
+	       $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+		 ;;
+	       $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+		 version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+	       $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+		 version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+	       *)
+		echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+		read key <&"${DC[0]}"
+	    esac
+	    ;;
+	  +([[:digit:]])h)
+	    child_number=$(( ${operator%h} + (1 << 31) ))
+	    ;&
+	  +([[:digit:]]))
 
-    coproc DC { dc -f secp256k1.dc -; }
-    while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
-    do  
-      path="${path#/${BASH_REMATCH[1]}}"
-      local operator="${BASH_REMATCH[1]}" 
-      case "$operator" in
-        N)
-          case $version in
-             $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
-               ;;
-             $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
-               ;;
-             $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-               version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
-             $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
-               version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-             *)
-              echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
-              read key <&"${DC[0]}"
-          esac
-          ;;
-        +([[:digit:]])h)
-          child_number=$(( ${operator%h} + (1 << 31) ))
-          ;&
-        +([[:digit:]]))
+	    local parent_id
+	    if [[ ! "$operator" =~ h$ ]]
+	    then child_number=$operator
+	    fi
 
-          local parent_id
-          if [[ ! "$operator" =~ h$ ]]
-          then child_number=$operator
-          fi
+	    if isPrivate "$version"
+	    then # CKDpriv
 
-          if isPrivate "$version"
-          then # CKDpriv
-
-            echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
-            read parent_id <&"${DC[0]}"
-            {
+	      echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+	      read parent_id <&"${DC[0]}"
 	      {
-		if (( child_number >= (1 << 31) ))
-		then
-		  printf "\x00"
-		  ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
-		else
-		  xxd -p -r <<<"$parent_id"
-		fi
-		ser32 $child_number
-	      } |
-	      openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-	      xxd -p -u -c 32 |
-	      {
-		 read left
-		 read right
-		 echo "8d+doi$right ${key^^} $left+ln%p"
-	      }
-            } >&"${DC[1]}"
-
-            read key <&"${DC[0]}"
-
-            while ((${#key} < 66))
-            do key="0$key"
-            done
-          elif isPublic "$version"
-          then # CKDpub
-            parent_id="$key"
-            if (( child_number >= (1 << 31) ))
-            then return 4
-            else
-              {
 		{
-		  xxd -p -r <<<"$key"
+		  if (( child_number >= (1 << 31) ))
+		  then
+		    printf "\x00"
+		    ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
+		  else
+		    xxd -p -r <<<"$parent_id"
+		  fi
 		  ser32 $child_number
 		} |
-		openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
+		openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
 		xxd -p -u -c 32 |
 		{
 		   read left
 		   read right
-		   echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
+		   echo "8d+doi$right ${key^^} $left+ln%p"
 		}
-              } >&"${DC[1]}"
-              read key <&"${DC[0]}"
-            fi
-          else
-            echo "version is neither private nor public?!" >&2
-            return 111
-          fi
-	  parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
-          echo rp >&"${DC[1]}"
-	  read chain_code <&"${DC[0]}"
-          while ((${#chain_code} < 64))
-          do chain_code="0$chain_code"
-          done
-          ((depth++))
-          ;;
-      esac 
-    done
-    echo q >&"${DC[1]}"
+	      } >&"${DC[1]}"
+
+	      read key <&"${DC[0]}"
+
+	      while ((${#key} < 66))
+	      do key="0$key"
+	      done
+	    elif isPublic "$version"
+	    then # CKDpub
+	      parent_id="$key"
+	      if (( child_number >= (1 << 31) ))
+	      then return 4
+	      else
+		{
+		  {
+		    xxd -p -r <<<"$key"
+		    ser32 $child_number
+		  } |
+		  openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
+		  xxd -p -u -c 32 |
+		  {
+		     read left
+		     read right
+		     echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
+		  }
+		} >&"${DC[1]}"
+		read key <&"${DC[0]}"
+	      fi
+	    else
+	      echo "version is neither private nor public?!" >&2
+	      return 111
+	    fi
+	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
+	    echo rp >&"${DC[1]}"
+	    read chain_code <&"${DC[0]}"
+	    while ((${#chain_code} < 64))
+	    do chain_code="0$chain_code"
+	    done
+	    ((depth++))
+	    ;;
+	esac 
+      done
+    fi
 
     {
       bip32_header $version $depth $parent_fp $child_number
