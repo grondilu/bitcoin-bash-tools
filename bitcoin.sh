@@ -52,6 +52,13 @@ ser256() {
   fi
 }
 
+p2pkh-address() {
+  {
+    printf %b "${P2PKH_PREFIX:-\x00}"
+    cat
+  } | base58 -c
+}
+ 
 bitcoinAddress() {
   local OPTIND o
   if getopts ht o
@@ -67,12 +74,7 @@ bitcoinAddress() {
       t) P2PKH_PREFIX="\x6F" ${FUNCNAME[0]} "$@" ;;
     esac
   elif [[ "$1" =~ ^0([23]([[:xdigit:]]{2}){32}|4([[:xdigit:]]{2}){64})$ ]]
-  then
-    {
-      printf %b "${P2PKH_PREFIX:-\x00}"
-      echo "$1" | xxd -p -r |
-      hash160
-    } | base58 -c
+  then xxd -p -r <<<"$1" |hash160 | p2pkh-address 
   elif
     base58 -v <<<"$1" && 
     [[ "$(base58 -d <<<"$1" |xxd -p -c 38)" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
