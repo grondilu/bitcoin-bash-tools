@@ -10,7 +10,10 @@
 
     $ openssl rand 32 |wif
 
-    $ openssl rand 64 |tee seed |xkey -s
+    $ mnemonic=($(create-mnemonic 128))
+    $ echo "${mnemonic[@]}"
+
+    $ mnemonic-to-seed "${mnemonic[@]}" > seed
 
     $ xkey -s /N < seed
     $ ykey -s /N < seed
@@ -22,11 +25,6 @@
     
     $ m="$(xkey -s < seed |base58 -c)"
     $ M="$(xkey -s /N < seed |base58 -c)"
-
-    $ mnemonic=($(create-mnemonic 128))
-    $ echo "${mnemonic[@]}"
-
-    $ mnemonic-to-seed "${mnemonic[@]}" > seed
 
     $ prove t/*.t.sh
 
