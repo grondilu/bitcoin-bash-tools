@@ -183,32 +183,3 @@ wif()
     base58 -c
   fi
 
-chess() {
-  local OPTIND OPTARG o
-  local -i temperature="${T:-1}"
-  local move="([a-h][1-8]){1,2}[qnrb]?"
-  local -A scores
-  coproc sf { stockfish; }
-  local version
-  local -a moves
-  read version <&"${sf[0]}"
-  echo "$version"
-  >&"${sf[1]}" cat <<-EOF
-	uci
-	ucinewgame
-	setoption name MultiPV value 2
-	position startpos
-	go depth 20
-	EOF
-  while read
-  do
-    if [[ "$REPLY" =~ ^bestmove ]]
-    then break
-    elif [[ "$REPLY" =~ ^info[[:space:]].*cp[[:space:]](-?[[:digit:]]+).*pv[[:space:]]($move) ]]
-    then scores[${BASH_REMATCH[2]}]="${BASH_REMATCH[1]}"
-    fi
-  done <&"${sf[0]}"
-  echo quit >&"${sf[1]}"
-  declare -p scores
-  echo ${!scores[@]}
-}
