@@ -268,6 +268,7 @@ specified in their respective BIPs :
 - [x] [TAP](http://testanything.org/) support
 - [ ] offline transactions
 - [ ] copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible
+- [ ] put everything in a single file
 
 ## Related projects
 
