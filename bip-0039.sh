@@ -118,19 +118,17 @@ check-mnemonic()
     do wordlist_reverse[${wordlist[$i]}]=$((i+1))
     done
 
-    local word
+    local word dc_script='16o0'
     for word
-    do ((${wordlist_reverse[$word]})) || return 1
+    do
+      if ((${wordlist_reverse[$word]}))
+      then dc_script="$dc_script 2048*${wordlist_reverse[$word]} 1-+"
+      else return 1
+      fi
     done
+    dc_script="$dc_script 2 $(($#*11/33))^ 0k/ p"
     create-mnemonic $(
-      {
-        echo '16o0'
-	for word
-	do echo "2048*${wordlist_reverse[$word]} 1-+"
-	done
-	echo 2 $(($#*11/33))^ 0k/ p
-      } |
-      dc |
+      dc -e "$dc_script" |
       { read -r; printf "%$(($#*11*32/33/4))s" $REPLY; } |
       sed 's/ /0/g'
     ) |
