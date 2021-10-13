@@ -57,23 +57,19 @@ base58()
         ;;
     esac
   else
-    xxd -p -c 1 "${1:-/dev/stdin}" |
-    sed 's/^/0x/' |
+    xxd -p -u "${1:-/dev/stdin}" |
+    tr -d '\n' |
     {
-      local -i bytes
-      mapfile -t bytes
-      while ((${#bytes[@]} > 0)) && ((${bytes[0]} == 0))
-      do echo -n 1; bytes=(${bytes[@]:1})
+      read hex
+      while [[ "$hex" =~ ^00 ]]
+      do echo -n 1; hex="${hex:2}"
       done
-      if ((${#bytes[@]} > 0))
+      if test -n "$hex"
       then
-        local x
-	printf -v x "256*%d+" ${bytes[@]}
-  
-        dc -e "0 $x[58~rd0<x]dsxx+f" |
-        while read -r
-        do echo -n "${base58_chars_str:$REPLY:1}"
-        done
+	dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
+	while read -r
+	do echo -n "${base58_chars_str:$REPLY:1}"
+	done
       fi
       echo
     }
