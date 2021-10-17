@@ -28,14 +28,53 @@
 # // THE SOFTWARE.
 
 readonly bech32_sh
-declare BECH32_CHARSET="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
-declare -A BECH32_CHARSET_REVERSE
+declare bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+declare -A bech32_charset_reverse
 for i in {0..31}
-do BECH32_CHARSET_REVERSE[${BECH32_CHARSET:$i:1}]=$((i))
+do bech32_charset_reverse[${bech32_charset:$i:1}]=$((i))
 done
 
 
 BECH32_CONST=1
+
+bech32()
+  if local OPTIND OPTARG o
+    getopts hmv: o
+  then shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-EOF
+	usage:
+	  ${FUNCNAME[0]} -h
+	  ${FUNCNAME[0]} [-m] hrp data
+	EOF
+      ;;
+      m) BECH32_CONST=0x2bc830a3 ${FUNCNAME[0]} "$@" ;;
+      v)
+	if [[ "$OPTARG" =~ ^(.{1,83})1([$bech32_charset]{6,})$ ]]
+        then
+          ${FUNCNAME[0]} "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]::-6}" |
+          grep -q "^$OPTARG$"
+        else return 33
+        fi
+      ;;
+    esac
+  elif [[ "$1$2" =~ [A-Z] && "$hrp$data" =~ [a-z] ]]
+  then return 1
+  elif local hrp="${1,,}" data="${2,,}"
+    (( ${#hrp} + ${#data} + 6 > 90 ))
+  then return 2
+  elif (( ${#hrp} < 1 || ${#hrp} > 83 ))
+  then return 3
+  elif [[ "$data" =~ [^$bech32_charset] ]]
+  then return 4
+  else
+    echo "${hrp}1$data$(
+      bech32_create_checksum "$hrp" $(
+        echo -n "$data" |
+        while read -n 1; do echo "${bech32_charset_reverse[$REPLY]}"; done
+      ) | while read; do echo -n "${bech32_charset:$REPLY:1}"; done
+    )"
+  fi
 
 polymod() {
   local -ai generator=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
@@ -73,7 +112,7 @@ verifyChecksum() {
   (( pmod == $BECH32_CONST ))
 }
 
-createChecksum() {
+bech32_create_checksum() {
   local hrp="$1"
   shift
   local -i p mod=$(($(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0) ^ $BECH32_CONST))
@@ -95,9 +134,9 @@ bech32_encode()
     echo -n "${hrp}1"
     {
       for i; do echo $i; done
-      createChecksum "$hrp" "$@"
+      bech32_create_checksum "$hrp" "$@"
     } |
-    while read; do echo -n ${BECH32_CHARSET:$REPLY:1}; done
+    while read; do echo -n ${bech32_charset:$REPLY:1}; done
     echo
   fi
 
@@ -139,7 +178,7 @@ bech32_decode()
     then return 6 # data is too short
     else
       for ((p=0;p<${#data};++p))
-      do echo "${BECH32_CHARSET_REVERSE[${data:$p:1}]}"
+      do echo "${bech32_charset_reverse[${data:$p:1}]}"
       done |
       {
 	mapfile -t

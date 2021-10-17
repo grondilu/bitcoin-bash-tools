@@ -50,12 +50,12 @@ segwitAddress() {
     if [[ "$witness_program" =~ ^.{40}$ ]] # 20 bytes
     then
       # P2WPKH
-      bech32_encode "$hrp" $(
-	echo $version;
-        echo -n "$witness_program" |
-	while read -n 2; do echo 0x$REPLY; done |
-        convertbits 8 5
-      )
+      bech32 "$hrp" "${bech32_charset:$version:1}$(
+       xxd -p -r <<<"$witness_program" |
+       basenc --base32 |
+       tr A-Z2-7 "$bech32_charset" |
+       tr -d '\n='
+      )"
     elif [[ "$witness_program" =~ ^.{64}$ ]] # 32 bytes
     then
        1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
@@ -69,7 +69,7 @@ segwitAddress() {
 }
 
 segwit_verify() {
-  if ! bech32_decode "$1" >/dev/null
+  if bech32 -v "$1"
   then return 1
   else
     local hrp
