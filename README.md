@@ -254,6 +254,7 @@ specified in their respective BIPs :
 ## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
+- [GNU's Coreutils](https://www.gnu.org/software/coreutils/);
 - [dc](https://en.wikipedia.org/wiki/Dc_\(computer_program\)), the Unix desktop calculator;
 - xxd, an [hex dump](https://en.wikipedia.org/wiki/Hex_dump) utility;
 - openssl, the [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) command line tool.
