@@ -38,7 +38,7 @@ base58()
         then
 	  {
 	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-	    sed -e "i0" -e 's/./ 58*l&+/g' -e "aPq" <<<"$input"
+	    sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
 	  } | dc
         elif [[ -n "$input" ]]
         then return 1
