@@ -38,10 +38,10 @@ base58()
         then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
         elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
         then
-        {
-          printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-	  sed -e "i0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input"
-	} | dc
+	  {
+	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
+	    sed -e "i0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input"
+	  } | dc
         elif [[ -n "$input" ]]
         then return 1
         fi |
