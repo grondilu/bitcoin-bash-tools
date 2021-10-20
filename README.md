@@ -23,9 +23,6 @@
     $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
     $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
     
-    $ m="$(xkey -s < seed |base58 -c)"
-    $ M="$(xkey -s /N < seed |base58 -c)"
-
     $ prove t/*.t.sh
 
 ## Description
