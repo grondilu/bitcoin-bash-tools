@@ -38,7 +38,7 @@ base58()
         then
 	  {
 	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-	    sed -e "i0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input"
+	    sed -e "i0" -e 's/./ 58*l&+/g' -e "aPq" <<<"$input"
 	  } | dc
         elif [[ -n "$input" ]]
         then return 1
@@ -53,11 +53,12 @@ base58()
         uniq | { read -r && ! read -r; }
         ;;
       c)
+        cat "${1:-/dev/stdin}" |
         tee >(
            openssl dgst -sha256 -binary |
            openssl dgst -sha256 -binary |
 	   head -c 4
-        ) | ${FUNCNAME[0]} "$@"
+        ) | ${FUNCNAME[0]}
         ;;
     esac
   else
