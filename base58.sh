@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 readonly base58_sh
-declare base58_chars_str="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-unset dcr; for i in {1..58}; do dcr+="${i}s${base58_chars_str:$i:1}"; done
+declare -a base58_chars=(
+    1 2 3 4 5 6 7 8 9
+  A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
+  a b c d e f g h i j k   m n o p q r s t u v w x y z
+)
 
 base58()
   if
@@ -33,11 +36,14 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^1.+ ]]
         then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-        elif [[ "$input" =~ ^[$base58_chars_str]+$ ]]
-        then sed -e "i$dcr 0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input" | dc
-        elif [[ -z "$input" ]]
-        then return 0
-        else return 1
+        elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
+        then
+        {
+          printf "s%c\n" "${base58_chars[@]}" | nl -v 0
+	  sed -e "i0" -e 's/./ 58*l&+/g' -e "aP" <<<"$input"
+	} | dc
+        elif [[ -n "$input" ]]
+        then return 1
         fi |
         if [[ -t 1 ]]
         then cat -v
@@ -68,7 +74,7 @@ base58()
       then
 	dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
 	while read -r
-	do echo -n "${base58_chars_str:$REPLY:1}"
+	do echo -n "${base58_chars[REPLY]}"
 	done
       fi
       echo
