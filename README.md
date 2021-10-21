@@ -73,6 +73,25 @@ as positional parameter :
 A large file will take a very long time to process though, as this encoding is absolutely not
 optimized to deal with large data.
 
+### Bech32
+
+[Bech32](https://en.bitcoin.it/wiki/Bech32) is a string format used to encode
+[segwit](https://en.bitcoin.it/wiki/Segregated_Witness) addresses, but by
+itself it is not a binary-to-text encoding, as it needs additional conventions
+for padding.
+
+Therefore, the `bech32` function in this library does not read binary data, but
+merely creates a Bech32 string from a human readable part and a non signed data
+part :
+
+    $ bech32 this-part-is-readable-by-a-human qpzry
+    this-part-is-readable-by-a-human1qpzrylhvwcq
+
+The `-v` option can be used to verify the checksum :
+
+    $ bech32 -v this-part-is-readable-by-a-human1qpzrylhvwcq && echo good checksum
+    good checksum
+
 ### Vanilla keys
 
 The function `wif` reads 32 bytes from stdin,
