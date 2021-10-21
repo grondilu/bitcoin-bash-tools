@@ -81,7 +81,7 @@ itself it is not a binary-to-text encoding, as it needs additional conventions
 for padding.
 
 Therefore, the `bech32` function in this library does not read binary data, but
-merely creates a Bech32 string from a human readable part and a non signed data
+merely creates a Bech32 string from a human readable part and a non checked data
 part :
 
     $ bech32 this-part-is-readable-by-a-human qpzry
