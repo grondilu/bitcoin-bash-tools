@@ -66,8 +66,7 @@ bech32()
   elif (( ${#hrp} < 1 || ${#hrp} > 83 ))
   then return 3
   elif 
-    local ord
-    local -i p out_of_range=0
+    local -i ord p out_of_range=0
     for ((p=0;p<${#hrp};p++))
     do
       printf -v ord "%d" "'${hrp:$p:1}"
