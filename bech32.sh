@@ -65,8 +65,20 @@ bech32()
   then return 2
   elif (( ${#hrp} < 1 || ${#hrp} > 83 ))
   then return 3
-  elif [[ "$data" =~ [^$bech32_charset] ]]
+  elif 
+    local ord
+    local -i p out_of_range=0
+    for ((p=0;p<${#hrp};p++))
+    do
+      printf -v ord "%d" "'${hrp:$p:1}"
+      if ((ord < 33 || ord > 126))
+      then out_of_range=1; break
+      fi
+    done
+    ((out_of_range == 1))
   then return 4
+  elif [[ "$data" =~ [^$bech32_charset] ]]
+  then return 5
   else
     echo "${hrp}1$data$(
       bech32_create_checksum "$hrp" $(
