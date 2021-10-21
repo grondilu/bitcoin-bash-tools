@@ -87,9 +87,19 @@ part :
     $ bech32 this-part-is-readable-by-a-human qpzry
     this-part-is-readable-by-a-human1qpzrylhvwcq
 
+The `-m` option creates a
+[bech32m](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
+string :
+
+    $ bech32 this-part-is-readable-by-a-human qpzry
+    this-part-is-readable-by-a-human1qpzry2tuzaz
+
 The `-v` option can be used to verify the checksum :
 
     $ bech32 -v this-part-is-readable-by-a-human1qpzrylhvwcq && echo good checksum
+    good checksum
+
+    $ bech32 -m -v this-part-is-readable-by-a-human1qpzry2tuzaz && echo good checksum
     good checksum
 
 ### Vanilla keys
