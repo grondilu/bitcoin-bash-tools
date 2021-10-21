@@ -91,7 +91,7 @@ The `-m` option creates a
 [bech32m](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 string :
 
-    $ bech32 this-part-is-readable-by-a-human qpzry
+    $ bech32 -m this-part-is-readable-by-a-human qpzry
     this-part-is-readable-by-a-human1qpzry2tuzaz
 
 The `-v` option can be used to verify the checksum :
