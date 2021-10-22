@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+. bitcoin.sh
 echo 1..58
 
 let -i a b t=0
@@ -10,7 +11,7 @@ do
   ((t++))
   u="$(openssl rand -hex 32)"; u="${u^^}"
   v="$(openssl rand -hex 32)"; v="${v^^}"
-  if [[ "$(dc -f secp256k1.dc -e "16doi$u $v +ln%lGrlMx lG$u lMx lG$v lMx lAx -p")" = 0 ]]
+  if [[ "$(dc -e "$secp256k1 16doi$u $v +ln%lGrlMx lG$u lMx lG$v lMx lAx -p")" = 0 ]]
   then echo "ok $t - (u + v)G = uG + vG"
   else echo "not ok $t - (u + v)G != uG + vG"
   fi
@@ -20,7 +21,7 @@ done
 while read e p
 do
   ((t++))
-  if [[ "$(dc -f secp256k1.dc -e "16doilG$e lMxlEx")" = $p ]]
+  if [[ "$(dc -e "$secp256k1 16doilG$e lMxlEx")" = $p ]]
   then echo "ok $t - $e*G = $p"
   else echo "not ok $t - $e*G != $p"
   fi
@@ -33,7 +34,7 @@ edges
 {
   grep '^[kxy] =' |
   cut -d ' ' -f 3 | {
-    coproc DC { dc -f secp256k1.dc -; }
+    coproc DC { dc -e "$secp256k1" -; }
     while read k; read x; read y
     do
       ((t++))

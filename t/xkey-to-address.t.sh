@@ -3,9 +3,6 @@
 # examples extracted from https://learnmeabitcoin.com/technical/derivation-paths
 
 . bitcoin.sh
-. bip-0032.sh
-. bip-0049.sh
-. bip-0084.sh
 
 echo "1..60"
 

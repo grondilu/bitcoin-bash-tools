@@ -26,6 +26,7 @@
 #// THE SOFTWARE.
 
 
+. bitcoin.sh
 . bip-0350.sh
 
 declare -a valid_checksum_bech32=(

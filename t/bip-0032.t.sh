@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-. base58.sh
-. bip-0032.sh
+. bitcoin.sh
 
 echo 1..$(grep -c ^_test $BASH_SOURCE)
 

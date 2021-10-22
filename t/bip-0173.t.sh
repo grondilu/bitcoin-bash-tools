@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-. bech32.sh
-. bip-0173.sh
+. bitcoin.sh
 
 declare -a correct_bech32=(
 	A12UEL5L

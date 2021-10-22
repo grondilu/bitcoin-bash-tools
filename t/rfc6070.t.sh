@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. bip-0039.sh
+. bitcoin.sh
 
 declare -i t=0
 

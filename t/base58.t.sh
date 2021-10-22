@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. base58.sh
+. bitcoin.sh
 
 echo 1..28
 declare -i t=0
