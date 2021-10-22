@@ -32,16 +32,18 @@ pbkdf2() {
 
   case "$PBKDF2_METHOD" in
     python)
-      python -c "import hashlib; \
-      print( \
-	hashlib.pbkdf2_hmac( \
-	  \"$hash_name\", \
-	  \"$key_str\".encode(\"utf-8\"), \
-	  \"$salt_str\".encode(\"utf-8\"), \
-	  $iterations, \
-	  ${5:None} \
+      python <<-PYTHON
+	import hashlib;
+	print(
+	  hashlib.pbkdf2_hmac(
+	    "$hash_name",
+	    "$key_str".encode("utf-8"),
+	    "$salt_str".encode("utf-8"),
+	    $iterations,
+	    ${5:None}
 	  ).hex()
-      )"
+	)
+	PYTHON
       ;;
     *)
       # Translated from https://github.com/bitpay/bitcore/blob/master/packages/bitcore-mnemonic/lib/pbkdf2.js
