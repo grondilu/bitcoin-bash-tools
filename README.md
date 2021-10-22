@@ -294,7 +294,7 @@ specified in their respective BIPs :
 - [ ] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 - [x] [TAP](http://testanything.org/) support
 - [ ] offline transactions
-- [ ] copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible
+- [ ] ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
 - [ ] put everything in a single file
 
 ## Related projects
