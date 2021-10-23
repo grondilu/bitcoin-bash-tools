@@ -446,13 +446,11 @@ bip32()
 	END_USAGE
         ;;
       s) 
-        local -i version
-        if [[ "$BITCOIN_NET" = 'TEST' ]]
-        then version=$BIP32_TESTNET_PRIVATE_VERSION_CODE
-        else version=$BIP32_MAINNET_PRIVATE_VERSION_CODE
-        fi
         {
-          bip32_header $version 0 0 0
+	  if [[ "$BITCOIN_NET" = 'TEST' ]]
+	  then bip32_header $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
+	  else bip32_header $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
+	  fi
           openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
           xxd -u -p -c 32 |
           tac |
