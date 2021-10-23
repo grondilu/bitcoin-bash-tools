@@ -43,6 +43,154 @@ l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
 2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
 xLms#_4Rd_5R*+*ln%]sS"
 
+hash160() {
+  openssl dgst -sha256 -binary |
+  openssl dgst -rmd160 -binary
+}
+
+base58()
+  if
+    local -a base58_chars=(
+	1 2 3 4 5 6 7 8 9
+      A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
+      a b c d e f g h i j k   m n o p q r s t u v w x y z
+    )
+    local OPTIND OPTARG o
+    getopts hdvc o
+  then
+    shift $((OPTIND - 1))
+    case $o in
+      h)
+        cat <<-END_USAGE
+	${FUNCNAME[0]} [options] [FILE]
+	
+	options are:
+	  -h:	show this help
+	  -d:	decode
+	  -c:	append checksum
+          -v:	verify checksum
+	
+	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
+
+	With no FILE, encode standard input.
+	
+	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
+	END_USAGE
+        ;;
+      d)
+        local input
+        read -r input < "${1:-/dev/stdin}"
+        if [[ "$input" =~ ^1.+ ]]
+        then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
+        elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
+        then
+	  {
+	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
+	    sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
+	  } | dc
+        elif [[ -n "$input" ]]
+        then return 1
+        fi |
+        if [[ -t 1 ]]
+        then cat -v
+        else cat
+        fi
+        ;;
+      v)
+        tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
+        uniq | { read -r && ! read -r; }
+        ;;
+      c)
+        cat "${1:-/dev/stdin}" |
+        tee >(
+           openssl dgst -sha256 -binary |
+           openssl dgst -sha256 -binary |
+	   head -c 4
+        ) | ${FUNCNAME[0]}
+        ;;
+    esac
+  else
+    xxd -p -u "${1:-/dev/stdin}" |
+    tr -d '\n' |
+    {
+      read hex
+      while [[ "$hex" =~ ^00 ]]
+      do echo -n 1; hex="${hex:2}"
+      done
+      if test -n "$hex"
+      then
+	dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
+	while read -r
+	do echo -n "${base58_chars[REPLY]}"
+	done
+      fi
+      echo
+    }
+  fi
+
+wif()
+  if
+    local OPTIND o
+    getopts hutdp o
+  then
+    shift $((OPTIND - 1))
+    case "$o" in
+      h) cat <<-END_USAGE
+	${FUNCNAME[0]} reads 32 bytes from stdin and interprets them
+	as a bitcoin private key to display in Wallet Import Format (WIF).
+	
+	Usage:
+	  ${FUNCNAME[0]} -h
+	  ${FUNCNAME[0]} -d
+	  ${FUNCNAME[0]} [-t][-u]
+	
+	The '-h' option displays this message.
+	
+	The '-u' option will place a suffix indicating that the key will be
+	associated with a public key in uncompressed form.
+	
+	The '-t' option will generate addresses for the test network.
+	
+	The '-d' option performs the reverse operation : it reads a key in WIF
+	and prints 32 bytes on stdout.  When writing to a terminal, non-printable
+	characters will be escaped.
+	END_USAGE
+        ;;
+      d) base58 -d |
+         tail -c +2 |
+         head -c 32 |
+         if test -t 1
+         then cat -v
+         else cat
+         fi
+         ;;
+      p)
+        ${FUNCNAME[0]} -d |
+        {
+          # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+          xxd -p -r <<<"302E0201010420"
+          cat
+          xxd -p -r <<<"A00706052B8104000A"
+        } |
+        openssl ec -inform der
+        ;;
+      u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed ${FUNCNAME[0]} "$@";;
+      t) BITCOIN_NET=TEST ${FUNCNAME[0]} "$@";;
+    esac
+  else
+    {
+      if [[ "$BITCOIN_NET" = TEST ]]
+      then printf "\xEF"
+      else printf "\x80"
+      fi
+      head -c 32
+      if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
+      then printf "\x01"
+      fi
+    } |
+    base58 -c
+  fi
+
 # Bech32 code starts here {{{
 # 
 # Translated from javascript.
@@ -393,24 +541,16 @@ isPublic() ((
   $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE
 ))
 
-fingerprint() {
-  openssl dgst -sha256 -binary |
-  openssl dgst -rmd160 -binary |
-  head -c 4
-}
+fingerprint() { hash160 | head -c 4; }
 
 debug()
   if [[ "$DEBUG" = yes ]]
   then echo "DEBUG: $@"
   fi >&2
 
-bip32_header() {
-  printf "%08x%02x%08x%08x" "$@" |
-  xxd -p -r
-}
-
 bip32()
   if
+    local header_format='%08x%02x%08x%08x' 
     debug "${FUNCNAME[0]} $@"
     local OPTIND OPTARG o
     getopts hts o
@@ -448,15 +588,15 @@ bip32()
       s) 
         {
 	  if [[ "$BITCOIN_NET" = 'TEST' ]]
-	  then bip32_header $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
-	  else bip32_header $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
+	  then printf "$header_format" $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
+	  else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
 	  fi
           openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
           xxd -u -p -c 32 |
           tac |
-          sed 2i00 |
-          xxd -p -r
+          sed 2i00
         } |
+	xxd -p -r |
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
@@ -628,9 +768,10 @@ bip32()
     fi
 
     {
-      bip32_header $version $depth $parent_fp $child_number
-      xxd -p -r <<<"$chain_code$key"
+      printf "$header_format" $version $depth $parent_fp $child_number
+      printf %s "$chain_code$key"
     } |
+    xxd -p -r |
     if [[ -t 1 ]]
     then base58 -c
     else cat
@@ -927,91 +1068,6 @@ ser256()
   else return 1
   fi
 
-base58()
-  if
-    local -a base58_chars=(
-	1 2 3 4 5 6 7 8 9
-      A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
-      a b c d e f g h i j k   m n o p q r s t u v w x y z
-    )
-    local OPTIND OPTARG o
-    getopts hdvc o
-  then
-    shift $((OPTIND - 1))
-    case $o in
-      h)
-        cat <<-END_USAGE
-	${FUNCNAME[0]} [options] [FILE]
-	
-	options are:
-	  -h:	show this help
-	  -d:	decode
-	  -c:	append checksum
-          -v:	verify checksum
-	
-	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
-
-	With no FILE, encode standard input.
-	
-	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
-	END_USAGE
-        ;;
-      d)
-        local input
-        read -r input < "${1:-/dev/stdin}"
-        if [[ "$input" =~ ^1.+ ]]
-        then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-        elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
-        then
-	  {
-	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-	    sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
-	  } | dc
-        elif [[ -n "$input" ]]
-        then return 1
-        fi |
-        if [[ -t 1 ]]
-        then cat -v
-        else cat
-        fi
-        ;;
-      v)
-        tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
-        uniq | { read -r && ! read -r; }
-        ;;
-      c)
-        cat "${1:-/dev/stdin}" |
-        tee >(
-           openssl dgst -sha256 -binary |
-           openssl dgst -sha256 -binary |
-	   head -c 4
-        ) | ${FUNCNAME[0]}
-        ;;
-    esac
-  else
-    xxd -p -u "${1:-/dev/stdin}" |
-    tr -d '\n' |
-    {
-      read hex
-      while [[ "$hex" =~ ^00 ]]
-      do echo -n 1; hex="${hex:2}"
-      done
-      if test -n "$hex"
-      then
-	dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
-	while read -r
-	do echo -n "${base58_chars[REPLY]}"
-	done
-      fi
-      echo
-    }
-  fi
-
-hash160() {
-  openssl dgst -sha256 -binary |
-  openssl dgst -rmd160 -binary
-}
-
 p2pkh-address() {
   {
     printf %b "${P2PKH_PREFIX:-\x00}"
@@ -1081,67 +1137,4 @@ bitcoinAddress() {
   else return 1
   fi
 }
-
-wif()
-  if
-    local OPTIND o
-    getopts hutdp o
-  then
-    shift $((OPTIND - 1))
-    case "$o" in
-      h) cat <<-END_USAGE
-	${FUNCNAME[0]} reads 32 bytes from stdin and interprets them
-	as a bitcoin private key to display in Wallet Import Format (WIF).
-	
-	Usage:
-	  ${FUNCNAME[0]} -h
-	  ${FUNCNAME[0]} -d
-	  ${FUNCNAME[0]} [-t][-u]
-	
-	The '-h' option displays this message.
-	
-	The '-u' option will place a suffix indicating that the key will be
-	associated with a public key in uncompressed form.
-	
-	The '-t' option will generate addresses for the test network.
-	
-	The '-d' option performs the reverse operation : it reads a key in WIF
-	and prints 32 bytes on stdout.  When writing to a terminal, non-printable
-	characters will be escaped.
-	END_USAGE
-        ;;
-      d) base58 -d |
-         tail -c +2 |
-         head -c 32 |
-         if test -t 1
-         then cat -v
-         else cat
-         fi
-         ;;
-      p)
-        ${FUNCNAME[0]} -d |
-        {
-          # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-          xxd -p -r <<<"302E0201010420"
-          cat
-          xxd -p -r <<<"A00706052B8104000A"
-        } |
-        openssl ec -inform der
-        ;;
-      u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed ${FUNCNAME[0]} "$@";;
-      t) BITCOIN_NET=TEST ${FUNCNAME[0]} "$@";;
-    esac
-  else
-    {
-      if [[ "$BITCOIN_NET" = TEST ]]
-      then printf "\xEF"
-      else printf "\x80"
-      fi
-      head -c 32
-      if [[ "$BITCOIN_PUBLIC_KEY_FORMAT" != uncompressed ]]
-      then printf "\x01"
-      fi
-    } |
-    base58 -c
-  fi
 
