@@ -43,10 +43,33 @@ l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
 2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
 xLms#_4Rd_5R*+*ln%]sS"
 
+debug()
+  if [[ "$DEBUG" = yes ]]
+  then echo "DEBUG: $@"
+  fi >&2
+
 hash160() {
   openssl dgst -sha256 -binary |
   openssl dgst -rmd160 -binary
 }
+
+ser32()
+  if local -i i=$1; ((i >= 0 && i < 1<<32)) 
+  then printf "%08x" $i |xxd -p -r
+  else
+    1>&2 echo index out of range
+    return 1
+  fi
+
+ser256()
+  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{65,})$ ]]
+  then echo "unexpectedly large parameter" >&2; return 1
+  elif   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
+  then xxd -p -r <<<"${BASH_REMATCH[2]}"
+  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,63})$ ]]
+  then $FUNCNAME "0x0${BASH_REMATCH[2]}"
+  else return 1
+  fi
 
 base58()
   if
@@ -541,13 +564,6 @@ isPublic() ((
   $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE
 ))
 
-fingerprint() { hash160 | head -c 4; }
-
-debug()
-  if [[ "$DEBUG" = yes ]]
-  then echo "DEBUG: $@"
-  fi >&2
-
 bip32()
   if
     local header_format='%08x%02x%08x%08x' 
@@ -761,16 +777,13 @@ bip32()
 	    while ((${#chain_code} < 64))
 	    do chain_code="0$chain_code"
 	    done
-	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|fingerprint |xxd -p)"
+	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|hash160 |head -c 4 |xxd -p)"
 	    ;;
 	esac 
       done
     fi
 
-    {
-      printf "$header_format" $version $depth $parent_fp $child_number
-      printf %s "$chain_code$key"
-    } |
+    printf "$header_format%s%s" $version $depth $parent_fp $child_number "$chain_code" "$key" |
     xxd -p -r |
     if [[ -t 1 ]]
     then base58 -c
@@ -778,16 +791,6 @@ bip32()
     fi
 
   else return 255
-  fi
-
-ser32()
-  if
-    local -i i=$1
-    ((i >= 0 && i < 1<<32)) 
-  then printf "%08x" $i |xxd -p -r
-  else
-    1>&2 echo index out of range
-    return 1
   fi
 
 # bip-0032 code stops here }}}
@@ -1058,16 +1061,6 @@ function create-mnemonic() {
 
 # bip-0039 code stops here }}}
 
-ser256()
-  if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{65,})$ ]]
-  then echo "unexpectedly large parameter" >&2; return 1
-  elif   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
-  then xxd -p -r <<<"${BASH_REMATCH[2]}"
-  elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,63})$ ]]
-  then $FUNCNAME "0x0${BASH_REMATCH[2]}"
-  else return 1
-  fi
-
 p2pkh-address() {
   {
     printf %b "${P2PKH_PREFIX:-\x00}"
@@ -1095,15 +1088,23 @@ bitcoinAddress() {
     base58 -v <<<"$1" && 
     [[ "$(base58 -d <<<"$1" |xxd -p -c 38)" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
   then
-    local point exponent="${BASH_REMATCH[2]^^}"
-    if test -n "${BASH_REMATCH[3]}"
-    then point="$(dc -e "$secp256k1 lG16doi$exponent lMx lCx[0]Pp")"
-    else point="$(dc -e "$secp256k1 lG16doi$exponent lMx lUxP" |xxd -p -c 65)"
-    fi
-    if [[ "${BASH_REMATCH[1]}" = 80 ]]
-    then ${FUNCNAME[0]} "$point"
-    else ${FUNCNAME[0]} -t "$point"
-    fi
+    {
+      echo "$secp256k1 lG16doi${BASH_REMATCH[2]^^}lMx"
+      if test -n "${BASH_REMATCH[3]}"
+      then echo lCx
+      else echo lUx
+      fi
+      echo P
+    } |
+    dc |
+    xxd -p -c 65 |
+    {
+      read
+      if [[ "${BASH_REMATCH[1]}" = 80 ]]
+      then ${FUNCNAME[0]} "$REPLY"
+      else ${FUNCNAME[0]} -t "$REPLY"
+      fi
+    }
   elif [[ "$1" =~ ^[[:alpha:]]pub ]] && base58 -v <<<"$1"
   then
     base58 -d <<<"$1" |
