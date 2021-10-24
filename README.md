@@ -27,8 +27,8 @@
 
 ## Description
 
-This repository contains bitcoin-related bash functions and programs, allowing
-bitcoin private keys generation and processing from and to various formats.
+This repository contains bitcoin-related bash functions, allowing bitcoin
+private keys generation and processing from and to various formats.
 
 To discourage the handling of keys in plain text, most of these functions
 mainly read and print keys in *binary*.  The base58check version is only read
