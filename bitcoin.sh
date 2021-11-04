@@ -43,11 +43,6 @@ l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
 2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
 xLms#_4Rd_5R*+*ln%]sS"
 
-debug()
-  if [[ "$DEBUG" = yes ]]
-  then echo "DEBUG: $@"
-  fi >&2
-
 hash160() {
   openssl dgst -sha256 -binary |
   openssl dgst -rmd160 -binary
@@ -567,7 +562,6 @@ isPublic() ((
 bip32()
   if
     local header_format='%08x%02x%08x%08x' 
-    debug "${FUNCNAME[0]} $@"
     local OPTIND OPTARG o
     getopts hts o
   then
