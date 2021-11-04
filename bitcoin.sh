@@ -238,7 +238,6 @@ wif()
 # // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # // THE SOFTWARE.
 
-readonly bech32_sh
 declare bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 declare -A bech32_charset_reverse
 for i in {0..31}
