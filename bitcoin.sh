@@ -244,7 +244,7 @@ for i in {0..31}
 do bech32_charset_reverse[${bech32_charset:$i:1}]=$((i))
 done
 
-BECH32_CONST=1
+declare -i BECH32_CONST=1
 
 bech32()
   if local OPTIND OPTARG o
@@ -329,13 +329,13 @@ verifyChecksum() {
   local hrp="$1"
   shift
   local -i pmod="$(polymod $(hrpExpand "$hrp") "$@")"
-  (( pmod == $BECH32_CONST ))
+  (( pmod == BECH32_CONST ))
 }
 
 bech32_create_checksum() {
   local hrp="$1"
   shift
-  local -i p mod=$(($(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0) ^ $BECH32_CONST))
+  local -i p mod=$(($(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0) ^ BECH32_CONST))
   for p in 0 1 2 3 4 5
   do echo $(( (mod >> 5 * (5 - p)) & 31 ))
   done
