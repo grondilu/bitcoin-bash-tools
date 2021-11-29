@@ -2,6 +2,22 @@
 
 [Bitcoin](http://bitcoin.org)-related functions in [Bash](https://www.gnu.org/software/bash/).
 
+## Table of contents
+* [Synopsis](#synopsis)
+* [Description](#description)
+  * [Base-58](#base58)
+  * [bech32](#bech32)
+  * [Vanilla keys](#vanilla)
+  * [Extended keys](#extended)
+  * [Mnemonics (bip-39)](#mnemonic)
+  * [Addresses](#addresses)
+* [Requirements](#requirements)
+* [TODO](#todo)
+* [Feedback](#feedback)
+* [Related projects](#related)
+* [License](#license)
+
+<a name=synopsis />
 ## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
@@ -25,6 +41,7 @@
     
     $ prove t/*.t.sh
 
+<a name=description />
 ## Description
 
 This repository contains bitcoin-related bash functions, allowing bitcoin
@@ -34,6 +51,7 @@ To discourage the handling of keys in plain text, most of these functions
 mainly read and print keys in *binary*.  The base58check version is only read
 or printed when reading from or writing to a terminal.
 
+<a name=base58 />
 ### Base-58 encoding
 
 `base58` is a simple [filter](https://en.wikipedia.org/wiki/Filter_\(software\))
@@ -73,6 +91,7 @@ as positional parameter :
 A large file will take a very long time to process though, as this encoding is absolutely not
 optimized to deal with large data.
 
+<a name=bech32 />
 ### Bech32
 
 [Bech32](https://en.bitcoin.it/wiki/Bech32) is a string format used to encode
@@ -102,6 +121,7 @@ The `-v` option can be used to verify the checksum :
     $ bech32 -m -v this-part-is-readable-by-a-human1qpzry2tuzaz && echo good checksum
     good checksum
 
+<a name=vanilla />
 ### Vanilla keys
 
 The function `wif` reads 32 bytes from stdin,
@@ -125,6 +145,7 @@ With the `-p` option, the function reads a key in WIF from stdin and
 prints the corresponding private key in the format used by 
 [openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
 
+<a name=extended />
 ### Extended keys
 
 Generation and derivation of *eXtended keys*, as described in
@@ -194,6 +215,7 @@ openssl dgst -sha512 -hmac "Bitcoin seed" -binary
 The output of this command is then split in two to produce a *chain code* and a private exponent,
 as described in bip-0032.
 
+<a name=mnemonic />
 ### Mnemonic
 
 A seed can be produced from a *mnemonic*, a.k.a a *secret phrase*, as described
@@ -246,6 +268,7 @@ the environment variable `PBKDF2_METHOD` to "python".
 
     $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
+<a name=addresses />
 ### Address generation
 
 A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
@@ -277,6 +300,7 @@ specified in their respective BIPs :
     bc1q4r9k3p9t8cwhedREDACTED5v775f55at9jcqqe
 
 
+<a name=requirements />
 ## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
@@ -285,6 +309,7 @@ specified in their respective BIPs :
 - xxd, an [hex dump](https://en.wikipedia.org/wiki/Hex_dump) utility;
 - openssl, the [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) command line tool.
 
+<a name=todo />
 ## TODO
 
 - [x] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
@@ -297,15 +322,18 @@ specified in their respective BIPs :
 - [ ] ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
 - [ ] put everything in a single file
 
+<a name=related />
 ## Related projects
 
 - [bx](https://github.com/libbitcoin/libbitcoin-explorer), a much more complete command-line utility written in C++.
 
+<a name=feedback />
 ## Feedback
 
 To discuss this project without necessarily opening an issue, feel free to use the
 [discussions](https://github.com/grondilu/bitcoin-bash-tools/discussions) tab.
 
+<a name=license />
 ## License
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
