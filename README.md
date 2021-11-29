@@ -17,7 +17,9 @@
 * [Related projects](#related)
 * [License](#license)
 
-<a name=synopsis />
+
+<a name="synopsis"/>
+
 ## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
@@ -42,6 +44,7 @@
     $ prove t/*.t.sh
 
 <a name=description />
+
 ## Description
 
 This repository contains bitcoin-related bash functions, allowing bitcoin
@@ -52,6 +55,7 @@ mainly read and print keys in *binary*.  The base58check version is only read
 or printed when reading from or writing to a terminal.
 
 <a name=base58 />
+
 ### Base-58 encoding
 
 `base58` is a simple [filter](https://en.wikipedia.org/wiki/Filter_\(software\))
@@ -92,6 +96,7 @@ A large file will take a very long time to process though, as this encoding is a
 optimized to deal with large data.
 
 <a name=bech32 />
+
 ### Bech32
 
 [Bech32](https://en.bitcoin.it/wiki/Bech32) is a string format used to encode
@@ -122,6 +127,7 @@ The `-v` option can be used to verify the checksum :
     good checksum
 
 <a name=vanilla />
+
 ### Vanilla keys
 
 The function `wif` reads 32 bytes from stdin,
@@ -146,6 +152,7 @@ prints the corresponding private key in the format used by
 [openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
 
 <a name=extended />
+
 ### Extended keys
 
 Generation and derivation of *eXtended keys*, as described in
@@ -216,6 +223,7 @@ The output of this command is then split in two to produce a *chain code* and a 
 as described in bip-0032.
 
 <a name=mnemonic />
+
 ### Mnemonic
 
 A seed can be produced from a *mnemonic*, a.k.a a *secret phrase*, as described
@@ -269,6 +277,7 @@ the environment variable `PBKDF2_METHOD` to "python".
     $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
 <a name=addresses />
+
 ### Address generation
 
 A function called `bitcoinAddress` takes a bitcoin key, either vanilla or
@@ -301,6 +310,7 @@ specified in their respective BIPs :
 
 
 <a name=requirements />
+
 ## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
@@ -310,6 +320,7 @@ specified in their respective BIPs :
 - openssl, the [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) command line tool.
 
 <a name=todo />
+
 ## TODO
 
 - [x] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
@@ -323,17 +334,20 @@ specified in their respective BIPs :
 - [ ] put everything in a single file
 
 <a name=related />
+
 ## Related projects
 
 - [bx](https://github.com/libbitcoin/libbitcoin-explorer), a much more complete command-line utility written in C++.
 
 <a name=feedback />
+
 ## Feedback
 
 To discuss this project without necessarily opening an issue, feel free to use the
 [discussions](https://github.com/grondilu/bitcoin-bash-tools/discussions) tab.
 
 <a name=license />
+
 ## License
 
 Copyright (C) 2013 Lucien Grondin (grondilu@yahoo.fr)
