@@ -323,6 +323,7 @@ specified in their respective BIPs :
 
 ## TODO
 
+
 - [x] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
 - [x] [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
 - [x] [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
@@ -332,6 +333,7 @@ specified in their respective BIPs :
 - [ ] offline transactions
 - [ ] ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
 - [ ] put everything in a single file
+
 
 <a name=related />
 
