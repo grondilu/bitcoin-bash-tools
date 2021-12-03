@@ -8,8 +8,8 @@ declare -i n=0
 
 # Example 6 from the bitcoin book, chap. 04
 prv=3aba4162c7251c891207b747840551a71939b0de081f85c4e44cf7c13e41daa6
-point="$(dc -f secp256k1.dc -e "16doilG${prv^^}lMx lEx")"
-point_uncompressed="$(dc -f secp256k1.dc -e "16doilG${prv^^}lMx lUxP" |xxd -p -c 130)"
+point="$(dc -e "$secp256k1 16doilG${prv^^}lMx lEx")"
+point_uncompressed="$(dc -e "$secp256k1 16doilG${prv^^}lMx lUxP" |xxd -p -c 130)"
 
 ((n++))
 if [[ "$point" = 025C0DE3B9C8AB18DD04E3511243EC2952002DBFADC864B9628910169D9B9B00EC ]]
