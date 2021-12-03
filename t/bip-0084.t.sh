@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 LANG=C
-PBKDF2_METHOD=python
 . bitcoin.sh
 
 declare -i n=0
