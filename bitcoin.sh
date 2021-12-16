@@ -119,12 +119,12 @@ base58()
         uniq | { read -r && ! read -r; }
         ;;
       c)
-        cat "${1:-/dev/stdin}" |
         tee >(
            openssl dgst -sha256 -binary |
            openssl dgst -sha256 -binary |
 	   head -c 4
-        ) | ${FUNCNAME[0]}
+        ) < "${1:-/dev/stdin}" |
+        ${FUNCNAME[0]}
         ;;
     esac
   else
@@ -183,11 +183,10 @@ wif()
          fi
          ;;
       p)
-        ${FUNCNAME[0]} -d |
         {
           # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
           xxd -p -r <<<"302E0201010420"
-          cat
+	  ${FUNCNAME[0]} -d
           xxd -p -r <<<"A00706052B8104000A"
         } |
         openssl ec -inform der
@@ -1098,7 +1097,7 @@ bitcoinAddress() {
       else ${FUNCNAME[0]} -t "$REPLY"
       fi
     }
-  elif [[ "$1" =~ ^[[:alpha:]]pub ]] && base58 -v <<<"$1"
+  elif [[ "$1" =~ ^[xtyzv]pub ]] && base58 -v <<<"$1"
   then
     base58 -d <<<"$1" |
     head -c -4 |
