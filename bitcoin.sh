@@ -465,7 +465,7 @@ segwitAddress() {
       # P2WPKH
       bech32 "$hrp" "${bech32_charset:$version:1}$(
        xxd -p -r <<<"$witness_program" |
-       basenc --base32 |
+       base32 |
        tr A-Z2-7 "$bech32_charset" |
        tr -d '\n='
       )"
