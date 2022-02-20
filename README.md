@@ -11,7 +11,7 @@
   * [Extended keys](#extended)
   * [Mnemonics (bip-39)](#mnemonic)
   * [Addresses](#addresses)
-* [BIP-85](#bip85)
+  * [BIP-85](#bip85)
 * [Requirements](#requirements)
 * [TODO](#todo)
 * [Feedback](#feedback)
@@ -312,7 +312,7 @@ specified in their respective BIPs :
 
 <a name=bip85 />
 
-## BIP85
+### BIP85
 
 The `bip85` function implements [BIP-0085](https://en.bitcoin.it/wiki/BIP_0085),
 a method of normalizing generation and format of entropy from a given master extended private key.
@@ -327,7 +327,7 @@ For illustration purpose, we'll use the same key used for the test vectors in BI
 The general syntax is `bip85 APP [PARAMETERS...]`, where *APP* is a word designating the desired application,
 as described below.
 
-### Mnemonic
+#### Mnemonic
 
 To create a mnemonic, use either `mnemo` or `39` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
 
@@ -344,7 +344,7 @@ As mentionned, you can specify the number of words with an additional argument :
     $ base58 -d <<<"$root" | LANG=zh_CN bip85 mnemo 24
     探 腐 书 知 讲 看 偷 项 努 高 纹 任 付 穆 滑 丝 悲 娘 值 郑 倒 踏 呢 丙
 
-### HD-Seed WIF
+#### HD-Seed WIF
 
 To create a hd-seed, use `wif` or `2` as *APP*.  The WIF will only be printed on a terminal.
 
