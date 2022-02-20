@@ -309,6 +309,53 @@ specified in their respective BIPs :
     bc1q4r9k3p9t8cwhedREDACTED5v775f55at9jcqqe
 
 
+<a name=bip85 />
+
+## BIP85
+
+The `bip85` function implements [BIP-0085](https://en.bitcoin.it/wiki/BIP_0085),
+a method of normalizing generation and format of entropy from a given master extended private key.
+
+The function reads a master extended private key from standard input, as `xkey` would.  When reading from a terminal,
+the function will expect the base58-checked encoding.  Otherwise it will expect the binary version.
+
+For illustration purpose, we'll use the same key used for the test vectors in BIP-0085.
+
+    $ root=xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb
+
+The general syntax is `bip85 APP [PARAMETERS...]`, where *APP* is a word designating the desired application,
+as described below.
+
+### Mnemonic
+
+To create a mnemonic, use either `mnemo` or `39` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
+
+    $ base58 -d <<<"$root" | bip85 mnemo
+    girl mad pet galaxy egg matter matrix prison refuse sense ordinary nose
+
+To override the locales settings, use the LANG environnement variable :
+
+    $ base58 -d <<<"$root" | LANG=it bip85 mnemo
+    smilzo opinione settimana sfoltire sospiro maretta verace mattone larga suonare lembo rispetto
+
+As mentionned, you can specify the number of words with an additional argument :
+    
+    $ base58 -d <<<"$root" | LANG=zh_CN bip85 mnemo 24
+    探 腐 书 知 讲 看 偷 项 努 高 纹 任 付 穆 滑 丝 悲 娘 值 郑 倒 踏 呢 丙
+
+### HD-Seed WIF
+
+To create a hd-seed, use `wif` or `2` as *APP*.  The WIF will only be printed on a terminal.
+
+    $ base58 -d <<<"$root" | bip85 wif
+    Kzyv4uF39d4Jrw2W7UryTHwZr1zQVNk4dAFyqE6BuMrMh1Za7uhp
+
+You can specify an optional index :
+
+    $ base58 -d <<<"$root" | bip85 wif 1
+    L45nghBsnmqaGj9VyREDACTEDJNi6K4LUFP4REDACTEDLEyXUkYP
+
+
 <a name=requirements />
 
 ## Requirements
