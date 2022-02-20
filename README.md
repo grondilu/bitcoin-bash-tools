@@ -11,6 +11,7 @@
   * [Extended keys](#extended)
   * [Mnemonics (bip-39)](#mnemonic)
   * [Addresses](#addresses)
+* [BIP-85](#bip85)
 * [Requirements](#requirements)
 * [TODO](#todo)
 * [Feedback](#feedback)
