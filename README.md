@@ -158,8 +158,9 @@ prints the corresponding private key in the format used by
 
 Generation and derivation of *eXtended keys*, as described in
 [BIP-0032](https://en.bitcoin.it/wiki/BIP_0032) and its successors BIP-0044,
-BIP-0049 and BIP-0084, are supported by three filters : `xkey`, `ykey` and
-`zkey`.
+BIP-0049 and BIP-0084, are supported by three filters, namely `bip32`, `bip49` and `bip84`,
+along with three respective aliases `xkey`, `ykey` and `zkey`.
+The aliases exist for the sole reason that they are arguably easier to type.
 
 Unless the option `-s` or `-t` is used, these functions read 78 bytes
 from stdin and interpret these as a serialized extended key.   Then the
