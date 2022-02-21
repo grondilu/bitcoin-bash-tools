@@ -42,6 +42,12 @@
     $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
     $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
     
+    $ xkey -p 38
+
+    $ bip85 wif
+    $ bip85 mnemo
+    $ bip85 xprv
+
     $ prove t/*.t.sh
 
 <a name=description />
