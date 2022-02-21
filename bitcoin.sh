@@ -618,6 +618,9 @@ bip32()
 	for ((i=1;i<max+1;i++))
 	do
 	  read -p "$i/$max: "
+          if ((REPLY > 100 || REPLY < 0))
+          then echo "input out of range" >&2; return 99
+          fi
 	  values+=($REPLY)
 	done
 	printf -v string "%02d" "${values[@]}"
