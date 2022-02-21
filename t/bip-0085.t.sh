@@ -4,7 +4,7 @@
 
 rootxprv=xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb
 
-echo 1..6
+echo 1..7
 
 base58 -d <<<"$rootxprv" |
 bip85 0 |
@@ -46,9 +46,17 @@ else echo "not ok - wrong 24 english words mnemonic"
 fi
 
 base58 -d <<<"$rootxprv" |
-DEBUG=yes bip85 wif 2>/dev/null |
+bip85 wif 2>/dev/null |
 if grep -q Kzyv4uF39d4Jrw2W7UryTHwZr1zQVNk4dAFyqE6BuMrMh1Za7uhp
 then echo "ok - good WIF"
 else echo "not ok - wrong WIF"
+fi
+
+base58 -d <<<"$rootxprv" |
+bip85 xprv |
+base58 -c |
+if grep -q xprv9s21ZrQH143K2srSbCSg4m4kLvPMzcWydgmKEnMmoZUurYuBuYG46c6P71UGXMzmriLzCCBvKQWBUv3vPB3m1SATMhp3uEjXHJ42jFg7myX
+then echo "ok - good xprv"
+else echo "not ok - wrong xprv"
 fi
 

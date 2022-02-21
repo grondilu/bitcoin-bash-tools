@@ -838,15 +838,16 @@ bip85() {
     xprv|32)
       path="$path/32h/${2:-0}h"
       #echo "using derivation path $path" >&2
-      {
-	printf '%08x%02x%08x%08x' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 |
-	xxd -p -r
-        bip32 "$path" |
-        tail -c 32 |
-	openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-        tail -c 64
+      bip32 "$path" |
+      tail -c 32 |
+      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
+      xxd -p -c 64 | {
+	read
+	local left="${REPLY:0:64}" right="${REPLY:64:64}"
+	printf '%08x%02x%08x%08x%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
       } |
-      xxd -p
+      xxd -p -r |
+      bip32
       ;;
     mnemo*|39)
       local -i words=${2:-12} index=${3:-0} lang

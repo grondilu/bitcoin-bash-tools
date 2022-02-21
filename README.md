@@ -356,6 +356,17 @@ You can specify an optional index :
     $ base58 -d <<<"$root" | bip85 wif 1
     L45nghBsnmqaGj9VyREDACTEDJNi6K4LUFP4REDACTEDLEyXUkYP
 
+#### Extended master key
+
+To derive an other extended master key, use `xprv` or `32` as *APP*.
+
+    $ base58 -d <<<"$root" | bip85 xprv
+    xprv9s21ZrQH143K2srSbCSg4m4kLvPMzcWydgmKEnMmoZUurYuBuYG46c6P71UGXMzmriLzCCBvKQWBUv3vPB3m1SATMhp3uEjXHJ42jFg7myX
+
+You can specify an optional index :
+
+    $ base58 -d <<<"$root" | bip85 xprv 1
+    xprv9s21ZrQH143K38mDZkjREDACTEDWyjWiejciPyREDACTED9Vg3WCWnhkPW3rKsPT6u3MREDACTEDxjBjFES1xCzEtxTSAfQTapE7CXcbQ4b
 
 <a name=requirements />
 
