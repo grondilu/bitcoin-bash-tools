@@ -636,7 +636,9 @@ bip32()
   then
     local path="$1" hexdump="$(
       if test -t 0 
-      then base58 -d
+      then
+        read -p "eXtended key: "
+	base58 -d <<<"$REPLY"
       else cat
       fi |
       head -c 78 |
