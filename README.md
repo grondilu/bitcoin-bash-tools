@@ -168,7 +168,7 @@ BIP-0049 and BIP-0084, are supported by three filters, namely `bip32`, `bip49` a
 along with three respective aliases `xkey`, `ykey` and `zkey`.
 The aliases exist for the sole reason that they are arguably easier to type.
 
-Unless the option `-s` or `-t` is used, these functions read 78 bytes
+Unless the option `-p`, `-s` or `-t` is used, these functions read 78 bytes
 from stdin and interpret these as a serialized extended key.   Then the
 extended key derived according to a derivation path provided as a positional
 parameter is computed and printed on stdout.
