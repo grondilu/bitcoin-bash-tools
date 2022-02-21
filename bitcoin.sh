@@ -561,15 +561,15 @@ bip32()
   if
     local header_format='%08x%02x%08x%08x' 
     local OPTIND OPTARG o
-    getopts hts o
+    getopts hp:st o
   then
     shift $((OPTIND - 1))
     case "$o" in
       h) cat <<-END_USAGE
 	Usage:
 	  $FUNCNAME -h
-	  $FUNCNAME [-t]
-	  $FUNCNAME [-s] derivation-path
+	  $FUNCNAME [-st] [derivation-path]
+	  $FUNCNAME -p SIZE [derivation-path]
 	
 	$FUNCNAME generates extended keys as defined by BIP-0032.
 	When writing to a terminal, $FUNCNAME will print the base58-checked version of the
@@ -591,6 +591,8 @@ bip32()
 	
 	With the -s option, input is interpreted as a seed, not as a serialized key.
 	With the -t option, input is interpreted as a seed, and a testnet master key is generated.
+	With the -p option, $FUNCNAME will prompt for SIZE decimal numbers from 0 to 99,
+	and construct a private master key from them.
 	END_USAGE
         ;;
       s) 
@@ -608,6 +610,20 @@ bip32()
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
+      p)
+        local -i max=$OPTARG
+	local string
+	local -i -a values
+	local -i i
+	for ((i=1;i<max+1;i++))
+	do
+	  read -p "$i/$max: "
+	  values+=($REPLY)
+	done
+	printf -v string "%02d" "${values[@]}"
+	dc -e "$string P" |
+        $FUNCNAME -s "$@"
+	;;
     esac
   elif (( $# > 1 ))
   then
@@ -1208,4 +1224,3 @@ bitcoinAddress() {
   else return 1
   fi
 }
-

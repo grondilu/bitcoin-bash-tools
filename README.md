@@ -195,6 +195,15 @@ key will be a testnet key.
     $ cat myseed |xkey -t
     tprv8ZgxMBicQKsPen8dPzk2REDACTEDiRWqeNcdvrrxLsJ7UZCB3wH5tQsUbCBEPDREDACTEDfTh3skpif3GFENREDACTEDgemFAhG914qE5EC
 
+With the `-p SIZE` option, *SIZE* decimal numbers between 0 and 99 will be prompted,
+and be used to generate a master private key or its derived key if a derivation path is provided.
+This option can thus be used to retrieve a key stored in biological memory.
+
+    $ xkey -p 2
+    1: 75
+    2: 57
+    xprv9s21ZrQH143K3sf7LmE2jhvY6PFkA2zBcCk4Rg7azADRzGVMAUQkmW1r3adZ11cZ6Kx88xmgmuKtB7aUu7iKGVgeFWuwsUmM3qE5RPT7Pah
+
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
 
     $ base58 -d <<<"$myxprvkey" |xkey /N
