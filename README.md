@@ -202,7 +202,7 @@ This option can thus be used to retrieve a key stored in biological memory.
     $ xkey -p 2
     1: 75
     2: 57
-    xprv9s21ZrQH143K3sf7LmE2jhvY6PFkA2zBcCk4Rg7azADRzGVMAUQkmW1r3adZ11cZ6Kx88xmgmuKtB7aUu7iKGVgeFWuwsUmM3qE5RPT7Pah
+    xprv9s21ZrQH143K3sf7LREDACTEDPFkA2zBcCk4Rg7azADRzGVMAUREDACTEDdZ11cZ6Kx88xmgmuKtB7aUREDACTEDFWuwsUmM3qE5RPT7Pah
 
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
 
