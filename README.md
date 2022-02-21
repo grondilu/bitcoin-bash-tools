@@ -226,7 +226,7 @@ This option can thus be used to retrieve a key stored in biological memory.
 You can feed any file to these functions, and such file doesn't have to be 64 bytes long.
 It should, however, contain at least that much entropy.
 
-If the derivation path begins with `m` or `M`, and unless the option `-s` or
+If the derivation path begins with `m` or `M`, and unless the option `-p`, `-s` or
 `-t` is used, additional checks are performed to ensure that the input is a
 master private key or a master public key respectively.
 
