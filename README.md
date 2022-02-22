@@ -345,7 +345,7 @@ as described below.
 
 #### Mnemonic
 
-To create a mnemonic, use either `mnemo` or `39` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
+To create a mnemonic, use either `mnemo` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
 
     $ base58 -d <<<"$root" | bip85 mnemo
     girl mad pet galaxy egg matter matrix prison refuse sense ordinary nose
@@ -362,7 +362,7 @@ As mentionned, you can specify the number of words with an additional argument :
 
 #### HD-Seed WIF
 
-To create a hd-seed, use `wif` or `2` as *APP*.  The WIF will only be printed on a terminal.
+To create a hd-seed, use `wif` as *APP*.  The WIF will only be printed on a terminal.
 
     $ base58 -d <<<"$root" | bip85 wif
     Kzyv4uF39d4Jrw2W7UryTHwZr1zQVNk4dAFyqE6BuMrMh1Za7uhp
@@ -374,7 +374,7 @@ You can specify an optional index :
 
 #### Extended master key
 
-To derive an other extended master key, use `xprv` or `32` as *APP*.
+To derive an other extended master key, use `xprv` as *APP*.
 
     $ base58 -d <<<"$root" | bip85 xprv
     xprv9s21ZrQH143K2srSbCSg4m4kLvPMzcWydgmKEnMmoZUurYuBuYG46c6P71UGXMzmriLzCCBvKQWBUv3vPB3m1SATMhp3uEjXHJ42jFg7myX
