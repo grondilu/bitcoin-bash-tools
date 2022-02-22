@@ -835,23 +835,10 @@ bip85() {
   else cat
   fi |
   case "$1" in
-    0) path="$path/0h/${2:-0}h"
-      #echo "using derivation path $path" >&2
-      bip32 "$path" |
-      tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-      if test -t 1
-      then cat -v
-      else cat
-      fi
-      ;;
-    wif|2) path="$path/2h/${2:-0}h"
-      #echo "using derivation path $path" >&2
-      bip32 "$path" |
-      tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-      head -c 32 |
-      if [[ DEBUG -eq yes ]] || test -t 1
+    wif)
+      shift
+      $FUNCNAME 2 "$@" |
+      if [[ "$DEBUG" -eq yes ]] || test -t 1
       then wif
       else cat
       fi
@@ -898,6 +885,16 @@ bip85() {
       then
         read
         create-mnemonic "$REPLY"
+      else cat
+      fi
+      ;;
+    *) path="$path/${1:-0}h/${2:-0}h"
+      #echo "using derivation path $path" >&2
+      bip32 "$path" |
+      tail -c 32 |
+      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
+      if test -t 1
+      then cat -v
       else cat
       fi
       ;;
