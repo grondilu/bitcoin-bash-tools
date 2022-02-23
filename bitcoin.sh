@@ -828,28 +828,17 @@ alias xkey=bip32
 alias ykey=bip49
 alias zkey=bip84
 
-bip85() {
-  local path="m/83696968h"
-  if test -t 0 
-  then base58 -d
-  else cat
-  fi |
+bip85()
   case "$1" in
     wif)
       shift
       $FUNCNAME 2 "$@" |
-      if [[ "$DEBUG" -eq yes ]] || test -t 1
-      then wif
-      else cat
-      fi
+      wif
       ;;
-    xprv|32)
-      path="$path/32h/${2:-0}h"
-      #echo "using derivation path $path" >&2
-      bip32 "$path" |
-      tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-      xxd -p -c 64 | {
+    xprv)
+      $FUNCNAME 32 ${2:-0} |
+      xxd -p -u -c 64 |
+      {
 	read
 	local left="${REPLY:0:64}" right="${REPLY:64:64}"
 	printf '%08x%02x%08x%08x%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
@@ -857,7 +846,7 @@ bip85() {
       xxd -p -r |
       bip32
       ;;
-    mnemo*|39)
+    mnemo*)
       local -i words=${2:-12} index=${3:-0} lang
       shopt -s extglob
       case "$LANG" in
@@ -874,22 +863,29 @@ bip85() {
       # CS = ENT / 32
       # MS = (ENT + CS) / 11
       local -i ent=$((words*32/3))
-      path="$path/39h/${lang}h/${words}h/${index}h"
-      echo "using derivation $path" >&2
-      bip32 "$path" |
-      tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
+      $FUNCNAME 39 $lang $words $index |
       head -c $((ent/8)) |
       xxd -p -c $((ent/8)) |
-      if [[ DEBUG -eq yes ]] || test -t 1
-      then
+      {
         read
         create-mnemonic "$REPLY"
-      else cat
-      fi
+      }
       ;;
-    *) path="$path/${1:-0}h/${2:-0}h"
-      #echo "using derivation path $path" >&2
+    *)
+      local path="m/83696968h/${1:-0}h/${2:-0}h"
+      shift; shift;
+      for i in "$@"
+      do path="$path/${i}h"
+      done
+      {
+	if test -t 0 
+	then 
+	  read -p "extended master key: "
+	  base58 -d <<<"$REPLY"
+	else cat
+	fi
+	echo "deriving path $path" >&2
+      } |
       bip32 "$path" |
       tail -c 32 |
       openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
@@ -899,7 +895,6 @@ bip85() {
       fi
       ;;
   esac 
-}
   
 # bip-0039 code starts here {{{
 
