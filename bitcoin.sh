@@ -160,6 +160,7 @@ wif()
 	Usage:
 	  ${FUNCNAME[0]} -h
 	  ${FUNCNAME[0]} -d
+	  ${FUNCNAME[0]} -p
 	  ${FUNCNAME[0]} [-t][-u]
 	
 	The '-h' option displays this message.
@@ -172,6 +173,9 @@ wif()
 	The '-d' option performs the reverse operation : it reads a key in WIF
 	and prints 32 bytes on stdout.  When writing to a terminal, non-printable
 	characters will be escaped.
+	
+	The '-p' option performs the reverse operation as the '-d' options does,
+	but outputs the result in a format compatible with 'openssl ec'.
 	END_USAGE
         ;;
       d) base58 -d |
