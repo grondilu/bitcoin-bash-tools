@@ -137,6 +137,15 @@ The `-v` option can be used to verify the checksum :
 
 ### Vanilla keys
 
+#### Openssl format
+
+The `secp256k1` function reads 32 bytes from stdin,
+interprets them as a secp256k1 private exponent and
+displays the corresponding key in a format used by
+[openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
+
+#### Wallet Import Format
+
 The function `wif` reads 32 bytes from stdin,
 interprets them as a [secp256k1](https://en.bitcoin.it/wiki/Secp256k1) exponent
 and displays the corresponding private key in [Wallet Import
@@ -153,10 +162,6 @@ version is returned.
 With the `-d` option, the reverse operation is performed : reading a
 key in WIF from stdin and printing 32 bytes to stdout.  Non-printable
 charaters are escaped when writing to a terminal.
-
-With the `-p` option, the function reads a key in WIF from stdin and
-prints the corresponding private key in the format used by 
-[openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
 
 <a name=extended />
 

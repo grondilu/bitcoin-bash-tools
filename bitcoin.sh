@@ -146,10 +146,20 @@ base58()
     }
   fi
 
+secp256k1() {
+  {
+    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+    xxd -p -r <<<"302E0201010420"
+    cat
+    xxd -p -r <<<"A00706052B8104000A"
+  } |
+  openssl ec -inform der
+}
+
 wif()
   if
     local OPTIND o
-    getopts hutdp o
+    getopts hutd o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -160,7 +170,6 @@ wif()
 	Usage:
 	  ${FUNCNAME[0]} -h
 	  ${FUNCNAME[0]} -d
-	  ${FUNCNAME[0]} -p
 	  ${FUNCNAME[0]} [-t][-u]
 	
 	The '-h' option displays this message.
@@ -173,9 +182,6 @@ wif()
 	The '-d' option performs the reverse operation : it reads a key in WIF
 	and prints 32 bytes on stdout.  When writing to a terminal, non-printable
 	characters will be escaped.
-	
-	The '-p' option performs the reverse operation as the '-d' options does,
-	but outputs the result in a format compatible with 'openssl ec'.
 	END_USAGE
         ;;
       d) base58 -d |
@@ -186,15 +192,6 @@ wif()
          else cat
          fi
          ;;
-      p)
-        {
-          # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-          xxd -p -r <<<"302E0201010420"
-	  ${FUNCNAME[0]} -d
-          xxd -p -r <<<"A00706052B8104000A"
-        } |
-        openssl ec -inform der
-        ;;
       u) BITCOIN_PUBLIC_KEY_FORMAT=uncompressed ${FUNCNAME[0]} "$@";;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} "$@";;
     esac
