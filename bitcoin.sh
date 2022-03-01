@@ -619,7 +619,7 @@ bip32()
 	for ((i=1;i<max+1;i++))
 	do
 	  read -p "$i/$max: "
-          if ((REPLY > 100 || REPLY < 0))
+          if ((REPLY > 99 || REPLY < 0))
           then echo "input out of range" >&2; return 99
           fi
 	  values+=($REPLY)
