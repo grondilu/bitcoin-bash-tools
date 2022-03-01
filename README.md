@@ -9,7 +9,9 @@
   * [bech32](#bech32)
   * [Vanilla keys](#vanilla)
   * [Extended keys](#extended)
-  * [Mnemonics (bip-39)](#mnemonic)
+  * [Mnemonics](#mnemonic)
+    * [BIP-39](#bip39)
+    * [Peg system](#peg)
   * [Addresses](#addresses)
   * [BIP-85](#bip85)
 * [Requirements](#requirements)
@@ -33,6 +35,7 @@
     $ echo "${mnemonic[@]}"
 
     $ mnemonic-to-seed "${mnemonic[@]}" > seed
+    $ pegged-entropy {1..38} > seed
 
     $ xkey -s /N < seed
     $ ykey -s /N < seed
@@ -42,7 +45,6 @@
     $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
     $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
     
-    $ xkey -p 38
 
     $ bip85 wif
     $ bip85 mnemo
@@ -206,15 +208,6 @@ key will be a testnet key.
     $ cat myseed |xkey -t
     tprv8ZgxMBicQKsPen8dPzk2REDACTEDiRWqeNcdvrrxLsJ7UZCB3wH5tQsUbCBEPDREDACTEDfTh3skpif3GFENREDACTEDgemFAhG914qE5EC
 
-With the `-p SIZE` option, *SIZE* decimal numbers between 0 and 99 will be prompted,
-and be used to generate a master private key or its derived key if a derivation path is provided.
-This option can thus be used to retrieve a key stored in biological memory.
-
-    $ xkey -p 2
-    1: 75
-    2: 57
-    xprv9s21ZrQH143K3sf7LREDACTEDPFkA2zBcCk4Rg7azADRzGVMAUREDACTEDdZ11cZ6Kx88xmgmuKtB7aUREDACTEDFWuwsUmM3qE5RPT7Pah
-
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
 
     $ base58 -d <<<"$myxprvkey" |xkey /N
@@ -246,7 +239,16 @@ as described in bip-0032.
 
 <a name=mnemonic />
 
-### Mnemonic
+### Mnemonics
+
+It is possible to store the keys of a hierarchical deterministic wallet in biological
+memory using mnemonics methods.  Bitcoin-bash-tools offers two methods for this purpose :
+the first one is an implementation of the dedicated BIP, and the other is a method based on
+long known mnemonics techniques.
+
+<a name=bip39 />
+
+#### Bip-39
 
 A seed can be produced from a *mnemonic*, a.k.a a *secret phrase*, as described
 in [BIP-0039](https://en.bitcoin.it/wiki/BIP_0039).
@@ -297,6 +299,35 @@ The passphrase can also be given with the `BIP39_PASSPHRASE` environment variabl
 the environment variable `PBKDF2_METHOD` to "python".
 
     $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
+
+<a name=peg />
+
+As an alternative to bip-39, bitcoin-bash-tools includes a function
+called `pegged-entropy` wich prompts decimal numbers from 0 to 99
+and uses them to generate a byte stream that can then be used as input
+for `bip32`.  The generated extended key can then be used by `bip85`
+to produce all sorts of entropy for various applications.
+
+The numbers are between 0 to 99 to facilitate the use of the so-called
+[major system](https://en.wikipedia.org/wiki/Mnemonic_major_system).
+
+To memorize the sequential order of the numbers, either the
+[method of loci](https://en.wikipedia.org/wiki/Method_of_loci) or the
+[peg system](https://en.wikipedia.org/wiki/Method_of_loci) can be used.
+
+The function takes as argument the pegs to use.  For the method of loci,
+a sequence of integers can be used.
+
+    $ pegged-entropy {1..10}
+
+Pegs do not have to be secret, so they can be saved in a file or in
+a variable in plain text.
+Here is an exemple from http://thememoryinstitute.com/the-peg-system.html :
+
+    $ pegs=(Bun Shoe Tree Door Hive Sticks Heaven Gate Vine Hen)
+    $ pegged-entropy "${pegs[@]}"
+
+This function will escape non-printable characters when writing to a terminal.
 
 <a name=addresses />
 

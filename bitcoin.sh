@@ -558,11 +558,43 @@ isPublic() ((
   $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE
 ))
 
+pegged-entropy()
+  if (( ${#@} == 0 ))
+  then
+    echo "no peg was provided" >&2
+    return 1
+  elif ! test -t 0
+  then
+    echo "$FUNCNAME will only read input from a terminal" >&2
+    return 2
+  else
+    local peg
+    local -i i
+    {
+      for peg in "$@"
+      do
+	read -p "$peg $((++i))/${#@}: "
+	if ((REPLY > 99 || REPLY < 0))
+	then
+	  echo "input out of range" >&2
+	  return 2
+	fi
+	printf "%02d" "$REPLY"
+      done
+      echo " P"
+    } |
+    dc |
+    if test -t 1
+    then cat -v
+    else cat
+    fi
+  fi
+
 bip32()
   if
     local header_format='%08x%02x%08x%08x' 
     local OPTIND OPTARG o
-    getopts hp:st o
+    getopts hst o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -570,7 +602,6 @@ bip32()
 	Usage:
 	  $FUNCNAME -h
 	  $FUNCNAME [-st] [derivation-path]
-	  $FUNCNAME -p SIZE [derivation-path]
 	
 	$FUNCNAME generates extended keys as defined by BIP-0032.
 	When writing to a terminal, $FUNCNAME will print the base58-checked version of the
@@ -592,8 +623,6 @@ bip32()
 	
 	With the -s option, input is interpreted as a seed, not as a serialized key.
 	With the -t option, input is interpreted as a seed, and a testnet master key is generated.
-	With the -p option, $FUNCNAME will prompt for SIZE decimal numbers from 0 to 99,
-	and construct a private master key from them.
 	END_USAGE
         ;;
       s) 
@@ -611,22 +640,6 @@ bip32()
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
-      p)
-        local -i i max=OPTARG
-	{
-	  for ((i=1;i<max+1;i++))
-	  do
-	    read -p "$i/$max: "
-	    if ((REPLY > 99 || REPLY < 0))
-	    then echo "input out of range" >&2; return 99
-	    fi
-	    printf "%02d" "$REPLY"
-	  done
-          echo " P"
-        } |
-        dc |
-        $FUNCNAME -s "$@"
-	;;
     esac
   elif (( $# > 1 ))
   then
