@@ -9,7 +9,7 @@
   * [bech32](#bech32)
   * [Vanilla keys](#vanilla)
   * [Extended keys](#extended)
-  * [Mnemonics](#mnemonic)
+  * [Mnemonics](#mnemonics)
     * [BIP-39](#bip39)
     * [Peg system](#peg)
   * [Addresses](#addresses)
@@ -237,7 +237,7 @@ openssl dgst -sha512 -hmac "Bitcoin seed" -binary
 The output of this command is then split in two to produce a *chain code* and a private exponent,
 as described in bip-0032.
 
-<a name=mnemonic />
+<a name=mnemonics />
 
 ### Mnemonics
 
@@ -381,7 +381,7 @@ as described below.
 
 #### Mnemonic
 
-To create a mnemonic, use either `mnemo` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
+To create a bip-39 mnemonic, use `mnemo` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
 
     $ base58 -d <<<"$root" | bip85 mnemo
     girl mad pet galaxy egg matter matrix prison refuse sense ordinary nose
