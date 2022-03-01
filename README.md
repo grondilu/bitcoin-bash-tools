@@ -11,7 +11,7 @@
   * [Extended keys](#extended)
   * [Mnemonics](#mnemonics)
     * [BIP-39](#bip39)
-    * [Peg system](#peg)
+    * [Major system](#major)
   * [Addresses](#addresses)
   * [BIP-85](#bip85)
 * [Requirements](#requirements)
@@ -300,7 +300,7 @@ the environment variable `PBKDF2_METHOD` to "python".
 
     $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
-<a name=peg />
+<a name=major />
 
 #### Major system
 
