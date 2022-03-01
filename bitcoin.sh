@@ -612,20 +612,19 @@ bip32()
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
       p)
-        local -i max=$OPTARG
-	local string
-	local -i -a values
-	local -i i
-	for ((i=1;i<max+1;i++))
-	do
-	  read -p "$i/$max: "
-          if ((REPLY > 99 || REPLY < 0))
-          then echo "input out of range" >&2; return 99
-          fi
-	  values+=($REPLY)
-	done
-	printf -v string "%02d" "${values[@]}"
-	dc -e "$string P" |
+        local -i i max=OPTARG
+	{
+	  for ((i=1;i<max+1;i++))
+	  do
+	    read -p "$i/$max: "
+	    if ((REPLY > 99 || REPLY < 0))
+	    then echo "input out of range" >&2; return 99
+	    fi
+	    printf "%02d" "$REPLY"
+	  done
+          echo " P"
+        } |
+        dc |
         $FUNCNAME -s "$@"
 	;;
     esac
