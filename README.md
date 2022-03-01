@@ -302,6 +302,8 @@ the environment variable `PBKDF2_METHOD` to "python".
 
 <a name=peg />
 
+#### Major system
+
 As an alternative to bip-39, bitcoin-bash-tools includes a function
 called `pegged-entropy` wich prompts decimal numbers from 0 to 99
 and uses them to generate a byte stream that can then be used as input
