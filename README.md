@@ -26,8 +26,7 @@
 ## Synopsis
 
     $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
-    $ cd bitcoin-bash-tools/
-    $ . bitcoin.sh
+    $ . bitcoin-bash-tools/bitcoin.sh
 
     $ openssl rand 32 |wif
 
