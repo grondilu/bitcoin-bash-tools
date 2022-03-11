@@ -569,7 +569,7 @@ pegged-entropy()
     return 2
   else
     local peg
-    local -i i
+    local -i i c
     {
       for peg in "$@"
       do
@@ -579,9 +579,11 @@ pegged-entropy()
 	  echo "input out of range" >&2
 	  return 2
 	fi
+        ((c += REPLY))
 	printf "%02d" "$REPLY"
       done
       echo " P"
+      echo "checksum is $((c % 100))" >&2
     } |
     dc |
     if test -t 1
@@ -841,7 +843,7 @@ alias xkey=bip32
 alias ykey=bip49
 alias zkey=bip84
 
-bip85()
+bip85() {
   case "$1" in
     wif)
       shift
@@ -884,6 +886,16 @@ bip85()
         create-mnemonic "$REPLY"
       }
       ;;
+    hex)
+      local -i num_bytes=${1:-8} index=${2:-0}
+      if ((num_bytes < 16 || num_bytes > 64))
+      then echo "number of bytes out of range" >&2
+        return 46
+      else 
+	$FUNCNAME $num_bytes $index |
+	head -c $num_bytes
+      fi
+      ;;
     *)
       local path="m/83696968h/${1:-0}h/${2:-0}h"
       shift; shift;
@@ -901,13 +913,14 @@ bip85()
       } |
       bip32 "$path" |
       tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-      if test -t 1
-      then cat -v
-      else cat
-      fi
+      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary
       ;;
-  esac 
+  esac |
+  if test -t 1
+  then cat -v
+  else cat
+  fi
+}
   
 # bip-0039 code starts here {{{
 
