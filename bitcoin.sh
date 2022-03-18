@@ -146,16 +146,6 @@ base58()
     }
   fi
 
-secp256k1() {
-  {
-    # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-    xxd -p -r <<<"302E0201010420"
-    cat
-    xxd -p -r <<<"A00706052B8104000A"
-  } |
-  openssl ec -inform der
-}
-
 wif()
   if
     local OPTIND o
@@ -188,7 +178,13 @@ wif()
          tail -c +2 |
          head -c 32 |
          if test -t 1
-         then cat -v
+         then
+	   {
+	     # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+	     xxd -p -r <<<"302E0201010420"
+	     cat
+	     xxd -p -r <<<"A00706052B8104000A"
+	   } | openssl ec -inform der
          else cat
          fi
          ;;

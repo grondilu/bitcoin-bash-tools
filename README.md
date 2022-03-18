@@ -7,7 +7,7 @@
 * [Description](#description)
   * [Base-58](#base58)
   * [bech32](#bech32)
-  * [Vanilla keys](#vanilla)
+  * [Wallet Import Format](#wif)
   * [Extended keys](#extended)
   * [Mnemonics](#mnemonics)
     * [BIP-39](#bip39)
@@ -134,18 +134,9 @@ The `-v` option can be used to verify the checksum :
     $ bech32 -m -v this-part-is-readable-by-a-human1qpzry2tuzaz && echo good checksum
     good checksum
 
-<a name=vanilla />
+<a name=wif />
 
-### Vanilla keys
-
-#### Openssl format
-
-The `secp256k1` function reads 32 bytes from stdin,
-interprets them as a secp256k1 private exponent and
-displays the corresponding key in a format used by
-[openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
-
-#### Wallet Import Format
+### Wallet Import Format
 
 The function `wif` reads 32 bytes from stdin,
 interprets them as a [secp256k1](https://en.bitcoin.it/wiki/Secp256k1) exponent
@@ -161,8 +152,10 @@ With the `-t` option, the [testnet](https://en.bitcoin.it/wiki/Testnet)
 version is returned.
 
 With the `-d` option, the reverse operation is performed : reading a
-key in WIF from stdin and printing 32 bytes to stdout.  Non-printable
-charaters are escaped when writing to a terminal.
+key in WIF from stdin and printing 32 bytes to non-terminal standard output.
+When writing to a terminal, the output is in a format used by
+[openssl ec](https://www.openssl.org/docs/man1.0.2/man1/ec.html).
+
 
 <a name=extended />
 
