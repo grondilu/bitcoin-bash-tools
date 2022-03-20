@@ -27,7 +27,6 @@
 
 
 . bitcoin.sh
-. bip-0350.sh
 
 declare -a valid_checksum_bech32=(
   A12UEL5L

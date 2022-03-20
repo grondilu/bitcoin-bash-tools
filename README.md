@@ -432,7 +432,7 @@ You can specify an optional index :
 * [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039) [x] 
 * [BIP 0085](https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki) [ ]
 * [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki) [x]
-* [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki) [ ]
+* [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki) [x]
 * [TAP](http://testanything.org/) support [x]
 * offline transactions [ ]
 * ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
