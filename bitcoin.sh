@@ -412,7 +412,7 @@ bech32_decode()
 
 # bech32-related code ends here }}}
 
-# bip-0173 code starts here {{{
+# bip-0173/bip-0350 code starts here {{{
 
 p2wpkh() { segwitAddress -p "$1"; }
 
@@ -457,23 +457,27 @@ segwitAddress() {
   then return 3
   elif ((version == 0))
   then
-    if [[ "$witness_program" =~ ^.{40}$ ]] # 20 bytes
+    if [[ "$witness_program" =~ ^(.{40}|.{64})$ ]] # 20 or 32 bytes
     then
-      # P2WPKH
-      bech32 "$hrp" "${bech32_charset:$version:1}$(
-       xxd -p -r <<<"$witness_program" |
-       base32 |
-       tr A-Z2-7 "$bech32_charset" |
-       tr -d '\n='
-      )"
-    elif [[ "$witness_program" =~ ^.{64}$ ]] # 32 bytes
-    then
-       1>&2 echo "pay-to-witness-script-hash (P2WSH) NYI"
-       return 3
+      # P2WPKH or P2WSH
+      bech32_encode "$hrp" $(
+	echo $version;
+        echo -n "$witness_program" |
+	while read -n 2; do echo 0x$REPLY; done |
+        convertbits 8 5
+      )
     else
        1>&2 echo For version 0, the witness program must be either 20 or 32 bytes long.
        return 4
     fi
+  elif ((version <= 16))
+  then
+    bech32_encode -m "$hrp" $(
+      echo $version
+      echo -n "$witness_program" |
+      while read -n 2; do echo 0x$REPLY; done |
+      convertbits 8 5
+     )
   else return 255
   fi
 }
@@ -531,6 +535,65 @@ convertbits() {
     fi
   elif (( ((val << (outbits - bits)) & maxv ) || bits >= inbits))
   then return 1
+  fi
+}
+
+segwit_decode() {
+  local addr="$1"
+  if ! {
+      bech32_decode "$addr" ||
+      bech32_decode -m "$addr" 
+    } >/dev/null
+  then return 1
+  else
+    {
+      bech32_decode "$addr" ||
+      bech32_decode -m "$addr" 
+    } |
+    {
+      local hrp
+      read hrp
+      if [[ ! "$hrp" =~ ^(bc|tb)$ ]]
+      then return 2
+      fi
+      local -i version
+      read version
+      if ((version > 0)) && bech32_decode "$addr" >/dev/null
+      then return 3
+      elif ((version == 0)) && bech32_decode -m "$addr" >/dev/null
+      then return 4
+      elif ((version > 16))
+      then return 5
+      fi
+      mapfile -t
+      local p
+      local -a bytes
+      bytes=($(
+        for p in ${MAPFILE[@]}
+        do echo $p
+        done |
+        convertbits 5 8 0
+      )) || return 6
+      if
+	((
+	  ${#bytes[@]} == 0 ||
+	  ${#bytes[@]} <  2 ||
+	  ${#bytes[@]} > 40
+	))
+      then return 7
+      elif ((
+	 version == 0 &&
+	 ${#bytes[@]} != 20 &&
+	 ${#bytes[@]} != 32
+      ))
+      then return 8
+      else
+	echo $hrp
+	echo $version
+	printf "%02x" "${bytes[@]}"
+	echo
+      fi
+    }
   fi
 }
 
@@ -905,7 +968,6 @@ bip85() {
 	  base58 -d <<<"$REPLY"
 	else cat
 	fi
-	echo "deriving path $path" >&2
       } |
       bip32 "$path" |
       tail -c 32 |
@@ -1243,3 +1305,4 @@ bitcoinAddress() {
   else return 1
   fi
 }
+
