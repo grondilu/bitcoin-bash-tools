@@ -638,6 +638,8 @@ pegged-entropy()
 	  echo "input out of range" >&2
 	  return 2
 	fi
+        # https://stackoverflow.com/questions/9134638/using-read-without-triggering-a-newline-action-on-terminal
+        echo -en "\033[1A\033[2K" >&2
         ((c += REPLY))
 	printf "%02d" "$REPLY"
       done
