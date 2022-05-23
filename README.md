@@ -49,7 +49,7 @@
     $ bip85 mnemo
     $ bip85 xprv
 
-    $ prove bitcoin-bash-tools/t/*.t.sh
+    $ (cd bitcoin-bash-tools; prove t/*.t.sh;)
 
 <a name=description />
 
