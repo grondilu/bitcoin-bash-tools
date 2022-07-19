@@ -5,8 +5,9 @@ echo 1..58
 
 let -i a b t=0
 
-while ((t++ < 10))
+while ((t < 10))
 do
+  ((t++))
   u="$(openssl rand -hex 32)"; u="${u^^}"
   v="$(openssl rand -hex 32)"; v="${v^^}"
   if [[ "$(dc -e "$secp256k1 16doi$u $v +ln%lGrlMx lG$u lMx lG$v lMx lAx -p")" = 0 ]]
