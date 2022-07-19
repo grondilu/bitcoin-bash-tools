@@ -45,7 +45,9 @@ xLms#_4Rd_5R*+*ln%]sS"
 
 hash160() {
   openssl dgst -sha256 -binary |
-  openssl dgst -rmd160 -binary
+  # https://github.com/openssl/openssl/issues/16994
+  #openssl dgst -rmd160 -binary
+  openssl dgst -provider legacy -rmd160 -binary
 }
 
 ser32()
@@ -69,7 +71,7 @@ ser256()
 base58()
   if
     local -a base58_chars=(
-	1 2 3 4 5 6 7 8 9
+        1 2 3 4 5 6 7 8 9
       A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
       a b c d e f g h i j k   m n o p q r s t u v w x y z
     )
@@ -102,10 +104,10 @@ base58()
         then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
         elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
         then
-	  {
-	    printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-	    sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
-	  } | dc
+          {
+            printf "s%c\n" "${base58_chars[@]}" | nl -v 0
+            sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
+          } | dc
         elif [[ -n "$input" ]]
         then return 1
         fi |
@@ -122,7 +124,7 @@ base58()
         tee >(
            openssl dgst -sha256 -binary |
            openssl dgst -sha256 -binary |
-	   head -c 4
+           head -c 4
         ) < "${1:-/dev/stdin}" |
         ${FUNCNAME[0]}
         ;;
@@ -137,10 +139,10 @@ base58()
       done
       if test -n "$hex"
       then
-	dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
-	while read -r
-	do echo -n "${base58_chars[REPLY]}"
-	done
+        dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
+        while read -r
+        do echo -n "${base58_chars[REPLY]}"
+        done
       fi
       echo
     }
@@ -179,12 +181,12 @@ wif()
          head -c 32 |
          if test -t 1
          then
-	   {
-	     # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-	     xxd -p -r <<<"302E0201010420"
-	     cat
-	     xxd -p -r <<<"A00706052B8104000A"
-	   } | openssl ec -inform der
+           {
+             # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
+             xxd -p -r <<<"302E0201010420"
+             cat
+             xxd -p -r <<<"A00706052B8104000A"
+           } | openssl ec -inform der
          else cat
          fi
          ;;
@@ -255,7 +257,7 @@ bech32()
       ;;
       m) BECH32_CONST=0x2bc830a3 ${FUNCNAME[0]} "$@" ;;
       v)
-	if [[ "$OPTARG" =~ ^(.{1,83})1([$bech32_charset]{6,})$ ]]
+        if [[ "$OPTARG" =~ ^(.{1,83})1([$bech32_charset]{6,})$ ]]
         then
           ${FUNCNAME[0]} "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]::-6}" |
           grep -q "^$OPTARG$"
@@ -397,15 +399,15 @@ bech32_decode()
       do echo "${bech32_charset_reverse[${data:$p:1}]}"
       done |
       {
-	mapfile -t
-	if verifyChecksum "$hrp" "${MAPFILE[@]}"
-	then
-	  echo $hrp
-	  for p in "${MAPFILE[@]::${#MAPFILE[@]}-6}"
-	  do echo $p
-	  done
-	else return 8
-	fi
+        mapfile -t
+        if verifyChecksum "$hrp" "${MAPFILE[@]}"
+        then
+          echo $hrp
+          for p in "${MAPFILE[@]::${#MAPFILE[@]}-6}"
+          do echo $p
+          done
+        else return 8
+        fi
       }
     fi
   fi
@@ -416,9 +418,10 @@ bech32_decode()
 
 p2wpkh() { segwitAddress -p "$1"; }
 
-segwitAddress() {
-  local OPTIND OPTARG o
-  if getopts hp:tv: o
+segwitAddress()
+  if
+    local OPTIND OPTARG o
+    getopts hp:tv: o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -433,7 +436,8 @@ segwitAddress() {
         then ${FUNCNAME[0]} "$@" "$(
           xxd -p -r <<<"$OPTARG" |
           openssl dgst -sha256 -binary |
-          openssl dgst -rmd160 -binary |
+          #openssl dgst -rmd160 -binary |
+          openssl dgst -provider legacy -rmd160 -binary |
           xxd -p -c 20
         )"
         else echo "-p option expects a compressed point as argument" >&2
@@ -461,9 +465,9 @@ segwitAddress() {
     then
       # P2WPKH or P2WSH
       bech32_encode "$hrp" $(
-	echo $version;
+        echo $version;
         echo -n "$witness_program" |
-	while read -n 2; do echo 0x$REPLY; done |
+        while read -n 2; do echo 0x$REPLY; done |
         convertbits 8 5
       )
     else
@@ -480,7 +484,6 @@ segwitAddress() {
      )
   else return 255
   fi
-}
 
 segwit_verify() {
   if bech32 -v "$1"
@@ -498,16 +501,16 @@ segwit_verify() {
       
       bytes=($(convertbits 5 8 0)) || return 4
       if
-	((
-	  ${#bytes[@]} == 0 ||
-	  ${#bytes[@]} <  2 ||
-	  ${#bytes[@]} > 40
-	))
+        ((
+          ${#bytes[@]} == 0 ||
+          ${#bytes[@]} <  2 ||
+          ${#bytes[@]} > 40
+        ))
       then return 7
       elif ((
-	 witness_version == 0 &&
-	 ${#bytes[@]} != 20 &&
-	 ${#bytes[@]} != 32
+         witness_version == 0 &&
+         ${#bytes[@]} != 20 &&
+         ${#bytes[@]} != 32
       ))
       then return 8
       fi
@@ -538,9 +541,10 @@ convertbits() {
   fi
 }
 
-segwit_decode() {
-  local addr="$1"
-  if ! {
+segwit_decode()
+  if
+    local addr="$1"
+    ! {
       bech32_decode "$addr" ||
       bech32_decode -m "$addr" 
     } >/dev/null
@@ -575,27 +579,26 @@ segwit_decode() {
         convertbits 5 8 0
       )) || return 6
       if
-	((
-	  ${#bytes[@]} == 0 ||
-	  ${#bytes[@]} <  2 ||
-	  ${#bytes[@]} > 40
-	))
+        ((
+          ${#bytes[@]} == 0 ||
+          ${#bytes[@]} <  2 ||
+          ${#bytes[@]} > 40
+        ))
       then return 7
       elif ((
-	 version == 0 &&
-	 ${#bytes[@]} != 20 &&
-	 ${#bytes[@]} != 32
+         version == 0 &&
+         ${#bytes[@]} != 20 &&
+         ${#bytes[@]} != 32
       ))
       then return 8
       else
-	echo $hrp
-	echo $version
-	printf "%02x" "${bytes[@]}"
-	echo
+        echo $hrp
+        echo $version
+        printf "%02x" "${bytes[@]}"
+        echo
       fi
     }
   fi
-}
 
 # bip-0173 code stops here }}}
 
@@ -632,16 +635,16 @@ pegged-entropy()
     {
       for peg in "$@"
       do
-	read -p "$peg $((++i))/${#@}: "
-	if ((REPLY > 99 || REPLY < 0))
-	then
-	  echo "input out of range" >&2
-	  return 2
-	fi
+        read -p "$peg $((++i))/${#@}: "
+        if ((REPLY > 99 || REPLY < 0))
+        then
+          echo "input out of range" >&2
+          return 2
+        fi
         # https://stackoverflow.com/questions/9134638/using-read-without-triggering-a-newline-action-on-terminal
         echo -en "\033[1A\033[2K" >&2
         ((c += REPLY))
-	printf "%02d" "$REPLY"
+        printf "%02d" "$REPLY"
       done
       echo " P"
       echo "checksum is $((c % 100))" >&2
@@ -690,16 +693,16 @@ bip32()
         ;;
       s) 
         {
-	  if [[ "$BITCOIN_NET" = 'TEST' ]]
-	  then printf "$header_format" $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
-	  else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
-	  fi
+          if [[ "$BITCOIN_NET" = 'TEST' ]]
+          then printf "$header_format" $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
+          else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
+          fi
           openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
           xxd -u -p -c 32 |
           tac |
           sed 2i00
         } |
-	xxd -p -r |
+        xxd -p -r |
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
@@ -714,7 +717,7 @@ bip32()
       if test -t 0 
       then
         read -p "eXtended key: "
-	base58 -d <<<"$REPLY"
+        base58 -d <<<"$REPLY"
       else cat
       fi |
       head -c 78 |
@@ -777,98 +780,98 @@ bip32()
       trap 'echo q >&"${DC[1]}"' RETURN
       while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
       do  
-	path="${path#/${BASH_REMATCH[1]}}"
-	local operator="${BASH_REMATCH[1]}" 
-	case "$operator" in
-	  N)
-	    case $version in
-	       $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
-		 ;;
-	       $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
-		 ;;
-	       $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
-		 version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
-	       $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
-		 version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
-	       *)
-		echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
-		read key <&"${DC[0]}"
-	    esac
-	    ;;
-	  +([[:digit:]])h)
-	    child_number=$(( ${operator%h} + (1 << 31) ))
-	    ;&
-	  +([[:digit:]]))
+        path="${path#/${BASH_REMATCH[1]}}"
+        local operator="${BASH_REMATCH[1]}" 
+        case "$operator" in
+          N)
+            case $version in
+               $((BIP32_TESTNET_PUBLIC_VERSION_CODE)))
+                 ;;
+               $((BIP32_MAINNET_PUBLIC_VERSION_CODE)))
+                 ;;
+               $((BIP32_MAINNET_PRIVATE_VERSION_CODE)))
+                 version=$BIP32_MAINNET_PUBLIC_VERSION_CODE;;&
+               $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
+                 version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
+               *)
+                echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+                read key <&"${DC[0]}"
+            esac
+            ;;
+          +([[:digit:]])h)
+            child_number=$(( ${operator%h} + (1 << 31) ))
+            ;&
+          +([[:digit:]]))
 
-	    ((depth++))
-	    local parent_id
-	    if [[ ! "$operator" =~ h$ ]]
-	    then child_number=$operator
-	    fi
+            ((depth++))
+            local parent_id
+            if [[ ! "$operator" =~ h$ ]]
+            then child_number=$operator
+            fi
 
-	    if isPrivate "$version"
-	    then # CKDpriv
+            if isPrivate "$version"
+            then # CKDpriv
 
-	      echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
-	      read parent_id <&"${DC[0]}"
-	      {
-		{
-		  if (( child_number >= (1 << 31) ))
-		  then
-		    printf "\x00"
-		    ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
-		  else
-		    xxd -p -r <<<"$parent_id"
-		  fi
-		  ser32 $child_number
-		} |
-		openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-		xxd -p -u -c 32 |
-		{
-		   read left
-		   read right
-		   echo "8d+doi$right ${key^^} $left+ln%p"
-		}
-	      } >&"${DC[1]}"
+              echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+              read parent_id <&"${DC[0]}"
+              {
+                {
+                  if (( child_number >= (1 << 31) ))
+                  then
+                    printf "\x00"
+                    ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
+                  else
+                    xxd -p -r <<<"$parent_id"
+                  fi
+                  ser32 $child_number
+                } |
+                openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
+                xxd -p -u -c 32 |
+                {
+                   read left
+                   read right
+                   echo "8d+doi$right ${key^^} $left+ln%p"
+                }
+              } >&"${DC[1]}"
 
-	    elif isPublic "$version"
-	    then # CKDpub
-	      parent_id="$key"
-	      if (( child_number >= (1 << 31) ))
-	      then
+            elif isPublic "$version"
+            then # CKDpub
+              parent_id="$key"
+              if (( child_number >= (1 << 31) ))
+              then
                 echo "extented public key can't produce a hardened child" >&2
                 return 4
-	      else
-		{
-		  {
-		    xxd -p -r <<<"$key"
-		    ser32 $child_number
-		  } |
-		  openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
-		  xxd -p -u -c 32 |
-		  {
-		     read left
-		     read right
-		     echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
-		  }
-		} >&"${DC[1]}"
-	      fi
-	    else
-	      echo "version is neither private nor public?!" >&2
-	      return 111
-	    fi
-	    read key <&"${DC[0]}"
-	    while ((${#key} < 66))
-	    do key="0$key"
-	    done
-	    echo rp >&"${DC[1]}"
-	    read chain_code <&"${DC[0]}"
-	    while ((${#chain_code} < 64))
-	    do chain_code="0$chain_code"
-	    done
-	    parent_fp="0x$(xxd -p -r <<<"$parent_id"|hash160 |head -c 4 |xxd -p)"
-	    ;;
-	esac 
+              else
+                {
+                  {
+                    xxd -p -r <<<"$key"
+                    ser32 $child_number
+                  } |
+                  openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
+                  xxd -p -u -c 32 |
+                  {
+                     read left
+                     read right
+                     echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
+                  }
+                } >&"${DC[1]}"
+              fi
+            else
+              echo "version is neither private nor public?!" >&2
+              return 111
+            fi
+            read key <&"${DC[0]}"
+            while ((${#key} < 66))
+            do key="0$key"
+            done
+            echo rp >&"${DC[1]}"
+            read chain_code <&"${DC[0]}"
+            while ((${#chain_code} < 64))
+            do chain_code="0$chain_code"
+            done
+            parent_fp="0x$(xxd -p -r <<<"$parent_id"|hash160 |head -c 4 |xxd -p)"
+            ;;
+        esac 
       done
     fi
 
@@ -915,9 +918,9 @@ bip85() {
       $FUNCNAME 32 ${2:-0} |
       xxd -p -u -c 64 |
       {
-	read
-	local left="${REPLY:0:64}" right="${REPLY:64:64}"
-	printf '%08x%02x%08x%08x%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
+        read
+        local left="${REPLY:0:64}" right="${REPLY:64:64}"
+        printf '%08x%02x%08x%08x%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
       } |
       xxd -p -r |
       bip32
@@ -953,8 +956,8 @@ bip85() {
       then echo "number of bytes out of range" >&2
         return 46
       else 
-	$FUNCNAME $num_bytes $index |
-	head -c $num_bytes
+        $FUNCNAME $num_bytes $index |
+        head -c $num_bytes
       fi
       ;;
     *)
@@ -964,12 +967,12 @@ bip85() {
       do path="$path/${i}h"
       done
       {
-	if test -t 0 
-	then 
-	  read -p "extended master key: "
-	  base58 -d <<<"$REPLY"
-	else cat
-	fi
+        if test -t 0 
+        then 
+          read -p "extended master key: "
+          base58 -d <<<"$REPLY"
+        else cat
+        fi
       } |
       bip32 "$path" |
       tail -c 32 |
@@ -1054,37 +1057,37 @@ pbkdf2() {
       block1=(${salt[@]} 0 0 0 0)
 
       (
-	step() {
-	  printf '%02x' "$@" |
-	  xxd -p -r |
-	  openssl dgst -"$hash_name" -hmac "$key_str" -binary |
-	  xxd -p -c 1 |
-	  sed 's/^/0x/'
-	}
-	for ((i=1;i<=l;i++))
-	do
-	  block1[${#salt[@]}+0]=$((i >> 24 & 0xff))
-	  block1[${#salt[@]}+1]=$((i >> 16 & 0xff))
-	  block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
-	  block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
-	  
-	  u=($(step "${block1[@]}"))
-	  printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
-	  t=(${u[@]})
-	  for ((j=1; j<iterations; j++))
-	  do
-	    printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
-	    u=($(step "${u[@]}"))
-	    for ((k=0; k<hLen; k++))
-	    do t[k]=$((t[k]^u[k]))
-	    done
-	  done
-	  echo >&2
-	  
-	  dk+=(${t[@]})
+        step() {
+          printf '%02x' "$@" |
+          xxd -p -r |
+          openssl dgst -"$hash_name" -hmac "$key_str" -binary |
+          xxd -p -c 1 |
+          sed 's/^/0x/'
+        }
+        for ((i=1;i<=l;i++))
+        do
+          block1[${#salt[@]}+0]=$((i >> 24 & 0xff))
+          block1[${#salt[@]}+1]=$((i >> 16 & 0xff))
+          block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
+          block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
+          
+          u=($(step "${block1[@]}"))
+          printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
+          t=(${u[@]})
+          for ((j=1; j<iterations; j++))
+          do
+            printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
+            u=($(step "${u[@]}"))
+            for ((k=0; k<hLen; k++))
+            do t[k]=$((t[k]^u[k]))
+            done
+          done
+          echo >&2
+          
+          dk+=(${t[@]})
 
-	done
-	printf "%02x" "${dk[@]:0:dkLen}"
+        done
+        printf "%02x" "${dk[@]:0:dkLen}"
       )
       echo
     ;;
@@ -1144,18 +1147,18 @@ function mnemonic-to-seed() {
        fi
        ;;&
       p)
-	read -p "Passphrase: "
-	BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"
-	;;
+        read -p "Passphrase: "
+        BIP39_PASSPHRASE="$REPLY" ${FUNCNAME[0]} "$@"
+        ;;
       P)
-	local passphrase
-	read -p "Passphrase:" -s passphrase
-	read -p "Confirm passphrase:" -s
-	if [[ "$REPLY" = "$passphrase" ]]
-	then BIP39_PASSPHRASE=$passphrase $FUNCNAME "$@"
-	else echo "passphrase input error" >&2; return 3;
-	fi
-	;;
+        local passphrase
+        read -p "Passphrase:" -s passphrase
+        read -p "Confirm passphrase:" -s
+        if [[ "$REPLY" = "$passphrase" ]]
+        then BIP39_PASSPHRASE=$passphrase $FUNCNAME "$@"
+        else echo "passphrase input error" >&2; return 3;
+        fi
+        ;;
     esac
   else
     check-mnemonic "$@"
