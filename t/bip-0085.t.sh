@@ -4,7 +4,7 @@
 
 rootxprv=xprv9s21ZrQH143K2LBWUUQRFXhucrQqBpKdRRxNVq2zBqsx8HVqFk2uYo8kmbaLLHRdqtQpUm98uKfu3vca1LqdGhUtyoFnCNkfmXRyPXLjbKb
 
-echo 1..7
+echo 1..$(grep -c "^if " ${BASH_SOURCE[0]})
 
 base58 -d <<<"$rootxprv" |
 bip85 0 |
