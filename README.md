@@ -444,6 +444,7 @@ You can specify an optional index :
 ## Related projects
 
 - [bx](https://github.com/libbitcoin/libbitcoin-explorer), a much more complete command-line utility written in C++.
+- [learnmeabitcoin.com](https://learnmeabitcoin.com/), a very nice website explaining how bitcoin works.
 
 <a name=feedback />
 
