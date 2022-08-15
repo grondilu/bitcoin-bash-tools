@@ -18,13 +18,10 @@ do
     *)    bip32 -s "$path/N" ;;
   esac |
   base58 -c |
-  {
-    read -r pubkey
-    if [[ "$(bitcoinAddress "$pubkey")" = $address ]]
-    then echo "ok $n - $path: $address"
-    else echo "not ok $n - $path: expected $address, got $(bitcoinAddress "$pubkey")"
-    fi
-  }
+  if read -r pubkey; [[ "$(bitcoinAddress "$pubkey")" = $address ]]
+  then echo "ok $n - $path: $address"
+  else echo "not ok $n - $path: expected $address, got $(bitcoinAddress "$pubkey")"
+  fi
 done <<EOF
 /44h/0h/0h/0/0 1AZnveys2k5taGCCF743RtrWGwc58UMeq
 /44h/0h/0h/0/1 1AMYJTJyV4o1hwNACJtfdXBW6BiD1f5FXb
