@@ -43,11 +43,15 @@ l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
 2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
 xLms#_4Rd_5R*+*ln%]sS"
 
-hash160() {
-  openssl dgst -sha256 -binary |
+ripemd160() {
   # https://github.com/openssl/openssl/issues/16994
-  #openssl dgst -rmd160 -binary
-  openssl dgst -provider legacy -rmd160 -binary
+  # "-provider legacy" for openssl 3.0 || fallback for old versions
+  2>/dev/null openssl dgst -provider legacy -rmd160 -binary ||
+  openssl dgst -rmd160 -binary
+}
+
+hash160() {
+  openssl dgst -sha256 -binary | ripemd160
 }
 
 ser32()
@@ -435,9 +439,7 @@ segwitAddress()
         if [[ "$OPTARG" =~ ^0[23][[:xdigit:]]{64}$ ]]
         then ${FUNCNAME[0]} "$@" "$(
           xxd -p -r <<<"$OPTARG" |
-          openssl dgst -sha256 -binary |
-          #openssl dgst -rmd160 -binary |
-          openssl dgst -provider legacy -rmd160 -binary |
+          hash160 |
           xxd -p -c 20
         )"
         else echo "-p option expects a compressed point as argument" >&2
