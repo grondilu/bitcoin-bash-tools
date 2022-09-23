@@ -280,7 +280,7 @@ bech32()
     local -i ord p out_of_range=0
     for ((p=0;p<${#hrp};p++))
     do
-      printf -v ord "%d" "'${hrp:$p:1}"
+      printf -v ord "%d" "'${hrp:p:1}"
       if ((ord < 33 || ord > 126))
       then out_of_range=1; break
       fi
@@ -317,12 +317,12 @@ polymod() {
 hrpExpand() {
   local -i p ord
   for ((p=0; p < ${#1}; ++p))
-  do printf -v ord "%d" "'${1:$p:1}"
+  do printf -v ord "%d" "'${1:p:1}"
     echo $(( ord >> 5 ))
   done
   echo 0
   for ((p=0; p < ${#1}; ++p))
-  do printf -v ord "%d" "'${1:$p:1}"
+  do printf -v ord "%d" "'${1:p:1}"
     echo $(( ord & 31 ))
   done
 }
@@ -375,7 +375,7 @@ bech32_decode()
 
     for ((p=0;p<${#bechString};++p))
     do
-      printf -v ord "%d" "'${bechString:$p:1}"
+      printf -v ord "%d" "'${bechString:p:1}"
       if   ((ord <  33 || ord >  126))
       then return 1
       elif ((ord >= 97 && ord <= 122))
@@ -400,7 +400,7 @@ bech32_decode()
     then return 6 # data is too short
     else
       for ((p=0;p<${#data};++p))
-      do echo "${bech32_charset_reverse[${data:$p:1}]}"
+      do echo "${bech32_charset_reverse[${data:p:1}]}"
       done |
       {
         mapfile -t
@@ -695,7 +695,7 @@ bip32()
         ;;
       s) 
         {
-          if [[ "$BITCOIN_NET" = 'TEST' ]]
+          if [[ "$BITCOIN_NET" = TEST ]]
           then printf "$header_format" $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
           else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
           fi
