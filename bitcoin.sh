@@ -697,7 +697,8 @@ bip32()
           then printf "$header_format" $BIP32_TESTNET_PRIVATE_VERSION_CODE 0 0 0
           else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
           fi
-          openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+          #openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
+	  openssl mac -digest sha512 -macopt key:"Bitcoin seed" -binary hmac |
           xxd -u -p -c 32 |
           tac |
           sed 2i00
