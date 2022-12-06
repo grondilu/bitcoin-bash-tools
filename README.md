@@ -258,7 +258,9 @@ supported, it will use English.
 To override local language settings, set the `LANG` environment variable :
 
     $ LANG=zh_TW create-mnemonic
-    凍 濾 槍 斷 覆 捉 斷 山 未 飛 沿 始 瓦 曰 撐
+    凍濾槍斷覆捉斷山未飛沿始瓦曰撐
+
+As you can see, Chinese output does not use spaces.
 
 Alternatively, the function can take as argument some noise in hexadecimal (the
 corresponding number of bits must be a multiple of 32).

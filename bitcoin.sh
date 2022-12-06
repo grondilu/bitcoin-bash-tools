@@ -951,11 +951,7 @@ bip85()
       {
         read
         create-mnemonic "$REPLY"
-      } |
-      if [[ "$LANG" =~ ^zh_ ]]
-      then sed 's/ //g'
-      else cat
-      fi
+      }
       ;;
     hex)
       local -i num_bytes=${1:-8} index=${2:-0}
@@ -1228,7 +1224,11 @@ function create-mnemonic() {
     {
       mapfile -t
       echo "${MAPFILE[*]}"
-    }
+    } |
+    if [[ "$LANG" =~ ^zh_ ]]
+    then sed 's/ //g'
+    else cat
+    fi
   elif (($# == 0))
   then $FUNCNAME 160
   else
