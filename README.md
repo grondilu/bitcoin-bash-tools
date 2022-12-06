@@ -388,7 +388,7 @@ To override the locales settings, use the LANG environnement variable :
 As mentionned, you can specify the number of words with an additional argument :
     
     $ base58 -d <<<"$root" | LANG=zh_CN bip85 mnemo 24
-    探 腐 书 知 讲 看 偷 项 努 高 纹 任 付 穆 滑 丝 悲 娘 值 郑 倒 踏 呢 丙
+    探腐书知讲看偷项努高纹任付穆滑丝悲娘值郑倒踏呢丙
 
 #### HD-Seed WIF
 

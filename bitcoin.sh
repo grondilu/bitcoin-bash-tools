@@ -910,7 +910,7 @@ alias xkey=bip32
 alias ykey=bip49
 alias zkey=bip84
 
-bip85() {
+bip85()
   case "$1" in
     wif)
       shift
@@ -951,7 +951,11 @@ bip85() {
       {
         read
         create-mnemonic "$REPLY"
-      }
+      } |
+      if [[ "$LANG" =~ ^zh_ ]]
+      then sed 's/ //g'
+      else cat
+      fi
       ;;
     hex)
       local -i num_bytes=${1:-8} index=${2:-0}
@@ -979,14 +983,13 @@ bip85() {
       } |
       bip32 "$path" |
       tail -c 32 |
-      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary
+      openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
+      if test -t 1
+      then cat -v
+      else cat
+      fi
       ;;
-  esac |
-  if test -t 1
-  then cat -v
-  else cat
-  fi
-}
+  esac
   
 # bip-0039 code starts here {{{
 
