@@ -439,6 +439,7 @@ You can specify an optional index :
 * offline transactions [ ]
 * ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
 * put everything in a single file [ ]
+* use [Jacobian coordinates](https://en.wikibooks.org/wiki/Cryptography/Prime_Curve/Jacobian_Coordinates) [ ]
 
 
 <a name=related />
