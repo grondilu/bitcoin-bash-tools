@@ -34,6 +34,7 @@ edges
   grep '^[kxy] =' |
   cut -d ' ' -f 3 | {
     coproc DC { dc -e "$secp256k1" -; }
+    trap 'echo q >&"${DC[1]}"' EXIT
     while read k; read x; read y
     do
       ((t++))
@@ -44,7 +45,6 @@ edges
       else echo "not ok $t - $k"
       fi
     done
-    echo q >&"${DC[1]}"
   }
 } <<EOF
 # source: https://chuckbatson.wordpress.com/2014/11/26/secp256k1-test-vectors/
