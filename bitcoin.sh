@@ -106,12 +106,8 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^1.+ ]]
         then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-        elif [[ "$input" =~ ^[$(printf %s ${base58_chars[@]})]+$ ]]
-        then
-          {
-            printf "s%c\n" "${base58_chars[@]}" | nl -v 0
-            sed -e i0 -e 's/./ 58*l&+/g' -e aP <<<"$input"
-          } | dc
+        elif (IFS=; [[ "$input" =~ ^[${base58_chars[*]}]+$ ]])
+        then dc -e "0${base58_chars[*]//?/ds&1+} 0${input//?/ 58*l&+}P"
         elif [[ -n "$input" ]]
         then return 1
         fi |
@@ -1317,3 +1313,4 @@ bitcoinAddress() {
   fi
 }
 
+# vi: ft=bash
