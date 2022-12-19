@@ -288,12 +288,6 @@ The passphrase can also be given with the `BIP39_PASSPHRASE` environment variabl
 
     $ BIP39_PASSPHRASE=sesame mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
-`mnemonic-to-seed` is a bit slow as it uses bash code to compute
-[PBKDF2](https://fr.wikipedia.org/wiki/PBKDF2).  For faster execution, set
-the environment variable `PBKDF2_METHOD` to "python".
-
-    $ PBKDF2_METHOD=python mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
-
 <a name=major />
 
 #### Major system
