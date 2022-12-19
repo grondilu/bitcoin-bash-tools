@@ -1013,90 +1013,6 @@ bip39_language() {
   esac
 }
 
-pbkdf2() {
-  local hash_name="$1" key_str="$2" salt_str="$3"
-  local -i iterations=$4
-
-  case "$PBKDF2_METHOD" in
-    python)
-      python <<-PYTHON
-	import hashlib;
-	print(
-	  hashlib.pbkdf2_hmac(
-	    "$hash_name",
-	    "$key_str".encode("utf-8"),
-	    "$salt_str".encode("utf-8"),
-	    $iterations,
-	    ${5:None}
-	  ).hex()
-	)
-	PYTHON
-      ;;
-    *)
-      # Translated from https://github.com/bitpay/bitcore/blob/master/packages/bitcore-mnemonic/lib/pbkdf2.js
-      # /**
-      # * PBKDF2
-      # * Credit to: https://github.com/stayradiated/pbkdf2-sha512
-      # * Copyright (c) 2014, JP Richardson Copyright (c) 2010-2011 Intalio Pte, All Rights Reserved
-      # */
-      declare -ai key salt u t block1 dk
-      declare -i hLen="$(openssl dgst "-$hash_name" -binary <<<"foo" |wc -c)"
-      declare -i dkLen=${5:-hLen}
-      declare -i i j k l=$(( (dkLen+hLen-1)/hLen ))
-
-      for ((i=0; i<${#key_str}; i++))
-      do printf -v "key[$i]" "%d" "'${key_str:i:1}"
-      done
-
-      for ((i=0; i<${#salt_str}; i++))
-      do printf -v "salt[$i]" "%d" "'${salt_str:i:1}"
-      done
-
-      block1=(${salt[@]} 0 0 0 0)
-
-      (
-        step() {
-          printf '%02x' "$@" |
-          xxd -p -r |
-          openssl dgst -"$hash_name" -hmac "$key_str" -binary |
-          xxd -p -c 1 |
-          sed 's/^/0x/'
-        }
-        for ((i=1;i<=l;i++))
-        do
-          block1[${#salt[@]}+0]=$((i >> 24 & 0xff))
-          block1[${#salt[@]}+1]=$((i >> 16 & 0xff))
-          block1[${#salt[@]}+2]=$((i >>  8 & 0xff))
-          block1[${#salt[@]}+3]=$((i >>  0 & 0xff))
-          
-          u=($(step "${block1[@]}"))
-          printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l 1 $iterations >&2
-          t=(${u[@]})
-          for ((j=1; j<iterations; j++))
-          do
-            printf "\rPBKDF2: bloc %d/%d, iteration %d/%d" $i $l $((j+1)) $iterations >&2
-            u=($(step "${u[@]}"))
-            for ((k=0; k<hLen; k++))
-            do ((t[k]^=u[k]))
-            done
-          done
-          echo >&2
-          
-          dk+=(${t[@]})
-
-        done
-        printf "%02x" "${dk[@]:0:dkLen}"
-      )
-      echo
-    ;;
-  esac |
-  xxd -p -r |
-  if [[ -t 1 ]]
-  then cat -v
-  else cat
-  fi
-}
-
 check-mnemonic()
   if [[ $# =~ ^(12|15|18|21|24)$ ]]
   then
@@ -1164,7 +1080,16 @@ function mnemonic-to-seed() {
       1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
       2) echo "WARNING: wrong mnemonic checksum."        >&2 ;;&
       3) echo "WARNING: unexpected number of words."     >&2 ;;&
-      *) pbkdf2 sha512 "$*" "mnemonic$BIP39_PASSPHRASE" 2048 ;;
+      *) openssl kdf -keylen 64 -kdfopt digest:SHA512 \
+	  -kdfopt pass:"$*" \
+	  -kdfopt salt:"mnemonic$BIP39_PASSPHRASE" \
+	  -kdfopt iter:2048 -binary \
+	  PBKDF2 |
+	  if [[ -t 1 ]]
+	  then cat -v
+	  else cat
+	  fi
+	;;
     esac
   fi
 }
