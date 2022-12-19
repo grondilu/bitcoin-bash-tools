@@ -60,3 +60,4 @@ then echo "ok - good xprv"
 else echo "not ok - wrong xprv"
 fi
 
+# vi: ft=bash

@@ -41,3 +41,4 @@ then echo ok $n
 else echo not ok $n
 fi
 
+# vi: ft=bash

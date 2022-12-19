@@ -197,3 +197,5 @@ do
   else echo "not ok $n - failed to detect error for $address"
   fi
 done
+
+# vi: ft=bash

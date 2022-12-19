@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # examples extracted from https://learnmeabitcoin.com/technical/derivation-paths
 
@@ -84,3 +84,5 @@ done <<EOF
 /84h/0h/0h/0/18 bc1qak5fdj3ns7g95j2akh4549kjjj9hycjz25xe4q
 /84h/0h/0h/0/19 bc1qppmtqmppec2n45w5uhr3gked7xzqh8z07h7r2t
 EOF
+
+# vi: ft=bash

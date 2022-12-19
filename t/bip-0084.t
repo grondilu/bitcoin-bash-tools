@@ -111,3 +111,5 @@ else echo "not ok $n"
 fi
 
 rm "$seed"
+
+# vi: ft=bash

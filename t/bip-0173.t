@@ -86,3 +86,5 @@ do
   else echo "not ok $t - false positive for '$v'" 
   fi
 done
+
+# vi: ft=bash

@@ -69,4 +69,4 @@ c10ec20dc3cd9f652c7fac2f1230f7a3c828389a14392f05:scissors invite lock maple supr
 f585c11aec520db57dd353c69554b21a89b20fb0650966fa0a9d6f74fd989d8f:void come effort suffer camp survey warrior heavy shoot primary clutch crush open amazing screen patrol group space point ten exist slush involve unfold:01f5bced59dec48e362f2c45b5de68b9fd6c92c6634f44d6d40aab69056506f0e35524a518034ddc1192e1dacd32c1ed3eaa3c3b131c88ed8e7e54c49a5d0998:xprv9s21ZrQH143K39rnQJknpH1WEPFJrzmAqqasiDcVrNuk926oizzJDDQkdiTvNPr2FYDYzWgiMiC63YmfPAa2oPyNB23r2g7d1yiK6WpqaQS
 EOF
 
-#vi: ft=bash
+# vi: ft=bash
