@@ -60,4 +60,12 @@ then echo "ok - good xprv"
 else echo "not ok - wrong xprv"
 fi
 
+base58 -d <<<"$rootxprv" |
+bip85 hex 64 |
+if grep -qi '^492db4698cf3b73a5a24998aa3e9d7fa96275d85724a91e71aa2d645442f878555d078fd1f1f67e368976f04137b1f7a0d19232136ca50c44614af72b5582a5c$'
+then echo "ok - good hex"
+else echo "not ok - wrong hex"
+fi
+
+
 # vi: ft=bash
