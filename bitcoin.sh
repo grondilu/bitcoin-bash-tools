@@ -26,7 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-secp256k1="I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/
+secp256k1='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/
 rl%xLms#]s~[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+
 483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
@@ -41,7 +41,7 @@ l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
 0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]dSLxs#LPs#LQs#]sM[[d2
 %1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%
 2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
-xLms#_4Rd_5R*+*ln%]sS"
+xLms#_4Rd_5R*+*ln%]sS'
 
 ripemd160() {
   # https://github.com/openssl/openssl/issues/16994
@@ -62,7 +62,8 @@ ser32()
     return 1
   fi
 
-ser256()
+ser256() (
+  shopt -s extglob
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{65,})$ ]]
   then echo "unexpectedly large parameter" >&2; return 1
   elif   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
@@ -71,6 +72,7 @@ ser256()
   then $FUNCNAME "0x0${BASH_REMATCH[2]}"
   else return 1
   fi
+)
 
 base58()
   if
@@ -654,11 +656,11 @@ pegged-entropy()
     fi
   fi
 
-bip32()
-  if
-    local header_format='%08x%02x%08x%08x' 
-    local OPTIND OPTARG o
-    getopts hst o
+bip32() (
+  shopt -s extglob
+  local header_format='%08x%02x%08x%08x' 
+  local OPTIND OPTARG o
+  if getopts hst o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -805,7 +807,7 @@ bip32()
             ((depth++))
             local parent_id
             if [[ ! "$operator" =~ h$ ]]
-            then child_number=$operator
+            then child_number=operator
             fi
 
             if isPrivate "$version"
@@ -883,6 +885,7 @@ bip32()
 
   else return 255
   fi
+)
 
 # bip-0032 code stops here }}}
 
@@ -925,38 +928,41 @@ bip85()
       bip32
       ;;
     mnemo*)
-      local -i words=${2:-12} index=${3:-0} lang
-      shopt -s extglob
-      case "$LANG" in
-        ja?(_*))  lang=1;;
-        ko?(_*))  lang=2;;
-        es?(_*))  lang=3;;
-        zh_CN)    lang=4;;
-        zh_TW)    lang=5;;
-        fr?(_*))  lang=6;;
-        it?(_*))  lang=7;;
-        cz?(_*))  lang=8;;
-        *)        lang=0;;
-      esac
-      # CS = ENT / 32
-      # MS = (ENT + CS) / 11
-      local -i ent=$((words*32/3))
-      $FUNCNAME 39 $lang $words $index |
-      head -c $((ent/8)) |
-      xxd -p -c $((ent/8)) |
-      {
-        read
-        create-mnemonic "$REPLY"
-      }
+      local -i words=${2:-12} index=${3:-0} lang ent=words*32/3
+      (
+	shopt -s extglob
+	case "$LANG" in
+	  ja?(_*))  lang=1;;
+	  ko?(_*))  lang=2;;
+	  es?(_*))  lang=3;;
+	  zh_CN)    lang=4;;
+	  zh_TW)    lang=5;;
+	  fr?(_*))  lang=6;;
+	  it?(_*))  lang=7;;
+	  cz?(_*))  lang=8;;
+	  *)        lang=0;;
+	esac
+	# CS = ENT / 32
+	# MS = (ENT + CS) / 11
+	$FUNCNAME 39 $lang $words $index
+      ) |
+	head -c $((ent/8)) |
+	xxd -p -c $((ent/8)) |
+	{
+	  read
+	  create-mnemonic "$REPLY"
+	}
       ;;
     hex)
-      local -i num_bytes=${1:-8} index=${2:-0}
+      shift
+      local -i num_bytes=${1:-16} index=${2:-0}
       if ((num_bytes < 16 || num_bytes > 64))
-      then echo "number of bytes out of range" >&2
+      then echo "number of bytes ($num_bytes) out of range" >&2
         return 46
       else 
-        $FUNCNAME $num_bytes $index |
-        head -c $num_bytes
+        $FUNCNAME 128169 $num_bytes $index |
+        head -c $num_bytes |
+	xxd -p -c 128
       fi
       ;;
     *)
@@ -997,7 +1003,7 @@ declare -a chinese_traditional=(的 一 是 在 不 了 有 和 人 這 中 大 
 declare -a french=(abaisser abandon abdiquer abeille abolir aborder aboutir aboyer abrasif abreuver abriter abroger abrupt absence absolu absurde abusif abyssal académie acajou acarien accabler accepter acclamer accolade accroche accuser acerbe achat acheter aciduler acier acompte acquérir acronyme acteur actif actuel adepte adéquat adhésif adjectif adjuger admettre admirer adopter adorer adoucir adresse adroit adulte adverbe aérer aéronef affaire affecter affiche affreux affubler agacer agencer agile agiter agrafer agréable agrume aider aiguille ailier aimable aisance ajouter ajuster alarmer alchimie alerte algèbre algue aliéner aliment alléger alliage allouer allumer alourdir alpaga altesse alvéole amateur ambigu ambre aménager amertume amidon amiral amorcer amour amovible amphibie ampleur amusant analyse anaphore anarchie anatomie ancien anéantir angle angoisse anguleux animal annexer annonce annuel anodin anomalie anonyme anormal antenne antidote anxieux apaiser apéritif aplanir apologie appareil appeler apporter appuyer aquarium aqueduc arbitre arbuste ardeur ardoise argent arlequin armature armement armoire armure arpenter arracher arriver arroser arsenic artériel article aspect asphalte aspirer assaut asservir assiette associer assurer asticot astre astuce atelier atome atrium atroce attaque attentif attirer attraper aubaine auberge audace audible augurer aurore automne autruche avaler avancer avarice avenir averse aveugle aviateur avide avion aviser avoine avouer avril axial axiome badge bafouer bagage baguette baignade balancer balcon baleine balisage bambin bancaire bandage banlieue bannière banquier barbier baril baron barque barrage bassin bastion bataille bateau batterie baudrier bavarder belette bélier belote bénéfice berceau berger berline bermuda besace besogne bétail beurre biberon bicycle bidule bijou bilan bilingue billard binaire biologie biopsie biotype biscuit bison bistouri bitume bizarre blafard blague blanchir blessant blinder blond bloquer blouson bobard bobine boire boiser bolide bonbon bondir bonheur bonifier bonus bordure borne botte boucle boueux bougie boulon bouquin bourse boussole boutique boxeur branche brasier brave brebis brèche breuvage bricoler brigade brillant brioche brique brochure broder bronzer brousse broyeur brume brusque brutal bruyant buffle buisson bulletin bureau burin bustier butiner butoir buvable buvette cabanon cabine cachette cadeau cadre caféine caillou caisson calculer calepin calibre calmer calomnie calvaire camarade caméra camion campagne canal caneton canon cantine canular capable caporal caprice capsule capter capuche carabine carbone caresser caribou carnage carotte carreau carton cascade casier casque cassure causer caution cavalier caverne caviar cédille ceinture céleste cellule cendrier censurer central cercle cérébral cerise cerner cerveau cesser chagrin chaise chaleur chambre chance chapitre charbon chasseur chaton chausson chavirer chemise chenille chéquier chercher cheval chien chiffre chignon chimère chiot chlorure chocolat choisir chose chouette chrome chute cigare cigogne cimenter cinéma cintrer circuler cirer cirque citerne citoyen citron civil clairon clameur claquer classe clavier client cligner climat clivage cloche clonage cloporte cobalt cobra cocasse cocotier coder codifier coffre cogner cohésion coiffer coincer colère colibri colline colmater colonel combat comédie commande compact concert conduire confier congeler connoter consonne contact convexe copain copie corail corbeau cordage corniche corpus correct cortège cosmique costume coton coude coupure courage couteau couvrir coyote crabe crainte cravate crayon créature créditer crémeux creuser crevette cribler crier cristal critère croire croquer crotale crucial cruel crypter cubique cueillir cuillère cuisine cuivre culminer cultiver cumuler cupide curatif curseur cyanure cycle cylindre cynique daigner damier danger danseur dauphin débattre débiter déborder débrider débutant décaler décembre déchirer décider déclarer décorer décrire décupler dédale déductif déesse défensif défiler défrayer dégager dégivrer déglutir dégrafer déjeuner délice déloger demander demeurer démolir dénicher dénouer dentelle dénuder départ dépenser déphaser déplacer déposer déranger dérober désastre descente désert désigner désobéir dessiner destrier détacher détester détourer détresse devancer devenir deviner devoir diable dialogue diamant dicter différer digérer digital digne diluer dimanche diminuer dioxyde directif diriger discuter disposer dissiper distance divertir diviser docile docteur dogme doigt domaine domicile dompter donateur donjon donner dopamine dortoir dorure dosage doseur dossier dotation douanier double douceur douter doyen dragon draper dresser dribbler droiture duperie duplexe durable durcir dynastie éblouir écarter écharpe échelle éclairer éclipse éclore écluse école économie écorce écouter écraser écrémer écrivain écrou écume écureuil édifier éduquer effacer effectif effigie effort effrayer effusion égaliser égarer éjecter élaborer élargir électron élégant éléphant élève éligible élitisme éloge élucider éluder emballer embellir embryon émeraude émission emmener émotion émouvoir empereur employer emporter emprise émulsion encadrer enchère enclave encoche endiguer endosser endroit enduire énergie enfance enfermer enfouir engager engin englober énigme enjamber enjeu enlever ennemi ennuyeux enrichir enrobage enseigne entasser entendre entier entourer entraver énumérer envahir enviable envoyer enzyme éolien épaissir épargne épatant épaule épicerie épidémie épier épilogue épine épisode épitaphe époque épreuve éprouver épuisant équerre équipe ériger érosion erreur éruption escalier espadon espèce espiègle espoir esprit esquiver essayer essence essieu essorer estime estomac estrade étagère étaler étanche étatique éteindre étendoir éternel éthanol éthique ethnie étirer étoffer étoile étonnant étourdir étrange étroit étude euphorie évaluer évasion éventail évidence éviter évolutif évoquer exact exagérer exaucer exceller excitant exclusif excuse exécuter exemple exercer exhaler exhorter exigence exiler exister exotique expédier explorer exposer exprimer exquis extensif extraire exulter fable fabuleux facette facile facture faiblir falaise fameux famille farceur farfelu farine farouche fasciner fatal fatigue faucon fautif faveur favori fébrile féconder fédérer félin femme fémur fendoir féodal fermer féroce ferveur festival feuille feutre février fiasco ficeler fictif fidèle figure filature filetage filière filleul filmer filou filtrer financer finir fiole firme fissure fixer flairer flamme flasque flatteur fléau flèche fleur flexion flocon flore fluctuer fluide fluvial folie fonderie fongible fontaine forcer forgeron formuler fortune fossile foudre fougère fouiller foulure fourmi fragile fraise franchir frapper frayeur frégate freiner frelon frémir frénésie frère friable friction frisson frivole froid fromage frontal frotter fruit fugitif fuite fureur furieux furtif fusion futur gagner galaxie galerie gambader garantir gardien garnir garrigue gazelle gazon géant gélatine gélule gendarme général génie genou gentil géologie géomètre géranium germe gestuel geyser gibier gicler girafe givre glace glaive glisser globe gloire glorieux golfeur gomme gonfler gorge gorille goudron gouffre goulot goupille gourmand goutte graduel graffiti graine grand grappin gratuit gravir grenat griffure griller grimper grogner gronder grotte groupe gruger grutier gruyère guépard guerrier guide guimauve guitare gustatif gymnaste gyrostat habitude hachoir halte hameau hangar hanneton haricot harmonie harpon hasard hélium hématome herbe hérisson hermine héron hésiter heureux hiberner hibou hilarant histoire hiver homard hommage homogène honneur honorer honteux horde horizon horloge hormone horrible houleux housse hublot huileux humain humble humide humour hurler hydromel hygiène hymne hypnose idylle ignorer iguane illicite illusion image imbiber imiter immense immobile immuable impact impérial implorer imposer imprimer imputer incarner incendie incident incliner incolore indexer indice inductif inédit ineptie inexact infini infliger informer infusion ingérer inhaler inhiber injecter injure innocent inoculer inonder inscrire insecte insigne insolite inspirer instinct insulter intact intense intime intrigue intuitif inutile invasion inventer inviter invoquer ironique irradier irréel irriter isoler ivoire ivresse jaguar jaillir jambe janvier jardin jauger jaune javelot jetable jeton jeudi jeunesse joindre joncher jongler joueur jouissif journal jovial joyau joyeux jubiler jugement junior jupon juriste justice juteux juvénile kayak kimono kiosque label labial labourer lacérer lactose lagune laine laisser laitier lambeau lamelle lampe lanceur langage lanterne lapin largeur larme laurier lavabo lavoir lecture légal léger légume lessive lettre levier lexique lézard liasse libérer libre licence licorne liège lièvre ligature ligoter ligue limer limite limonade limpide linéaire lingot lionceau liquide lisière lister lithium litige littoral livreur logique lointain loisir lombric loterie louer lourd loutre louve loyal lubie lucide lucratif lueur lugubre luisant lumière lunaire lundi luron lutter luxueux machine magasin magenta magique maigre maillon maintien mairie maison majorer malaxer maléfice malheur malice mallette mammouth mandater maniable manquant manteau manuel marathon marbre marchand mardi maritime marqueur marron marteler mascotte massif matériel matière matraque maudire maussade mauve maximal méchant méconnu médaille médecin méditer méduse meilleur mélange mélodie membre mémoire menacer mener menhir mensonge mentor mercredi mérite merle messager mesure métal météore méthode métier meuble miauler microbe miette mignon migrer milieu million mimique mince minéral minimal minorer minute miracle miroiter missile mixte mobile moderne moelleux mondial moniteur monnaie monotone monstre montagne monument moqueur morceau morsure mortier moteur motif mouche moufle moulin mousson mouton mouvant multiple munition muraille murène murmure muscle muséum musicien mutation muter mutuel myriade myrtille mystère mythique nageur nappe narquois narrer natation nation nature naufrage nautique navire nébuleux nectar néfaste négation négliger négocier neige nerveux nettoyer neurone neutron neveu niche nickel nitrate niveau noble nocif nocturne noirceur noisette nomade nombreux nommer normatif notable notifier notoire nourrir nouveau novateur novembre novice nuage nuancer nuire nuisible numéro nuptial nuque nutritif obéir objectif obliger obscur observer obstacle obtenir obturer occasion occuper océan octobre octroyer octupler oculaire odeur odorant offenser officier offrir ogive oiseau oisillon olfactif olivier ombrage omettre onctueux onduler onéreux onirique opale opaque opérer opinion opportun opprimer opter optique orageux orange orbite ordonner oreille organe orgueil orifice ornement orque ortie osciller osmose ossature otarie ouragan ourson outil outrager ouvrage ovation oxyde oxygène ozone paisible palace palmarès palourde palper panache panda pangolin paniquer panneau panorama pantalon papaye papier papoter papyrus paradoxe parcelle paresse parfumer parler parole parrain parsemer partager parure parvenir passion pastèque paternel patience patron pavillon pavoiser payer paysage peigne peintre pelage pélican pelle pelouse peluche pendule pénétrer pénible pensif pénurie pépite péplum perdrix perforer période permuter perplexe persil perte peser pétale petit pétrir peuple pharaon phobie phoque photon phrase physique piano pictural pièce pierre pieuvre pilote pinceau pipette piquer pirogue piscine piston pivoter pixel pizza placard plafond plaisir planer plaque plastron plateau pleurer plexus pliage plomb plonger pluie plumage pochette poésie poète pointe poirier poisson poivre polaire policier pollen polygone pommade pompier ponctuel pondérer poney portique position posséder posture potager poteau potion pouce poulain poumon pourpre poussin pouvoir prairie pratique précieux prédire préfixe prélude prénom présence prétexte prévoir primitif prince prison priver problème procéder prodige profond progrès proie projeter prologue promener propre prospère protéger prouesse proverbe prudence pruneau psychose public puceron puiser pulpe pulsar punaise punitif pupitre purifier puzzle pyramide quasar querelle question quiétude quitter quotient racine raconter radieux ragondin raideur raisin ralentir rallonge ramasser rapide rasage ratisser ravager ravin rayonner réactif réagir réaliser réanimer recevoir réciter réclamer récolter recruter reculer recycler rédiger redouter refaire réflexe réformer refrain refuge régalien région réglage régulier réitérer rejeter rejouer relatif relever relief remarque remède remise remonter remplir remuer renard renfort renifler renoncer rentrer renvoi replier reporter reprise reptile requin réserve résineux résoudre respect rester résultat rétablir retenir réticule retomber retracer réunion réussir revanche revivre révolte révulsif richesse rideau rieur rigide rigoler rincer riposter risible risque rituel rival rivière rocheux romance rompre ronce rondin roseau rosier rotatif rotor rotule rouge rouille rouleau routine royaume ruban rubis ruche ruelle rugueux ruiner ruisseau ruser rustique rythme sabler saboter sabre sacoche safari sagesse saisir salade salive salon saluer samedi sanction sanglier sarcasme sardine saturer saugrenu saumon sauter sauvage savant savonner scalpel scandale scélérat scénario sceptre schéma science scinder score scrutin sculpter séance sécable sécher secouer sécréter sédatif séduire seigneur séjour sélectif semaine sembler semence séminal sénateur sensible sentence séparer séquence serein sergent sérieux serrure sérum service sésame sévir sevrage sextuple sidéral siècle siéger siffler sigle signal silence silicium simple sincère sinistre siphon sirop sismique situer skier social socle sodium soigneux soldat soleil solitude soluble sombre sommeil somnoler sonde songeur sonnette sonore sorcier sortir sosie sottise soucieux soudure souffle soulever soupape source soutirer souvenir spacieux spatial spécial sphère spiral stable station sternum stimulus stipuler strict studieux stupeur styliste sublime substrat subtil subvenir succès sucre suffixe suggérer suiveur sulfate superbe supplier surface suricate surmener surprise sursaut survie suspect syllabe symbole symétrie synapse syntaxe système tabac tablier tactile tailler talent talisman talonner tambour tamiser tangible tapis taquiner tarder tarif tartine tasse tatami tatouage taupe taureau taxer témoin temporel tenaille tendre teneur tenir tension terminer terne terrible tétine texte thème théorie thérapie thorax tibia tiède timide tirelire tiroir tissu titane titre tituber toboggan tolérant tomate tonique tonneau toponyme torche tordre tornade torpille torrent torse tortue totem toucher tournage tousser toxine traction trafic tragique trahir train trancher travail trèfle tremper trésor treuil triage tribunal tricoter trilogie triomphe tripler triturer trivial trombone tronc tropical troupeau tuile tulipe tumulte tunnel turbine tuteur tutoyer tuyau tympan typhon typique tyran ubuesque ultime ultrason unanime unifier union unique unitaire univers uranium urbain urticant usage usine usuel usure utile utopie vacarme vaccin vagabond vague vaillant vaincre vaisseau valable valise vallon valve vampire vanille vapeur varier vaseux vassal vaste vecteur vedette végétal véhicule veinard véloce vendredi vénérer venger venimeux ventouse verdure vérin vernir verrou verser vertu veston vétéran vétuste vexant vexer viaduc viande victoire vidange vidéo vignette vigueur vilain village vinaigre violon vipère virement virtuose virus visage viseur vision visqueux visuel vital vitesse viticole vitrine vivace vivipare vocation voguer voile voisin voiture volaille volcan voltiger volume vorace vortex voter vouloir voyage voyelle wagon xénon yacht zèbre zénith zeste zoologie)
 declare -a japanese=(あいこくしん あいさつ あいだ あおぞら あかちゃん あきる あけがた あける あこがれる あさい あさひ あしあと あじわう あずかる あずき あそぶ あたえる あたためる あたりまえ あたる あつい あつかう あっしゅく あつまり あつめる あてな あてはまる あひる あぶら あぶる あふれる あまい あまど あまやかす あまり あみもの あめりか あやまる あゆむ あらいぐま あらし あらすじ あらためる あらゆる あらわす ありがとう あわせる あわてる あんい あんがい あんこ あんぜん あんてい あんない あんまり いいだす いおん いがい いがく いきおい いきなり いきもの いきる いくじ いくぶん いけばな いけん いこう いこく いこつ いさましい いさん いしき いじゅう いじょう いじわる いずみ いずれ いせい いせえび いせかい いせき いぜん いそうろう いそがしい いだい いだく いたずら いたみ いたりあ いちおう いちじ いちど いちば いちぶ いちりゅう いつか いっしゅん いっせい いっそう いったん いっち いってい いっぽう いてざ いてん いどう いとこ いない いなか いねむり いのち いのる いはつ いばる いはん いびき いひん いふく いへん いほう いみん いもうと いもたれ いもり いやがる いやす いよかん いよく いらい いらすと いりぐち いりょう いれい いれもの いれる いろえんぴつ いわい いわう いわかん いわば いわゆる いんげんまめ いんさつ いんしょう いんよう うえき うえる うおざ うがい うかぶ うかべる うきわ うくらいな うくれれ うけたまわる うけつけ うけとる うけもつ うける うごかす うごく うこん うさぎ うしなう うしろがみ うすい うすぎ うすぐらい うすめる うせつ うちあわせ うちがわ うちき うちゅう うっかり うつくしい うったえる うつる うどん うなぎ うなじ うなずく うなる うねる うのう うぶげ うぶごえ うまれる うめる うもう うやまう うよく うらがえす うらぐち うらない うりあげ うりきれ うるさい うれしい うれゆき うれる うろこ うわき うわさ うんこう うんちん うんてん うんどう えいえん えいが えいきょう えいご えいせい えいぶん えいよう えいわ えおり えがお えがく えきたい えくせる えしゃく えすて えつらん えのぐ えほうまき えほん えまき えもじ えもの えらい えらぶ えりあ えんえん えんかい えんぎ えんげき えんしゅう えんぜつ えんそく えんちょう えんとつ おいかける おいこす おいしい おいつく おうえん おうさま おうじ おうせつ おうたい おうふく おうべい おうよう おえる おおい おおう おおどおり おおや おおよそ おかえり おかず おがむ おかわり おぎなう おきる おくさま おくじょう おくりがな おくる おくれる おこす おこなう おこる おさえる おさない おさめる おしいれ おしえる おじぎ おじさん おしゃれ おそらく おそわる おたがい おたく おだやか おちつく おっと おつり おでかけ おとしもの おとなしい おどり おどろかす おばさん おまいり おめでとう おもいで おもう おもたい おもちゃ おやつ おやゆび およぼす おらんだ おろす おんがく おんけい おんしゃ おんせん おんだん おんちゅう おんどけい かあつ かいが がいき がいけん がいこう かいさつ かいしゃ かいすいよく かいぜん かいぞうど かいつう かいてん かいとう かいふく がいへき かいほう かいよう がいらい かいわ かえる かおり かかえる かがく かがし かがみ かくご かくとく かざる がぞう かたい かたち がちょう がっきゅう がっこう がっさん がっしょう かなざわし かのう がはく かぶか かほう かほご かまう かまぼこ かめれおん かゆい かようび からい かるい かろう かわく かわら がんか かんけい かんこう かんしゃ かんそう かんたん かんち がんばる きあい きあつ きいろ ぎいん きうい きうん きえる きおう きおく きおち きおん きかい きかく きかんしゃ ききて きくばり きくらげ きけんせい きこう きこえる きこく きさい きさく きさま きさらぎ ぎじかがく ぎしき ぎじたいけん ぎじにってい ぎじゅつしゃ きすう きせい きせき きせつ きそう きぞく きぞん きたえる きちょう きつえん ぎっちり きつつき きつね きてい きどう きどく きない きなが きなこ きぬごし きねん きのう きのした きはく きびしい きひん きふく きぶん きぼう きほん きまる きみつ きむずかしい きめる きもだめし きもち きもの きゃく きやく ぎゅうにく きよう きょうりゅう きらい きらく きりん きれい きれつ きろく ぎろん きわめる ぎんいろ きんかくじ きんじょ きんようび ぐあい くいず くうかん くうき くうぐん くうこう ぐうせい くうそう ぐうたら くうふく くうぼ くかん くきょう くげん ぐこう くさい くさき くさばな くさる くしゃみ くしょう くすのき くすりゆび くせげ くせん ぐたいてき くださる くたびれる くちこみ くちさき くつした ぐっすり くつろぐ くとうてん くどく くなん くねくね くのう くふう くみあわせ くみたてる くめる くやくしょ くらす くらべる くるま くれる くろう くわしい ぐんかん ぐんしょく ぐんたい ぐんて けあな けいかく けいけん けいこ けいさつ げいじゅつ けいたい げいのうじん けいれき けいろ けおとす けおりもの げきか げきげん げきだん げきちん げきとつ げきは げきやく げこう げこくじょう げざい けさき げざん けしき けしごむ けしょう げすと けたば けちゃっぷ けちらす けつあつ けつい けつえき けっこん けつじょ けっせき けってい けつまつ げつようび げつれい けつろん げどく けとばす けとる けなげ けなす けなみ けぬき げねつ けねん けはい げひん けぶかい げぼく けまり けみかる けむし けむり けもの けらい けろけろ けわしい けんい けんえつ けんお けんか げんき けんげん けんこう けんさく けんしゅう けんすう げんそう けんちく けんてい けんとう けんない けんにん げんぶつ けんま けんみん けんめい けんらん けんり こあくま こいぬ こいびと ごうい こうえん こうおん こうかん ごうきゅう ごうけい こうこう こうさい こうじ こうすい ごうせい こうそく こうたい こうちゃ こうつう こうてい こうどう こうない こうはい ごうほう ごうまん こうもく こうりつ こえる こおり ごかい ごがつ ごかん こくご こくさい こくとう こくない こくはく こぐま こけい こける ここのか こころ こさめ こしつ こすう こせい こせき こぜん こそだて こたい こたえる こたつ こちょう こっか こつこつ こつばん こつぶ こてい こてん ことがら ことし ことば ことり こなごな こねこね このまま このみ このよ ごはん こひつじ こふう こふん こぼれる ごまあぶら こまかい ごますり こまつな こまる こむぎこ こもじ こもち こもの こもん こやく こやま こゆう こゆび こよい こよう こりる これくしょん ころっけ こわもて こわれる こんいん こんかい こんき こんしゅう こんすい こんだて こんとん こんなん こんびに こんぽん こんまけ こんや こんれい こんわく ざいえき さいかい さいきん ざいげん ざいこ さいしょ さいせい ざいたく ざいちゅう さいてき ざいりょう さうな さかいし さがす さかな さかみち さがる さぎょう さくし さくひん さくら さこく さこつ さずかる ざせき さたん さつえい ざつおん ざっか ざつがく さっきょく ざっし さつじん ざっそう さつたば さつまいも さてい さといも さとう さとおや さとし さとる さのう さばく さびしい さべつ さほう さほど さます さみしい さみだれ さむけ さめる さやえんどう さゆう さよう さよく さらだ ざるそば さわやか さわる さんいん さんか さんきゃく さんこう さんさい ざんしょ さんすう さんせい さんそ さんち さんま さんみ さんらん しあい しあげ しあさって しあわせ しいく しいん しうち しえい しおけ しかい しかく じかん しごと しすう じだい したうけ したぎ したて したみ しちょう しちりん しっかり しつじ しつもん してい してき してつ じてん じどう しなぎれ しなもの しなん しねま しねん しのぐ しのぶ しはい しばかり しはつ しはらい しはん しひょう しふく じぶん しへい しほう しほん しまう しまる しみん しむける じむしょ しめい しめる しもん しゃいん しゃうん しゃおん じゃがいも しやくしょ しゃくほう しゃけん しゃこ しゃざい しゃしん しゃせん しゃそう しゃたい しゃちょう しゃっきん じゃま しゃりん しゃれい じゆう じゅうしょ しゅくはく じゅしん しゅっせき しゅみ しゅらば じゅんばん しょうかい しょくたく しょっけん しょどう しょもつ しらせる しらべる しんか しんこう じんじゃ しんせいじ しんちく しんりん すあげ すあし すあな ずあん すいえい すいか すいとう ずいぶん すいようび すうがく すうじつ すうせん すおどり すきま すくう すくない すける すごい すこし ずさん すずしい すすむ すすめる すっかり ずっしり ずっと すてき すてる すねる すのこ すはだ すばらしい ずひょう ずぶぬれ すぶり すふれ すべて すべる ずほう すぼん すまい すめし すもう すやき すらすら するめ すれちがう すろっと すわる すんぜん すんぽう せあぶら せいかつ せいげん せいじ せいよう せおう せかいかん せきにん せきむ せきゆ せきらんうん せけん せこう せすじ せたい せたけ せっかく せっきゃく ぜっく せっけん せっこつ せっさたくま せつぞく せつだん せつでん せっぱん せつび せつぶん せつめい せつりつ せなか せのび せはば せびろ せぼね せまい せまる せめる せもたれ せりふ ぜんあく せんい せんえい せんか せんきょ せんく せんげん ぜんご せんさい せんしゅ せんすい せんせい せんぞ せんたく せんちょう せんてい せんとう せんぬき せんねん せんぱい ぜんぶ ぜんぽう せんむ せんめんじょ せんもん せんやく せんゆう せんよう ぜんら ぜんりゃく せんれい せんろ そあく そいとげる そいね そうがんきょう そうき そうご そうしん そうだん そうなん そうび そうめん そうり そえもの そえん そがい そげき そこう そこそこ そざい そしな そせい そせん そそぐ そだてる そつう そつえん そっかん そつぎょう そっけつ そっこう そっせん そっと そとがわ そとづら そなえる そなた そふぼ そぼく そぼろ そまつ そまる そむく そむりえ そめる そもそも そよかぜ そらまめ そろう そんかい そんけい そんざい そんしつ そんぞく そんちょう ぞんび ぞんぶん そんみん たあい たいいん たいうん たいえき たいおう だいがく たいき たいぐう たいけん たいこ たいざい だいじょうぶ だいすき たいせつ たいそう だいたい たいちょう たいてい だいどころ たいない たいねつ たいのう たいはん だいひょう たいふう たいへん たいほ たいまつばな たいみんぐ たいむ たいめん たいやき たいよう たいら たいりょく たいる たいわん たうえ たえる たおす たおる たおれる たかい たかね たきび たくさん たこく たこやき たさい たしざん だじゃれ たすける たずさわる たそがれ たたかう たたく ただしい たたみ たちばな だっかい だっきゃく だっこ だっしゅつ だったい たてる たとえる たなばた たにん たぬき たのしみ たはつ たぶん たべる たぼう たまご たまる だむる ためいき ためす ためる たもつ たやすい たよる たらす たりきほんがん たりょう たりる たると たれる たれんと たろっと たわむれる だんあつ たんい たんおん たんか たんき たんけん たんご たんさん たんじょうび だんせい たんそく たんたい だんち たんてい たんとう だんな たんにん だんねつ たんのう たんぴん だんぼう たんまつ たんめい だんれつ だんろ だんわ ちあい ちあん ちいき ちいさい ちえん ちかい ちから ちきゅう ちきん ちけいず ちけん ちこく ちさい ちしき ちしりょう ちせい ちそう ちたい ちたん ちちおや ちつじょ ちてき ちてん ちぬき ちぬり ちのう ちひょう ちへいせん ちほう ちまた ちみつ ちみどろ ちめいど ちゃんこなべ ちゅうい ちゆりょく ちょうし ちょさくけん ちらし ちらみ ちりがみ ちりょう ちるど ちわわ ちんたい ちんもく ついか ついたち つうか つうじょう つうはん つうわ つかう つかれる つくね つくる つけね つける つごう つたえる つづく つつじ つつむ つとめる つながる つなみ つねづね つのる つぶす つまらない つまる つみき つめたい つもり つもる つよい つるぼ つるみく つわもの つわり てあし てあて てあみ ていおん ていか ていき ていけい ていこく ていさつ ていし ていせい ていたい ていど ていねい ていひょう ていへん ていぼう てうち ておくれ てきとう てくび でこぼこ てさぎょう てさげ てすり てそう てちがい てちょう てつがく てつづき でっぱ てつぼう てつや でぬかえ てぬき てぬぐい てのひら てはい てぶくろ てふだ てほどき てほん てまえ てまきずし てみじか てみやげ てらす てれび てわけ てわたし でんあつ てんいん てんかい てんき てんぐ てんけん てんごく てんさい てんし てんすう でんち てんてき てんとう てんない てんぷら てんぼうだい てんめつ てんらんかい でんりょく でんわ どあい といれ どうかん とうきゅう どうぐ とうし とうむぎ とおい とおか とおく とおす とおる とかい とかす ときおり ときどき とくい とくしゅう とくてん とくに とくべつ とけい とける とこや とさか としょかん とそう とたん とちゅう とっきゅう とっくん とつぜん とつにゅう とどける ととのえる とない となえる となり とのさま とばす どぶがわ とほう とまる とめる ともだち ともる どようび とらえる とんかつ どんぶり ないかく ないこう ないしょ ないす ないせん ないそう なおす ながい なくす なげる なこうど なさけ なたでここ なっとう なつやすみ ななおし なにごと なにもの なにわ なのか なふだ なまいき なまえ なまみ なみだ なめらか なめる なやむ ならう ならび ならぶ なれる なわとび なわばり にあう にいがた にうけ におい にかい にがて にきび にくしみ にくまん にげる にさんかたんそ にしき にせもの にちじょう にちようび にっか にっき にっけい にっこう にっさん にっしょく にっすう にっせき にってい になう にほん にまめ にもつ にやり にゅういん にりんしゃ にわとり にんい にんか にんき にんげん にんしき にんずう にんそう にんたい にんち にんてい にんにく にんぷ にんまり にんむ にんめい にんよう ぬいくぎ ぬかす ぬぐいとる ぬぐう ぬくもり ぬすむ ぬまえび ぬめり ぬらす ぬんちゃく ねあげ ねいき ねいる ねいろ ねぐせ ねくたい ねくら ねこぜ ねこむ ねさげ ねすごす ねそべる ねだん ねつい ねっしん ねつぞう ねったいぎょ ねぶそく ねふだ ねぼう ねほりはほり ねまき ねまわし ねみみ ねむい ねむたい ねもと ねらう ねわざ ねんいり ねんおし ねんかん ねんきん ねんぐ ねんざ ねんし ねんちゃく ねんど ねんぴ ねんぶつ ねんまつ ねんりょう ねんれい のいず のおづま のがす のきなみ のこぎり のこす のこる のせる のぞく のぞむ のたまう のちほど のっく のばす のはら のべる のぼる のみもの のやま のらいぬ のらねこ のりもの のりゆき のれん のんき ばあい はあく ばあさん ばいか ばいく はいけん はいご はいしん はいすい はいせん はいそう はいち ばいばい はいれつ はえる はおる はかい ばかり はかる はくしゅ はけん はこぶ はさみ はさん はしご ばしょ はしる はせる ぱそこん はそん はたん はちみつ はつおん はっかく はづき はっきり はっくつ はっけん はっこう はっさん はっしん はったつ はっちゅう はってん はっぴょう はっぽう はなす はなび はにかむ はぶらし はみがき はむかう はめつ はやい はやし はらう はろうぃん はわい はんい はんえい はんおん はんかく はんきょう ばんぐみ はんこ はんしゃ はんすう はんだん ぱんち ぱんつ はんてい はんとし はんのう はんぱ はんぶん はんぺん はんぼうき はんめい はんらん はんろん ひいき ひうん ひえる ひかく ひかり ひかる ひかん ひくい ひけつ ひこうき ひこく ひさい ひさしぶり ひさん びじゅつかん ひしょ ひそか ひそむ ひたむき ひだり ひたる ひつぎ ひっこし ひっし ひつじゅひん ひっす ひつぜん ぴったり ぴっちり ひつよう ひてい ひとごみ ひなまつり ひなん ひねる ひはん ひびく ひひょう ひほう ひまわり ひまん ひみつ ひめい ひめじし ひやけ ひやす ひよう びょうき ひらがな ひらく ひりつ ひりょう ひるま ひるやすみ ひれい ひろい ひろう ひろき ひろゆき ひんかく ひんけつ ひんこん ひんしゅ ひんそう ぴんち ひんぱん びんぼう ふあん ふいうち ふうけい ふうせん ぷうたろう ふうとう ふうふ ふえる ふおん ふかい ふきん ふくざつ ふくぶくろ ふこう ふさい ふしぎ ふじみ ふすま ふせい ふせぐ ふそく ぶたにく ふたん ふちょう ふつう ふつか ふっかつ ふっき ふっこく ぶどう ふとる ふとん ふのう ふはい ふひょう ふへん ふまん ふみん ふめつ ふめん ふよう ふりこ ふりる ふるい ふんいき ぶんがく ぶんぐ ふんしつ ぶんせき ふんそう ぶんぽう へいあん へいおん へいがい へいき へいげん へいこう へいさ へいしゃ へいせつ へいそ へいたく へいてん へいねつ へいわ へきが へこむ べにいろ べにしょうが へらす へんかん べんきょう べんごし へんさい へんたい べんり ほあん ほいく ぼうぎょ ほうこく ほうそう ほうほう ほうもん ほうりつ ほえる ほおん ほかん ほきょう ぼきん ほくろ ほけつ ほけん ほこう ほこる ほしい ほしつ ほしゅ ほしょう ほせい ほそい ほそく ほたて ほたる ぽちぶくろ ほっきょく ほっさ ほったん ほとんど ほめる ほんい ほんき ほんけ ほんしつ ほんやく まいにち まかい まかせる まがる まける まこと まさつ まじめ ますく まぜる まつり まとめ まなぶ まぬけ まねく まほう まもる まゆげ まよう まろやか まわす まわり まわる まんが まんきつ まんぞく まんなか みいら みうち みえる みがく みかた みかん みけん みこん みじかい みすい みすえる みせる みっか みつかる みつける みてい みとめる みなと みなみかさい みねらる みのう みのがす みほん みもと みやげ みらい みりょく みわく みんか みんぞく むいか むえき むえん むかい むかう むかえ むかし むぎちゃ むける むげん むさぼる むしあつい むしば むじゅん むしろ むすう むすこ むすぶ むすめ むせる むせん むちゅう むなしい むのう むやみ むよう むらさき むりょう むろん めいあん めいうん めいえん めいかく めいきょく めいさい めいし めいそう めいぶつ めいれい めいわく めぐまれる めざす めした めずらしい めだつ めまい めやす めんきょ めんせき めんどう もうしあげる もうどうけん もえる もくし もくてき もくようび もちろん もどる もらう もんく もんだい やおや やける やさい やさしい やすい やすたろう やすみ やせる やそう やたい やちん やっと やっぱり やぶる やめる ややこしい やよい やわらかい ゆうき ゆうびんきょく ゆうべ ゆうめい ゆけつ ゆしゅつ ゆせん ゆそう ゆたか ゆちゃく ゆでる ゆにゅう ゆびわ ゆらい ゆれる ようい ようか ようきゅう ようじ ようす ようちえん よかぜ よかん よきん よくせい よくぼう よけい よごれる よさん よしゅう よそう よそく よっか よてい よどがわく よねつ よやく よゆう よろこぶ よろしい らいう らくがき らくご らくさつ らくだ らしんばん らせん らぞく らたい らっか られつ りえき りかい りきさく りきせつ りくぐん りくつ りけん りこう りせい りそう りそく りてん りねん りゆう りゅうがく りよう りょうり りょかん りょくちゃ りょこう りりく りれき りろん りんご るいけい るいさい るいじ るいせき るすばん るりがわら れいかん れいぎ れいせい れいぞうこ れいとう れいぼう れきし れきだい れんあい れんけい れんこん れんさい れんしゅう れんぞく れんらく ろうか ろうご ろうじん ろうそく ろくが ろこつ ろじうら ろしゅつ ろせん ろてん ろめん ろれつ ろんぎ ろんぱ ろんぶん ろんり わかす わかめ わかやま わかれる わしつ わじまし わすれもの わらう われる)
 
-bip39_language() {
+bip39_language() (
   shopt -s extglob
   case "${LANG::5}" in
     fr?(_*)) echo french ;;
@@ -1011,7 +1017,7 @@ bip39_language() {
     ja?(_*)) echo japanese ;;
     *) echo english ;;
   esac
-}
+)
 
 check-mnemonic()
   if [[ $# =~ ^(12|15|18|21|24)$ ]]
@@ -1043,7 +1049,7 @@ check-mnemonic()
 
 complete -W "${english[*]}" mnemonic-to-seed
 function mnemonic-to-seed() {
-  local OPTIND 
+  local o OPTIND 
   if getopts hpP o
   then
     shift $((OPTIND - 1))
@@ -1167,7 +1173,8 @@ p2pkh-address() {
   } | base58 -c
 }
  
-bitcoinAddress() {
+bitcoinAddress() (
+  shopt -s extglob
   local OPTIND o
   if getopts ht o
   then shift $((OPTIND - 1))
@@ -1236,6 +1243,6 @@ bitcoinAddress() {
     }
   else return 1
   fi
-}
+)
 
 # vi: ft=bash
