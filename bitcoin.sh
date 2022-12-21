@@ -26,22 +26,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-secp256k1='I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts#]s%[Smddl%x-lm/
-rl%xLms#]s~[[L0s#0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+
+secp256k1="
+I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts@]s%[Smddl%x-lm/rl%xLms@]s~
+[[L0s@0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+2 100^ds<d
+14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsm [I1d+d+d*i1
 483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-2 100^ds<d14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsml<*
-+sGi[*l%x]s*[-l%x]s-[l%xsclmsd1su0sv0sr1st[q]SQ[lc0=Qldlcl~xlcsd
-scsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs#LQs#lrl%x]sI[lpd1+4/
-r|]sR[lpSm[+lCxq]S0[l1lDxlCxq]Sd[0lCxq]SzdS1rdS2r[L0s#L1s#L2s#Ld
-s#Lms#LCs#]SCd0=0rd0=0r=dl1l</l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</
-l1l</l-xlIxl2l<%l1l<%l-xl*xd2lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1
-l<%l-xrl<*+lCx]sA[lpSm[LCxq]S0dl<~SySx[Lms#L0s#LCs#Lxs#Lys#]SC0
-=0lxd*3*la+ly2*lIxl*xdd*lx2*l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rs.
-0r[rl.lAxr]SP[q]sQ[d0!<Qd2%1=P2/l.lDxs.lLx]dSLxs#LPs#LQs#]sM[[d2
-%1=_q]s2 2 2 8^^~dsxd3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%
-2+l<*rl</+]sC[l<~dlYx3R2%rd3R+2%1=_rl<*+]s>[dlGrlMxl</ln%rlnSmlI
-xLms#_4Rd_5R*+*ln%]sS'
+4Ri]dsgx3Rs@l<*+sG[*l%x]s*[-l%x]s-[l%xSclmSd1Su0Sv0Sr1St[q]SQ[lc
+0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs@LQs@Lc
+s@Lds@Lus@Lvs@Lrl%xLts@]sI[lpd1+4/r|]sRi[lpSm[+lCxq]S0[l1lDxlCxq
+]Sd[0lCxq]SzdS1rdS2r[L0s@L1s@L2s@Lds@Lms@LCs@]SCd0=0rd0=0r=dl1l<
+/l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2
+lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]
+S0dl<~SySx[Lms@L0s@LCs@Lxs@Lys@]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*
+l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rS.0r[rl.lAxr]SP[q]SQ[d0=Qd2%1
+=P2/l.lDxs.lLx]dSLxs@L.s@LLs@LPs@LQs@]sM[[d2%1=_q]s2 2 2 8^^~dsx
+d3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[l<~dlY
+x3R2%rd3R+2%1=_rl<*+]s>[1_3R]sj[3Rd_3Rdl*xd_3RlIxl*x_4Rl*xlIxl*x
+r]sf[[LQs@q]SQ3Rd_4R0=QLQs@[3R0*_3RLQs@q]SQrd_3R0=QLQs@rdd*lm%3R
+d3Rd3R4**lm%3Rd*3*lm%5R5R*2*lm%rdd*lm%4Rd_3R2*l-xd_6Rl-x*3Rd*8*
+l-x3R]s:[_4RSXSYSZ[s@0ddL0s@q]S0d0=0[_4RlZlYlXlPx4R]S+[q]SQ0dd4R
+[d0=Qd2%1=+2/lZlYlXl:xsXsYsZlLx]dSLxLXs@LYs@LZs@s@LLs@L0s@L+s@LQ
+s@]s;[3Rd[s@s@s@Lqs@q]Sq0=qLqs@6Rd[s@4Rs@4Rs@_3RLqs@q]Sq0=qLqs@d
+dl*xd3Rd_4Rl*x6Rd3Rl*x3R6Rd3Rl*x6Rddl*xd3Rd_4Rl*x5d+Rl*x9R3Rl*x4
+Rd_3Rl-x3R6Rd_3Rl-x3R[[s@s@s@s@s@s@0 0 0L1s@L2s@3Q]S2s@0*0=2s@s@
+4Rs@_3Rl:xL1s@L2s@q]S1d0=1L1s@6Rs@6Rs@ddl*xd3Rd3Rl*x4Rddl*x7R6R
+l*xd2l*x5Rd5R_4R_4R+l-xd4Rr5R_3Rl-xl*x5R4Rl*xl-x_5R_5Rl*xl*xr3R]
+sP[[[INFINITY]nLIs@q]SI3Rd0=I_3RLIs@IO_5R_5Rlfx1d+d+d*doi2 100^d
+3Rr2*+_3Rr2%*+[0]nnAPoi]se"
 
 ripemd160() {
   # https://github.com/openssl/openssl/issues/16994
@@ -660,6 +672,7 @@ bip32() (
   shopt -s extglob
   local header_format='%08x%02x%08x%08x' 
   local OPTIND OPTARG o
+  #echo "BIP32 $@" >&2
   if getopts hst o
   then
     shift $((OPTIND - 1))
@@ -778,7 +791,7 @@ bip32() (
     if test -n "$path"
     then
       coproc DC { dc -e "$secp256k1" -; }
-      trap 'echo q >&"${DC[1]}"' RETURN
+      trap 'echo q >&"${DC[1]}"' EXIT RETURN
       while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
       do  
         path="${path#/${BASH_REMATCH[1]}}"
@@ -795,8 +808,10 @@ bip32() (
                $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
                  version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
                *)
-                echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+		#echo -n "$key ..." >&2
+                echo "4d*doilgx${key^^}l;xlex" >&"${DC[1]}"
                 read key <&"${DC[0]}"
+		#echo "done" >&2
             esac
             ;;
           +([[:digit:]])h)
@@ -813,7 +828,7 @@ bip32() (
             if isPrivate "$version"
             then # CKDpriv
 
-              echo "8d+doilG${key^^}lMxlEx" >&"${DC[1]}"
+              echo "4d*doilgx${key^^}l;xlex" >&"${DC[1]}"
               read parent_id <&"${DC[0]}"
               {
                 {
@@ -831,7 +846,7 @@ bip32() (
                 {
                    read left
                    read right
-                   echo "8d+doi$right ${key^^} $left+ln%p"
+                   echo "4d*doi$right ${key^^} $left+ln%p"
                 }
               } >&"${DC[1]}"
 
@@ -848,12 +863,12 @@ bip32() (
                     xxd -p -r <<<"$key"
                     ser32 $child_number
                   } |
-                  openssl dgst -sha512 -mac hmac -macopt hexkey:$chain_code -binary |
+                  openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
                   xxd -p -u -c 32 |
                   {
                      read left
                      read right
-                     echo "8d+doi$right lG$left lMx ${key^^}l>xlAxlEx"
+                     echo "8d+doi$right lgx$left l;x ${key^^}l>x l<~rljx lPxlex 0"
                   }
                 } >&"${DC[1]}"
               fi
@@ -1195,7 +1210,7 @@ bitcoinAddress() (
     [[ "$(base58 -d <<<"$1" |xxd -p -c 38)" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
   then
     {
-      echo "$secp256k1 lG16doi${BASH_REMATCH[2]^^}lMx"
+      echo "$secp256k1 16doi lgx ${BASH_REMATCH[2]^^}l;xlfxl<*+"
       if test -n "${BASH_REMATCH[3]}"
       then echo lCx
       else echo lUx

@@ -3,44 +3,51 @@
 . bitcoin.sh
 echo 1..58
 
-let -i a b t=0
+declare -i t
 
 while ((t < 10))
 do
   ((t++))
-  u="$(openssl rand -hex 32)"; u="${u^^}"
-  v="$(openssl rand -hex 32)"; v="${v^^}"
-  if [[ "$(dc -e "$secp256k1 16doi$u $v +ln%lGrlMx lG$u lMx lG$v lMx lAx -p")" = 0 ]]
-  then echo "ok $t - (u + v)G = uG + vG"
-  else echo "not ok $t - (u + v)G != uG + vG"
-  fi
+  openssl rand -hex 64 | {
+    read -r
+    uv="${REPLY^^}"
+    u="${uv:0:64}"
+    v="${uv:64}"
+    if [[ "$(dc -f secp256k1.dc -e "16doi $u dsu $v dsv +ln%sw lgxlul;x lgxlvl;x lPxlfx r2%+ lgxlwl;xlfxr2%+ -p")" = 0 ]]
+    then echo "ok $t - (u + v)G = uG + vG"
+    else echo "not ok $t - (u + v)G != uG + vG"
+    fi
+  }
 done
 
-
-while read e p
+while read -r e p
 do
   ((t++))
-  if [[ "$(dc -e "$secp256k1 16doilG$e lMxlEx")" = $p ]]
-  then echo "ok $t - $e*G = $p"
-  else echo "not ok $t - $e*G != $p"
+  if [[ "$(dc -f secp256k1.dc -e "16doi lgx $e l;x lex")" = "$p" ]]
+  then echo "ok $t - 0x$e*G = $p"
+  else echo "not ok $t - 0x$e*G != $p"
   fi
-done <<edges
-0 0
-1 0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 0
-edges
+done <<EDGES
+0                                                                INFINITY
+1                                                                0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 INFINITY
+EDGES
 
 {
   grep '^[kxy] =' |
   cut -d ' ' -f 3 | {
-    coproc DC { dc -e "$secp256k1" -; }
+    coproc DC { dc -f secp256k1.dc -; }
     trap 'echo q >&"${DC[1]}"' EXIT
-    while read k; read x; read y
+    while
+      read -r k
+      read -r x
+      read -r y
     do
       ((t++))
-      echo "5d+i$k 8d+o lGrlMx 8d+i$x$y- d*1+1r/p" >&"${DC[1]}"
-      read <&"${DC[0]}"
-      if [[ "$REPLY" = 1 ]]
+      #echo "5d+i$k 8d+o lGrlMx 8d+i$x$y- d*1+1r/p" >&"${DC[1]}"
+      echo "lgx 5d+i$k l;xlfx 8d+i $x-d* r $y-d* +p" >&"${DC[1]}"
+      read -r <&"${DC[0]}"
+      if (( REPLY == 0 ))
       then echo "ok $t - $k"
       else echo "not ok $t - $k"
       fi
