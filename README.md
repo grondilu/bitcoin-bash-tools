@@ -424,17 +424,17 @@ You can specify an optional index :
 
 ## TODO
 
-* [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032) [x]
-* [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039) [x] 
-* [BIP 0085](https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki) [ ]
-* [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki) [x]
-* [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki) [x]
-* [TAP](http://testanything.org/) support [x]
-* offline transactions [ ]
+* [x] [BIP 0032](https://en.bitcoin.it/wiki/BIP_0032)
+* [x] [BIP 0039](https://en.bitcoin.it/wiki/BIP_0039)
+* [ ] [BIP 0085](https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki)
+* [x] [BIP 0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+* [x] [BIP 0350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
+* [x] [TAP](http://testanything.org/) support
+* [ ] offline transactions
 * ~~copy the [Bitcoin eXplorer](https://github.com/libbitcoin/libbitcoin-explorer.git) interface as much as possible~~
-* put everything in a single file [ ]
-* use [Jacobian coordinates](https://en.wikibooks.org/wiki/Cryptography/Prime_Curve/Jacobian_Coordinates) [x]
-* use a better exponentiation method, for instance using precomputations [ ]
+* [ ] put everything in a single file
+* [x] use [Jacobian coordinates](https://en.wikibooks.org/wiki/Cryptography/Prime_Curve/Jacobian_Coordinates)
+* [ ] use a better exponentiation method, for instance using precomputations
 
 
 <a name=related />
