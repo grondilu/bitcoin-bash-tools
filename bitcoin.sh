@@ -68,7 +68,7 @@ hash160() {
 
 ser32()
   if local -i i=$1; ((i >= 0 && i < 1<<32)) 
-  then printf "%08x" $i |xxd -p -r
+  then printf "%08X" $i |basenc --base16 -d
   else
     1>&2 echo index out of range
     return 1
@@ -79,7 +79,7 @@ ser256() (
   if   [[ "$1" =~ ^(0x)?([[:xdigit:]]{65,})$ ]]
   then echo "unexpectedly large parameter" >&2; return 1
   elif   [[ "$1" =~ ^(0x)?([[:xdigit:]]{64})$ ]]
-  then xxd -p -r <<<"${BASH_REMATCH[2]}"
+  then basenc --base16 -d <<<"${BASH_REMATCH[2]^^[a-f]}"
   elif [[ "$1" =~ ^(0x)?([[:xdigit:]]{1,63})$ ]]
   then $FUNCNAME "0x0${BASH_REMATCH[2]}"
   else return 1
@@ -144,7 +144,7 @@ base58()
         ;;
     esac
   else
-    xxd -p -u "${1:-/dev/stdin}" |
+    basenc --base16 "${1:-/dev/stdin}" |
     tr -d '\n' |
     {
       read hex
@@ -197,9 +197,9 @@ wif()
          then
            {
              # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-             xxd -p -r <<<"302E0201010420"
+             dc -e "16i 302E0201010420 P"
              cat
-             xxd -p -r <<<"A00706052B8104000A"
+             dc -e "16i A00706052B8104000A P"
            } | openssl ec -inform der
          else cat
          fi
@@ -448,9 +448,9 @@ segwitAddress()
       p)
         if [[ "$OPTARG" =~ ^0[23][[:xdigit:]]{64}$ ]]
         then ${FUNCNAME[0]} "$@" "$(
-          xxd -p -r <<<"$OPTARG" |
+          basenc --base16 -d <<<"${OPTARG^^[a-f]}" |
           hash160 |
-          xxd -p -c 20
+	  basenc --base16 -w0
         )"
         else echo "-p option expects a compressed point as argument" >&2
           return 1
@@ -670,7 +670,7 @@ pegged-entropy()
 
 bip32() (
   shopt -s extglob
-  local header_format='%08x%02x%08x%08x' 
+  local header_format='%08X%02X%08X%08X' 
   local OPTIND OPTARG o
   #echo "BIP32 $@" >&2
   if getopts hst o
@@ -712,11 +712,11 @@ bip32() (
           fi
           #openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
 	  openssl mac -digest sha512 -macopt key:"Bitcoin seed" -binary hmac |
-          xxd -u -p -c 32 |
+	  basenc --base16 -w64 |
           tac |
           sed 2i00
         } |
-        xxd -p -r |
+	basenc --base16 -d |
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
@@ -735,7 +735,7 @@ bip32() (
       else cat
       fi |
       head -c 78 |
-      xxd -p -c 78
+      basenc --base16 -w0
     )"
     if (( ${#hexdump} < 2*78 ))
     then echo "input is too short" >&2; return 2
@@ -837,12 +837,12 @@ bip32() (
                     printf "\x00"
                     ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
                   else
-                    xxd -p -r <<<"$parent_id"
+                    basenc --base16 -d <<<"${parent_id^^[a-f]}"
                   fi
                   ser32 $child_number
                 } |
                 openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-                xxd -p -u -c 32 |
+		basenc --base16 -w64 |
                 {
                    read left
                    read right
@@ -860,11 +860,11 @@ bip32() (
               else
                 {
                   {
-                    xxd -p -r <<<"$key"
+                    basenc --base16 -d <<<"${key^^[a-f]}"
                     ser32 $child_number
                   } |
                   openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-                  xxd -p -u -c 32 |
+		  basenc --base16 -w64 |
                   {
                      read left
                      read right
@@ -885,14 +885,19 @@ bip32() (
             while ((${#chain_code} < 64))
             do chain_code="0$chain_code"
             done
-            parent_fp="0x$(xxd -p -r <<<"$parent_id"|hash160 |head -c 4 |xxd -p)"
+            parent_fp="0x$(
+	      basenc --base16 -d <<<"${parent_id^^[a-f]}"|
+	      hash160 |
+	      head -c 4 |
+	      basenc --base16 -w0
+	    )"
             ;;
         esac 
       done
     fi
 
     printf "$header_format%s%s" $version $depth $parent_fp $child_number "$chain_code" "$key" |
-    xxd -p -r |
+    basenc --base16 -d |
     if [[ -t 1 ]]
     then base58 -c
     else cat
@@ -933,13 +938,13 @@ bip85()
       ;;
     xprv)
       $FUNCNAME 32 ${2:-0} |
-      xxd -p -u -c 64 |
+      basenc --base16 -w64 |
       {
-        read
-        local left="${REPLY:0:64}" right="${REPLY:64:64}"
-        printf '%08x%02x%08x%08x%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
+        read left
+	read right
+        printf '%08X%02X%08X%08X%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
       } |
-      xxd -p -r |
+      basenc --base16 -d |
       bip32
       ;;
     mnemo*)
@@ -962,7 +967,7 @@ bip85()
 	$FUNCNAME 39 $lang $words $index
       ) |
 	head -c $((ent/8)) |
-	xxd -p -c $((ent/8)) |
+	basenc --base16 -w$((2*(ent/8))) |
 	{
 	  read
 	  create-mnemonic "$REPLY"
@@ -977,7 +982,7 @@ bip85()
       else 
         $FUNCNAME 128169 $num_bytes $index |
         head -c $num_bytes |
-	xxd -p -c 128
+	basenc --base16 -w0
       fi
       ;;
     *)
@@ -1151,11 +1156,11 @@ function create-mnemonic() {
       #1>&2 echo $ENT $CS $MS
       echo "$MS 1- sn16doi"
       echo "$hexnoise 2 $CS^*"
-      echo -n "$hexnoise" |
-      xxd -r -p |
+      echo -n "${hexnoise^^[a-f]}" |
+      basenc --base16 -d |
       openssl dgst -sha256 -binary |
       head -c1 |
-      xxd -p -u
+      basenc --base16
       echo "0k 2 8 $CS -^/+"
       echo "[800 ~r ln1-dsn0<x]dsxx Aof"
     } |
@@ -1204,10 +1209,12 @@ bitcoinAddress() (
       t) P2PKH_PREFIX="\x6F" ${FUNCNAME[0]} "$@" ;;
     esac
   elif [[ "$1" =~ ^0([23]([[:xdigit:]]{2}){32}|4([[:xdigit:]]{2}){64})$ ]]
-  then xxd -p -r <<<"$1" |hash160 | p2pkh-address 
+  then basenc --base16 -d <<<"${1^^[a-f]}" |hash160 | p2pkh-address 
   elif
     base58 -v <<<"$1" && 
-    [[ "$(base58 -d <<<"$1" |xxd -p -c 38)" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
+    [[ "$(base58 -d <<<"$1" |
+    basenc --base16 -w76
+    )" =~ ^(80|ef)([[:xdigit:]]{64})(01)?([[:xdigit:]]{8})$ ]]
   then
     {
       echo "$secp256k1 16doi lgx ${BASH_REMATCH[2]^^}l;xlfxl<*+"
@@ -1218,7 +1225,7 @@ bitcoinAddress() (
       echo P
     } |
     dc |
-    xxd -p -c 65 |
+    basenc --base16 -w130 |
     {
       read
       if [[ "${BASH_REMATCH[1]}" = 80 ]]
@@ -1231,7 +1238,7 @@ bitcoinAddress() (
     base58 -d <<<"$1" |
     head -c -4 |
     tail -c 33 |
-    xxd -p -c 33 |
+    basenc --base16 -w0 |
     {
       read
       case "${1::1}" in
@@ -1242,7 +1249,7 @@ bitcoinAddress() (
             printf %b "\x05"
             {
               printf %b%b "\x00\x14"
-              echo "${REPLY}" | xxd -p -r |
+              echo "${REPLY^^[a-f]}" | basenc --base16 -d |
               hash160
             } | 
             hash160
