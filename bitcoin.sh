@@ -55,15 +55,14 @@ l*xd2l*x5Rd5R_4R_4R+l-xd4Rr5R_3Rl-xl*x5R4Rl*xl-x_5R_5Rl*xl*xr3R]
 sP[[[INFINITY]nLIs@q]SI3Rd0=I_3RLIs@IO_5R_5Rlfx1d+d+d*doi2 100^d
 3Rr2*+_3Rr2%*+[0]nnAPoi]se"
 
-ripemd160() {
-  # https://github.com/openssl/openssl/issues/16994
-  # "-provider legacy" for openssl 3.0 || fallback for old versions
-  2>/dev/null openssl dgst -provider legacy -rmd160 -binary ||
-  openssl dgst -rmd160 -binary
-}
-
 hash160() {
-  openssl dgst -sha256 -binary | ripemd160
+  openssl dgst -sha256 -binary | 
+  {
+    # https://github.com/openssl/openssl/issues/16994
+    # "-provider legacy" for openssl 3.0 || fallback for old versions
+    2>/dev/null openssl dgst -provider legacy -rmd160 -binary ||
+    openssl dgst -rmd160 -binary
+  }
 }
 
 ser32()
@@ -88,11 +87,7 @@ ser256() (
 
 base58()
   if
-    local -a base58_chars=(
-        1 2 3 4 5 6 7 8 9
-      A B C D E F G H   J K L M N   P Q R S T U V W X Y Z
-      a b c d e f g h i j k   m n o p q r s t u v w x y z
-    )
+    local base58_chars="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     local OPTIND OPTARG o
     getopts hdvc o
   then
@@ -120,8 +115,8 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^1.+ ]]
         then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-        elif (IFS=; [[ "$input" =~ ^[${base58_chars[*]}]+$ ]])
-        then dc -e "0${base58_chars[*]//?/ds&1+} 0${input//?/ 58*l&+}P"
+        elif [[ "$input" =~ ^[$base58_chars]+$ ]]
+        then dc -e "0${base58_chars//?/ds&1+} 0${input//?/ 58*l&+}P"
         elif [[ -n "$input" ]]
         then return 1
         fi |
@@ -155,7 +150,7 @@ base58()
       then
         dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
         while read -r
-        do echo -n "${base58_chars[REPLY]}"
+        do echo -n "${base58_chars:REPLY:1}"
         done
       fi
       echo
