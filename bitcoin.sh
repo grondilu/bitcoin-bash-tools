@@ -1067,7 +1067,8 @@ check-mnemonic()
   else return 3;
   fi
 
-complete -W "${english[*]}" mnemonic-to-seed
+declare -n language=$(bip39_language)
+complete -W "${language[*]}" mnemonic-to-seed
 function mnemonic-to-seed() {
   local o OPTIND 
   if getopts hpP o
