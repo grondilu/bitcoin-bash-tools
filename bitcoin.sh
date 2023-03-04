@@ -197,9 +197,9 @@ wif()
          then
            {
              # see https://stackoverflow.com/questions/48101258/how-to-convert-an-ecdsa-key-to-pem-format
-             dc -e "16i 302E0201010420 P"
+             basenc --base16 -d <<< "302E0201010420"
              cat
-             dc -e "16i A00706052B8104000A P"
+             basenc --base16 -d <<< "A00706052B8104000A"
            } | openssl ec -inform der
          else cat
          fi
