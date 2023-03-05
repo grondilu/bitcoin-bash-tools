@@ -65,6 +65,13 @@ hash160() {
   }
 }
 
+
+escape-output-if-needed()
+  if test -t 1
+  then cat -v
+  else cat
+  fi
+
 ser32()
   if local -i i=$1; ((i >= 0 && i < 1<<32)) 
   then printf "%08X" $i |basenc --base16 -d
@@ -115,17 +122,15 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^(1*)([$base58_chars]+)$ ]]
         then
-	  for ((i=0; i<${#BASH_REMATCH[1]}; i++))
-	  do printf "\x00"
-	  done
-	  dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
+	  {
+	    for ((i=0; i<${#BASH_REMATCH[1]}; i++))
+	    do printf "\x00"
+	    done
+	    dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
+	  } |
+	  escape-output-if-needed
         else return 1
-        fi |
-        if [[ -t 1 ]]
-        then cat -v
-        else cat
-        fi
-        ;;
+        fi        ;;
       v)
         tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
         uniq -d | read 
@@ -657,10 +662,7 @@ pegged-entropy()
       echo "checksum is $((c % 100))" >&2
     } |
     dc |
-    if test -t 1
-    then cat -v
-    else cat
-    fi
+    escape-output-if-needed
   fi
 
 bip32() (
@@ -997,10 +999,7 @@ bip85()
       bip32 "$path" |
       tail -c 32 |
       openssl dgst -sha512 -hmac "bip-entropy-from-k" -binary |
-      if test -t 1
-      then cat -v
-      else cat
-      fi
+      escape-output-if-needed
       ;;
   esac
   
@@ -1095,10 +1094,7 @@ function mnemonic-to-seed() {
 	  -kdfopt salt:"mnemonic$BIP39_PASSPHRASE" \
 	  -kdfopt iter:2048 -binary \
 	  PBKDF2 |
-	  if [[ -t 1 ]]
-	  then cat -v
-	  else cat
-	  fi
+	  escape-output-if-needed
 	;;
     esac
   fi
