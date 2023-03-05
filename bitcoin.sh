@@ -113,12 +113,13 @@ base58()
       d)
         local input
         read -r input < "${1:-/dev/stdin}"
-        if [[ "$input" =~ ^1.+ ]]
-        then printf "\x00"; ${FUNCNAME[0]} -d <<<"${input:1}"
-        elif [[ "$input" =~ ^[$base58_chars]+$ ]]
-        then dc -e "0${base58_chars//?/ds&1+} 0${input//?/ 58*l&+}P"
-        elif [[ -n "$input" ]]
-        then return 1
+        if [[ "$input" =~ ^(1*)([$base58_chars]+)$ ]]
+        then
+	  for ((i=0; i<${#BASH_REMATCH[1]}; i++))
+	  do printf "\x00"
+	  done
+	  dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
+        else return 1
         fi |
         if [[ -t 1 ]]
         then cat -v
