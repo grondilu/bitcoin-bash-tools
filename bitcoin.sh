@@ -139,8 +139,7 @@ base58()
         ;;
     esac
   else
-    basenc --base16 "${1:-/dev/stdin}" |
-    tr -d '\n' |
+    basenc --base16 "${1:-/dev/stdin}" -w0 |
     {
       read hex
       while [[ "$hex" =~ ^00 ]]
