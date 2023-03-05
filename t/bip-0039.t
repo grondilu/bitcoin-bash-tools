@@ -26,17 +26,17 @@ shorten()
     else echo "not ok $n - from $hex, '$words' was expected, but we got '$r1'"
     fi
     ((n++))
-    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR mnemonic-to-seed $words |xxd -p|tr -d '\n')"
+    if declare generatedSeed="$(BIP39_PASSPHRASE=TREZOR mnemonic-to-seed $words |basenc --base16 -w0)"
     then echo "ok $n - good checksum for '$(shorten "$words")'"
     else echo "not ok $n - error code $? when checking words '$words'"
     fi
     ((n++))
-    if [[ "$generatedSeed" = "$seed" ]]
+    if [[ "${generatedSeed,,}" = "${seed,,}" ]]
     then echo "ok $n - good seed generated for '$(shorten "$words")'"
     else echo "not ok $n - wrong seed generated for '$words' : $generatedSeed instead of $seed"
     fi
     ((n++))
-    if declare generatedExtendedKey="$(xxd -p -r <<<"$seed" |bip32 -s m |base58 -c)"
+    if declare generatedExtendedKey="$(basenc --base16 -d <<<"${seed^^}" |bip32 -s m |base58 -c)"
        [[ "$generatedExtendedKey" = "$addr" ]]
     then echo "ok $n - good key generated from seed : $(shorten $seed) -> $(shorten $generatedExtendedKey)"
     else echo "$generatedExtendedKey"

@@ -9,8 +9,8 @@ echo 1..$(grep -c "^if " ${BASH_SOURCE[0]})
 base58 -d <<<"$rootxprv" |
 bip85 0 |
 if 
-  xxd -p -c 64 |
-  grep -q "^efecfbccffea313214232d29e71563d941229afb4338c21f9517c41aaa0d16f00b83d2a09ef747e7a64e8e2bd5a14869e693da66ce94ac2da570ab7ee48618f7$"
+  basenc --base16 -w128 |
+  grep -q "^EFECFBCCFFEA313214232D29E71563D941229AFB4338C21F9517C41AAA0D16F00B83D2A09EF747E7A64E8E2BD5A14869E693DA66CE94AC2DA570AB7EE48618F7$"
 then echo "ok - test case 1, correct derived entropy"
 else echo "not ok - test case 1, wrong derived entropy"
 fi
@@ -18,8 +18,8 @@ fi
 base58 -d <<<"$rootxprv" |
 bip85 0 1 |
 if 
-  xxd -p -c 64 |
-  grep -q "^70c6e3e8ebee8dc4c0dbba66076819bb8c09672527c4277ca8729532ad711872218f826919f6b67218adde99018a6df9095ab2b58d803b5b93ec9802085a690e$"
+  basenc --base16 -w128 |
+  grep -q "^70C6E3E8EBEE8DC4C0DBBA66076819BB8C09672527C4277CA8729532AD711872218F826919F6B67218ADDE99018A6DF9095AB2B58D803B5B93EC9802085A690E$"
 then echo "ok - test case 2, correct derived entropy"
 else echo "not ok - test case 2, wrong derived entropy"
 fi

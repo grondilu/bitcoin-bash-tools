@@ -53,7 +53,7 @@ else echo "not ok $n"
 fi
 
 ((n++))
-if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(xxd -p -r <<<"$pubkey")
+if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(basenc --base16 -d <<<"${pubkey^^}")
 then echo "ok $n"
 else echo "not ok $n"
 fi
@@ -76,7 +76,7 @@ else echo "not ok $n"
 fi
 
 ((n++))
-if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(xxd -p -r <<<"$pubkey")
+if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(basenc --base16 -d <<<"${pubkey^^}")
 then echo "ok $n"
 else echo "not ok $n"
 fi
@@ -99,7 +99,7 @@ else echo "not ok $n"
 fi
 
 ((n++))
-if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(xxd -p -r <<<"$pubkey")
+if diff <(bip84 -s "$path/N" < "$seed" |tail -c 33) <(basenc --base16 -d <<<"${pubkey^^}")
 then echo "ok $n"
 else echo "not ok $n"
 fi

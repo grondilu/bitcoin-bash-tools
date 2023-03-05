@@ -33,7 +33,7 @@ _test2 /N/0 /0/N
 _test2 /57/35/N /57/N/35
 
 seed="000102030405060708090a0b0c0d0e0f"
-master="$(xxd -p -r <<<"$seed"|bip32 -s m |base58 -c)"
+master="$(basenc --base16 -d <<<"${seed^^}"|bip32 -s m |base58 -c)"
 _test m   xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
 _test m/N xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8
 
@@ -53,7 +53,7 @@ _test m/0h/1/2h/2/1000000000 xprvA41z7zogVVwxVSgdKUHDy1SKmdb533PjDz7J6N6mV6uS3ze
 _test m/0h/1/2h/2/1000000000/N xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy
 
 seed="fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542"
-master="$(xxd -p -r <<<"$seed"|bip32 -s m |base58 -c)"
+master="$(basenc --base16 -d <<<"${seed^^}"|bip32 -s m |base58 -c)"
 _test m   xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U
 _test m/N xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
 
@@ -73,7 +73,7 @@ _test m/0/2147483647h/1/2147483646h/2 xprvA2nrNbFZABcdryreWet9Ea4LvTJcGsqrMzxHx9
 _test m/0/2147483647h/1/2147483646h/2/N xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt
 
 seed="4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be"
-master="$(xxd -p -r <<<"$seed"|bip32 -s m |base58 -c)"
+master="$(basenc --base16 -d <<<"${seed^^}"|bip32 -s m |base58 -c)"
 _test m   xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6
 _test m/N xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13
 
@@ -81,7 +81,7 @@ _test m/0h   xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS
 _test m/0h/N xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHBaohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y
 
 seed="3ddd5602285899a946114506157c7997e5444528f3003f6134712147db19b678"
-master="$(xxd -p -r <<<"$seed"|bip32 -s m |base58 -c)"
+master="$(basenc --base16 -d <<<"${seed^^}"|bip32 -s m |base58 -c)"
 _test m         xprv9s21ZrQH143K48vGoLGRPxgo2JNkJ3J3fqkirQC2zVdk5Dgd5w14S7fRDyHH4dWNHUgkvsvNDCkvAwcSHNAQwhwgNMgZhLtQC63zxwhQmRv
 _test m/N       xpub661MyMwAqRbcGczjuMoRm6dXaLDEhW1u34gKenbeYqAix21mdUKJyuyu5F1rzYGVxyL6tmgBUAEPrEz92mBXjByMRiJdba9wpnN37RLLAXa
 _test m/0h      xprv9vB7xEWwNp9kh1wQRfCCQMnZUEG21LpbR9NPCNN1dwhiZkjjeGRnaALmPXCX7SgjFTiCTT6bXes17boXtjq3xLpcDjzEuGLQBM5ohqkao9G

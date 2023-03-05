@@ -11,7 +11,7 @@ declare -i n=0
 while read path address
 do
   ((n++))
-  xxd -p -r <<<"$seed" |
+  basenc --base16 -d <<<"${seed^^}" |
   case "${path::4}" in
     /49h) bip49 -s "$path/N" ;;
     /84h) bip84 -s "$path/N" ;;
