@@ -147,13 +147,14 @@ base58()
   else
     basenc --base16 "${1:-/dev/stdin}" -w0 |
     {
-      read hex
-      while [[ "$hex" =~ ^00 ]]
-      do echo -n 1; hex="${hex:2}"
+      read
+      [[ $REPLY =~ ^(0{2}*)([[:xdigit:]]{2}*) ]]
+      for ((i=0;i<${#BASH_REMATCH[1]}/2;i++))
+      do echo -n 1
       done
-      if test -n "$hex"
+      if (( ${#BASH_REMATCH[2]} > 0 ))
       then
-        dc -e "16i0$hex Ai[58~rd0<x]dsxx+f" |
+        dc -e "16i0${BASH_REMATCH[2]^^} Ai[58~rd0<x]dsxx+f" |
         while read -r
         do echo -n "${base58_chars:REPLY:1}"
         done
