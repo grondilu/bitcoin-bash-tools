@@ -127,7 +127,7 @@ base58()
         ;;
       v)
         tee >(${FUNCNAME[0]} -d "$@" |head -c -4 |${FUNCNAME[0]} -c) |
-        uniq | { read -r && ! read -r; }
+        uniq -d | read 
         ;;
       c)
         tee >(
