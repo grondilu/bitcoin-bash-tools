@@ -253,9 +253,9 @@ wif()
 # // THE SOFTWARE.
 
 declare bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
-declare -A bech32_charset_reverse
+declare -Ai bech32_charset_reverse
 for i in {0..31}
-do bech32_charset_reverse[${bech32_charset:$i:1}]=$((i))
+do bech32_charset_reverse[${bech32_charset:i:1}]=i
 done
 
 bech32()
@@ -303,8 +303,8 @@ bech32()
     echo "${hrp}1$data$(
       bech32_create_checksum "$hrp" $(
         echo -n "$data" |
-        while read -n 1; do echo "${bech32_charset_reverse[$REPLY]}"; done
-      ) | while read; do echo -n "${bech32_charset:$REPLY:1}"; done
+        while read -n 1; do echo "${bech32_charset_reverse[REPLY]}"; done
+      ) | while read; do echo -n "${bech32_charset:REPLY:1}"; done
     )"
   fi
 
