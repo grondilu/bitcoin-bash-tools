@@ -1021,10 +1021,10 @@ check-mnemonic()
   if [[ $# =~ ^(12|15|18|21|24)$ ]]
   then
     local -a wordlist=($(bip39_words))
-    local -A wordlist_reverse
+    local -Ai wordlist_reverse
     local -i i
     for ((i=0; i<${#wordlist[@]}; i++))
-    do wordlist_reverse[${wordlist[$i]}]=$((i+1))
+    do wordlist_reverse[${wordlist[$i]}]=i+1
     done
 
     local word dc_script='16o0'
