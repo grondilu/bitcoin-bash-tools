@@ -26,7 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-secp256k1="
+declare -r secp256k1="
 I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts@]s%[Smddl%x-lm/rl%xLms@]s~
 [[L0s@0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+2 100^ds<d
 14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsm [I1d+d+d*i1
@@ -252,7 +252,7 @@ wif()
 # // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # // THE SOFTWARE.
 
-declare bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+declare -r bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 declare -Ai bech32_charset_reverse
 for i in {0..31}
 do bech32_charset_reverse[${bech32_charset:i:1}]=i
@@ -315,7 +315,7 @@ polymod() {
   do
     local -i top i
     
-    ((top = chk >> 25, chk = (chk & 0x1ffffff) << 5 ^ value))
+    (( top = chk >> 25, chk = (chk & 0x1ffffff) << 5 ^ value ))
     
     for i in 0 1 2 3 4
     do (( ((top >> i) & 1) && (chk^=${generator[i]}) ))
@@ -347,7 +347,7 @@ verifyChecksum() {
 bech32_create_checksum() {
   local hrp="$1"
   shift
-  local -i p mod=$(($(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0) ^ ${BECH32_CONST:-1}))
+  local -i p mod=$(polymod $(hrpExpand "$hrp") "$@" 0 0 0 0 0 0)^${BECH32_CONST:-1}
   for p in 0 1 2 3 4 5
   do echo $(( (mod >> 5 * (5 - p)) & 31 ))
   done
@@ -535,8 +535,10 @@ convertbits() {
   local -i maxv=$(( (1 << outbits) - 1 ))
   while read 
   do
-    val=$(((val<<inbits)|$REPLY))
-    ((bits+=inbits))
+    ((
+      val=(val<<inbits)|REPLY,
+      bits+=inbits
+    ))
     while ((bits >= outbits))
     do
       (( bits-=outbits ))
@@ -548,24 +550,22 @@ convertbits() {
     if ((bits))
     then echo $(( (val << (outbits - bits)) & maxv ))
     fi
-  elif (( ((val << (outbits - bits)) & maxv ) || bits >= inbits))
+  elif (( ( (val << (outbits - bits) ) & maxv ) || bits >= inbits))
   then return 1
   fi
 }
 
 segwit_decode()
   if
-    local addr="$1"
-    ! {
+    test-addr() {
       bech32_decode "$addr" ||
       bech32_decode -m "$addr" 
-    } >/dev/null
+    }
+    local addr="$1"
+    ! test-addr >/dev/null
   then return 1
   else
-    {
-      bech32_decode "$addr" ||
-      bech32_decode -m "$addr" 
-    } |
+    test-addr |
     {
       local hrp
       read hrp
@@ -810,7 +810,7 @@ bip32() (
             esac
             ;;
           +([[:digit:]])h)
-            child_number=$(( ${operator%h} + (1 << 31) ))
+            (( child_number= ${operator%h} + (1 << 31) ))
             ;&
           +([[:digit:]]))
 
@@ -1024,7 +1024,7 @@ check-mnemonic()
     local -Ai wordlist_reverse
     local -i i
     for ((i=0; i<${#wordlist[@]}; i++))
-    do wordlist_reverse[${wordlist[$i]}]=i+1
+    do wordlist_reverse[${wordlist[i]}]=i+1
     done
 
     local word dc_script='16o0'
@@ -1084,10 +1084,11 @@ function mnemonic-to-seed() {
       1) echo "WARNING: unreckognized word in mnemonic." >&2 ;;&
       2) echo "WARNING: wrong mnemonic checksum."        >&2 ;;&
       3) echo "WARNING: unexpected number of words."     >&2 ;;&
-      *) openssl kdf -keylen 64 -kdfopt digest:SHA512 \
+      *) openssl kdf -keylen 64 -binary \
+	  -kdfopt digest:SHA512 \
 	  -kdfopt pass:"$*" \
 	  -kdfopt salt:"mnemonic$BIP39_PASSPHRASE" \
-	  -kdfopt iter:2048 -binary \
+	  -kdfopt iter:2048 \
 	  PBKDF2 |
 	  escape-output-if-needed
 	;;
