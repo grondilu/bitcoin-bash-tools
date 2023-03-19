@@ -664,11 +664,11 @@ pegged-entropy()
     escape-output-if-needed
   fi
 
-bip32() (
-  local header_format='%08X%02X%08X%08X' 
-  local OPTIND OPTARG o
-  #echo "BIP32 $@" >&2
-  if getopts hst o
+bip32()
+  if
+    local header_format='%08X%02X%08X%08X' 
+    local OPTIND OPTARG o
+    getopts hst o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -900,7 +900,6 @@ bip32() (
 
   else return 255
   fi
-)
 
 # bip-0032 code stops here }}}
 
