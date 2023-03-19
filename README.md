@@ -44,7 +44,6 @@
     $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
     $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
     
-
     $ bip85 wif
     $ bip85 mnemo
     $ bip85 xprv
@@ -192,12 +191,12 @@ of an extended key.  This option is thus required to generate a master key :
 
 Any key in the key tree can be generated from a seed, though:
 
-    $ cat myseed |xkey -s m/0h/0/0
+    $ xkey -s m/0h/0/0 < myseed
 
 When the `-t` option is used, stdin is used as a binary seed and the generated
 key will be a testnet key.
 
-    $ cat myseed |xkey -t
+    $ xkey -t < myseed
     tprv8ZgxMBicQKsPen8dPzk2REDACTEDiRWqeNcdvrrxLsJ7UZCB3wH5tQsUbCBEPDREDACTEDfTh3skpif3GFENREDACTEDgemFAhG914qE5EC
 
 `N` is the derivation operator used to get the so-called *neutered* key, a.k.a the public extended key.
@@ -255,9 +254,16 @@ The function will attempt to read the [locale](https://man7.org/linux/man-pages/
 settings to figure out which language to use.  If it fails, or if the local language is not
 supported, it will use English.
 
-To override local language settings, set the `LANG` environment variable :
+BIP-0039 discourages the use of non-English words, so by default the library
+will use English word.  To override this and use the locale settings, set 
+the `BIP39_USE_LANG` environment variable to `yes`.  The library will
+then use the `LANG` environment variable if possible.
 
-    $ LANG=zh_TW create-mnemonic
+This must be done before loading the library.
+
+    $ BIP39_USE_LANG=yes LANG=zh_CN
+    $ . bitcoin.sh
+    $ create-mnemonic
     凍濾槍斷覆捉斷山未飛沿始瓦曰撐
 
 As you can see, Chinese output does not use spaces.
@@ -371,20 +377,11 @@ as described below.
 
 #### Mnemonic
 
-To create a bip-39 mnemonic, use `mnemo` as *APP*.  The optional parameters are the number of words (default is 12) and the index (default is zero).
+To create a bip-39 mnemonic, use `mnemo` as *APP*.  The optional parameters are
+the number of words (default is 12) and the index (default is zero).
 
     $ base58 -d <<<"$root" | bip85 mnemo
     girl mad pet galaxy egg matter matrix prison refuse sense ordinary nose
-
-To override the locales settings, use the LANG environnement variable :
-
-    $ base58 -d <<<"$root" | LANG=it bip85 mnemo
-    smilzo opinione settimana sfoltire sospiro maretta verace mattone larga suonare lembo rispetto
-
-As mentionned, you can specify the number of words with an additional argument :
-    
-    $ base58 -d <<<"$root" | LANG=zh_CN bip85 mnemo 24
-    探腐书知讲看偷项努高纹任付穆滑丝悲娘值郑倒踏呢丙
 
 #### HD-Seed WIF
 
@@ -411,7 +408,6 @@ You can specify an optional index :
     xprv9s21ZrQH143K38mDZkjREDACTEDWyjWiejciPyREDACTED9Vg3WCWnhkPW3rKsPT6u3MREDACTEDxjBjFES1xCzEtxTSAfQTapE7CXcbQ4b
 
 <a name=requirements />
-
 ## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
