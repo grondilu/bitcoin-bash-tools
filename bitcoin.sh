@@ -109,10 +109,10 @@ base58()
 	  -h:	show this help
 	  -d:	decode
 	  -c:	append checksum
-          -v:	verify checksum
+	  -v:	verify checksum
 	
 	${FUNCNAME[0]} encode FILE, or standard input, to standard output.
-
+	
 	With no FILE, encode standard input.
 	
 	When writing to a terminal, ${FUNCNAME[0]} will escape non-printable characters.
@@ -123,13 +123,13 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^(1*)([$base58_chars]+)$ ]]
         then
-	  {
-	    for ((i=0; i<${#BASH_REMATCH[1]}; i++))
-	    do printf "\x00"
-	    done
-	    dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
-	  } |
-	  escape-output-if-needed
+          {
+            for ((i=0; i<${#BASH_REMATCH[1]}; i++))
+            do printf "\x00"
+            done
+            dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
+          } |
+          escape-output-if-needed
         else return 1
         fi        ;;
       v)
@@ -450,7 +450,7 @@ segwitAddress()
         then ${FUNCNAME[0]} "$@" "$(
           basenc --base16 -d <<<"${OPTARG^^[a-f]}" |
           hash160 |
-	  basenc --base16 -w0
+          basenc --base16 -w0
         )"
         else echo "-p option expects a compressed point as argument" >&2
           return 1
@@ -706,12 +706,12 @@ bip32() (
           else printf "$header_format" $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0
           fi
           #openssl dgst -sha512 -hmac "Bitcoin seed" -binary |
-	  openssl mac -digest sha512 -macopt key:"Bitcoin seed" -binary hmac |
-	  basenc --base16 -w64 |
+          openssl mac -digest sha512 -macopt key:"Bitcoin seed" -binary hmac |
+          basenc --base16 -w64 |
           tac |
           sed 2i00
         } |
-	basenc --base16 -d |
+        basenc --base16 -d |
         ${FUNCNAME[0]} "$@"
         ;;
       t) BITCOIN_NET=TEST ${FUNCNAME[0]} -s "$@";;
@@ -803,10 +803,10 @@ bip32() (
                $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
                  version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
                *)
-		#echo -n "$key ..." >&2
+                #echo -n "$key ..." >&2
                 echo "4d*doilgx${key^^}l;xlex" >&"${DC[1]}"
                 read key <&"${DC[0]}"
-		#echo "done" >&2
+                #echo "done" >&2
             esac
             ;;
           +([[:digit:]])h)
@@ -837,7 +837,7 @@ bip32() (
                   ser32 $child_number
                 } |
                 openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-		basenc --base16 -w64 |
+                basenc --base16 -w64 |
                 {
                    read left
                    read right
@@ -859,7 +859,7 @@ bip32() (
                     ser32 $child_number
                   } |
                   openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-		  basenc --base16 -w64 |
+                  basenc --base16 -w64 |
                   {
                      read left
                      read right
@@ -881,11 +881,11 @@ bip32() (
             do chain_code="0$chain_code"
             done
             parent_fp="0x$(
-	      basenc --base16 -d <<<"${parent_id^^[a-f]}"|
-	      hash160 |
-	      head -c 4 |
-	      basenc --base16 -w0
-	    )"
+              basenc --base16 -d <<<"${parent_id^^[a-f]}"|
+              hash160 |
+              head -c 4 |
+              basenc --base16 -w0
+            )"
             ;;
         esac 
       done
@@ -936,7 +936,7 @@ bip85()
       basenc --base16 -w64 |
       {
         read left
-	read right
+        read right
         printf '%08X%02X%08X%08X%s00%s' $BIP32_MAINNET_PRIVATE_VERSION_CODE 0 0 0 $left $right
       } |
       basenc --base16 -d |
@@ -945,27 +945,27 @@ bip85()
     mnemo*)
       local -i words=${2:-12} index=${3:-0} lang ent=words*32/3
       {
-	case "$LANG" in
-	  ja?(_*))  lang=1;;
-	  ko?(_*))  lang=2;;
-	  es?(_*))  lang=3;;
-	  zh_CN)    lang=4;;
-	  zh_TW)    lang=5;;
-	  fr?(_*))  lang=6;;
-	  it?(_*))  lang=7;;
-	  cz?(_*))  lang=8;;
-	  *)        lang=0;;
-	esac
-	# CS = ENT / 32
-	# MS = (ENT + CS) / 11
-	$FUNCNAME 39 $lang $words $index
+        case "$LANG" in
+          ja?(_*))  lang=1;;
+          ko?(_*))  lang=2;;
+          es?(_*))  lang=3;;
+          zh_CN)    lang=4;;
+          zh_TW)    lang=5;;
+          fr?(_*))  lang=6;;
+          it?(_*))  lang=7;;
+          cz?(_*))  lang=8;;
+          *)        lang=0;;
+        esac
+        # CS = ENT / 32
+        # MS = (ENT + CS) / 11
+        $FUNCNAME 39 $lang $words $index
       } |
-	head -c $((ent/8)) |
-	basenc --base16 -w$((2*(ent/8))) |
-	{
-	  read
-	  create-mnemonic "$REPLY"
-	}
+        head -c $((ent/8)) |
+        basenc --base16 -w$((2*(ent/8))) |
+        {
+          read
+          create-mnemonic "$REPLY"
+        }
       ;;
     hex)
       shift
@@ -976,7 +976,7 @@ bip85()
       else 
         $FUNCNAME 128169 $num_bytes $index |
         head -c $num_bytes |
-	basenc --base16 -w0
+        basenc --base16 -w0
       fi
       ;;
     *)
@@ -1085,13 +1085,13 @@ function mnemonic-to-seed() {
       2) echo "WARNING: wrong mnemonic checksum."        >&2 ;;&
       3) echo "WARNING: unexpected number of words."     >&2 ;;&
       *) openssl kdf -keylen 64 -binary \
-	  -kdfopt digest:SHA512 \
-	  -kdfopt pass:"$*" \
-	  -kdfopt salt:"mnemonic$BIP39_PASSPHRASE" \
-	  -kdfopt iter:2048 \
-	  PBKDF2 |
-	  escape-output-if-needed
-	;;
+          -kdfopt digest:SHA512 \
+          -kdfopt pass:"$*" \
+          -kdfopt salt:"mnemonic$BIP39_PASSPHRASE" \
+          -kdfopt iter:2048 \
+          PBKDF2 |
+          escape-output-if-needed
+        ;;
     esac
   fi
 }
