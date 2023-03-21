@@ -25,30 +25,32 @@
 
 ## Synopsis
 
-    $ git clone https://github.com/grondilu/bitcoin-bash-tools.git
-    $ . bitcoin-bash-tools/bitcoin.sh
+```console
+$ git clone https://github.com/grondilu/bitcoin-bash-tools.git
+$ . bitcoin-bash-tools/bitcoin.sh
 
-    $ openssl rand 32 |wif
+$ openssl rand 32 |wif
 
-    $ mnemonic=($(create-mnemonic 128))
-    $ echo "${mnemonic[@]}"
+$ mnemonic=($(create-mnemonic 128))
+$ echo "${mnemonic[@]}"
 
-    $ mnemonic-to-seed "${mnemonic[@]}" > seed
-    $ pegged-entropy {1..38} > seed
+$ mnemonic-to-seed "${mnemonic[@]}" > seed
+$ pegged-entropy {1..38} > seed
 
-    $ xkey -s /N < seed
-    $ ykey -s /N < seed
-    $ zkey -s /N < seed
-    
-    $ bitcoinAddress "$(xkey -s /44h/0h/0h/0/0/N < seed |base58 -c)"
-    $ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
-    $ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
-    
-    $ bip85 wif
-    $ bip85 mnemo
-    $ bip85 xprv
+$ xkey -s /N < seed
+$ ykey -s /N < seed
+$ zkey -s /N < seed
 
-    $ (cd bitcoin-bash-tools; prove;)
+$ bitcoinAddress "$(xkey -s /44h/0h/0h/0/0/N < seed |base58 -c)"
+$ bitcoinAddress "$(ykey -s /49h/0h/0h/0/0/N < seed |base58 -c)"
+$ bitcoinAddress "$(zkey -s /84h/0h/0h/0/0/N < seed |base58 -c)"
+
+$ bip85 wif
+$ bip85 mnemo
+$ bip85 xprv
+
+$ (cd bitcoin-bash-tools; prove;)
+```
 
 <a name=description />
 
