@@ -410,6 +410,7 @@ You can specify an optional index :
     xprv9s21ZrQH143K38mDZkjREDACTEDWyjWiejciPyREDACTED9Vg3WCWnhkPW3rKsPT6u3MREDACTEDxjBjFES1xCzEtxTSAfQTapE7CXcbQ4b
 
 <a name=requirements />
+
 ## Requirements
 
 - [bash](https://www.gnu.org/software/bash/) version 4 or above;
