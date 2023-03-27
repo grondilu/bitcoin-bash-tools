@@ -123,12 +123,8 @@ base58()
         read -r input < "${1:-/dev/stdin}"
         if [[ "$input" =~ ^(1*)([$base58_chars]+)$ ]]
         then
-          {
-            for ((i=0; i<${#BASH_REMATCH[1]}; i++))
-            do printf "\x00"
-            done
-            dc -e "0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P"
-          } |
+	  dc -e "${BASH_REMATCH[1]//1/0P}
+	  0${base58_chars//?/ds&1+} 0${BASH_REMATCH[2]//?/ 58*l&+}P" |
           escape-output-if-needed
         else return 1
         fi        ;;
