@@ -301,10 +301,7 @@ bech32()
       while read -n 1
       do echo "${bech32_charset_reverse[REPLY]}"
       done
-    ) |
-    while read
-    do echo -n "${bech32_charset:REPLY:1}"
-    done
+    )
   fi
 
 polymod() {
@@ -362,12 +359,11 @@ bech32_encode()
   else
     local hrp=$1 i
     shift
+    set - "$@" $(bech32_create_checksum "$hrp" "$@")
     echo -n "${hrp}1"
-    {
-      for i; do echo $i; done
-      bech32_create_checksum "$hrp" "$@"
-    } |
-    while read; do echo -n ${bech32_charset:$REPLY:1}; done
+    for i
+    do echo -n "${bech32_charset:i:1}"
+    done
     echo
   fi
 
