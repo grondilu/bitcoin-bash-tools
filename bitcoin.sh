@@ -295,12 +295,16 @@ bech32()
   elif [[ "$data" =~ [^$bech32_charset] ]]
   then return 5
   else
-    echo "${hrp}1$data$(
-      bech32_create_checksum "$hrp" $(
-        echo -n "$data" |
-        while read -n 1; do echo "${bech32_charset_reverse[REPLY]}"; done
-      ) | while read; do echo -n "${bech32_charset:REPLY:1}"; done
-    )"
+    echo -n "${hrp}1$data"
+    bech32_create_checksum "$hrp" $(
+      echo -n "$data" |
+      while read -n 1
+      do echo "${bech32_charset_reverse[REPLY]}"
+      done
+    ) |
+    while read
+    do echo -n "${bech32_charset:REPLY:1}"
+    done
   fi
 
 polymod() {
