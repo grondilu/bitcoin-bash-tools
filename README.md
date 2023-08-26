@@ -1,4 +1,5 @@
-# Bitcoin bash tools
+Bitcoin bash tools
+==================
 
 [Bitcoin](http://bitcoin.org)-related functions in [Bash](https://www.gnu.org/software/bash/).
 
