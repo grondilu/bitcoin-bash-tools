@@ -313,7 +313,7 @@ polymod() {
     local -i top i
     (( top = chk >> 25, chk = (chk & 0x1ffffff) << 5 ^ value ))
     for i in {0..4}
-    do (( ((top >> i) & 1) && (chk^=${generator[i]}) ))
+    do (( ((top >> i) & 1) && (chk^=generator[i]) ))
     done
   done
   echo $chk
