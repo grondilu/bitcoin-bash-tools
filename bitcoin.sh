@@ -60,12 +60,15 @@ shopt -s extglob
 
 hash160() {
   openssl dgst -sha256 -binary | 
-  {
-    # https://github.com/openssl/openssl/issues/16994
-    # "-provider legacy" for openssl 3.0 || fallback for old versions
-    2>/dev/null openssl dgst -provider legacy -rmd160 -binary ||
-    openssl dgst -rmd160 -binary
-  }
+  openssl dgst -rmd160 -binary
+# The code below was a temporary fix
+# that does not seem to be necessary anymore (oct. 2023)
+#  {
+#    # https://github.com/openssl/openssl/issues/16994
+#    # "-provider legacy" for openssl 3.0 || fallback for old versions
+#    2>/dev/null openssl dgst -provider legacy -rmd160 -binary ||
+#    openssl dgst -rmd160 -binary
+#  }
 }
 
 escape-output-if-needed()
