@@ -257,6 +257,7 @@ The function will attempt to read the [locale](https://man7.org/linux/man-pages/
 settings to figure out which language to use.  If it fails, or if the local language is not
 supported, it will use English.
 
+<!-- NYI
 BIP-0039 discourages the use of non-English words, so by default the library
 will use English word.  To override this and use the locale settings, set 
 the `BIP39_USE_LANG` environment variable to `yes`.  The library will
@@ -270,6 +271,7 @@ This must be done before loading the library.
     凍濾槍斷覆捉斷山未飛沿始瓦曰撐
 
 As you can see, Chinese output does not use spaces.
+-->
 
 Alternatively, the function can take as argument some noise in hexadecimal (the
 corresponding number of bits must be a multiple of 32).
