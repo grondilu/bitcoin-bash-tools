@@ -1023,7 +1023,7 @@ check-mnemonic()
     for word
     do
       if ((${wordlist_reverse[$word]}))
-      then dc_script="$dc_script 2048*${wordlist_reverse[$word]} 1-+"
+      then dc_script+=" 2048*${wordlist_reverse[$word]} 1-+"
       else return 1
       fi
     done
