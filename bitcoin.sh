@@ -306,7 +306,7 @@ bech32()
   fi
 
 polymod() {
-  local -ai generator=(0x3b6a57b2 0x26508e6d 0x1ea119fa 0x3d4233dd 0x2a1462b3)
+  local -ai generator=(0x{3b6a57b2,26508e6d,1ea119fa,3d4233dd,2a1462b3})
   local -i chk=1 value
   for value
   do
