@@ -1089,9 +1089,10 @@ function mnemonic-to-seed() {
 }
 
 create-mnemonic() {
-  local -a wordlist=($(bip39_words))
-  local OPTIND OPTARG o
-  if getopts h o
+  if
+    local -a wordlist=($(bip39_words))
+    local OPTIND OPTARG o
+    getopts h o
   then
     shift $((OPTIND - 1))
     case "$o" in
@@ -1150,7 +1151,6 @@ create-mnemonic() {
     1>&2 echo parameters have insufficient entropy or wrong format
     return 4
   fi
-}
 
 # bip-0039 code stops here }}}
 
