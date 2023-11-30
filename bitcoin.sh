@@ -1088,7 +1088,7 @@ function mnemonic-to-seed() {
   fi
 }
 
-create-mnemonic() {
+create-mnemonic()
   if
     local -a wordlist=($(bip39_words))
     local OPTIND OPTARG o
