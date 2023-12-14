@@ -13,7 +13,7 @@ do
     uv="${REPLY^^}"
     u="${uv:0:64}"
     v="${uv:64}"
-    if [[ "$(dc -f secp256k1.dc -e "16doi $u dsu $v dsv +ln%sw lgxlul;x lgxlvl;x lPxlfx r2%+ lgxlwl;xlfxr2%+ -p")" = 0 ]]
+    if [[ "$(dc -e "${secp256k1}16doi $u dsu $v dsv +ln%sw lgxlul;x lgxlvl;x lPxlfx r2%+ lgxlwl;xlfxr2%+ -p")" = 0 ]]
     then echo "ok $t - (u + v)G = uG + vG"
     else echo "not ok $t - (u + v)G != uG + vG"
     fi
@@ -23,7 +23,7 @@ done
 while read -r e p
 do
   ((t++))
-  if [[ "$(dc -f secp256k1.dc -e "16doi lgx $e l;x lex")" = "$p" ]]
+  if [[ "$(dc -e "${secp256k1}16doi lgx $e l;x lex")" = "$p" ]]
   then echo "ok $t - 0x$e*G = $p"
   else echo "not ok $t - 0x$e*G != $p"
   fi
@@ -36,7 +36,7 @@ EDGES
 {
   grep '^[kxy] =' |
   cut -d ' ' -f 3 | {
-    coproc DC { dc -f secp256k1.dc -; }
+    coproc DC { dc -e "$secp256k1" -; }
     trap 'echo q >&"${DC[1]}"' EXIT
     while
       read -r k
