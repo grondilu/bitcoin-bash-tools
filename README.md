@@ -236,7 +236,7 @@ as described in bip-0032.
 
 It is possible to store the keys of a hierarchical deterministic wallet in biological
 memory using mnemonics.  There are at least two ways to do so : the first one
-is to follow the dedicated BIP, and the other is used known memory techniques.
+is to follow the dedicated BIP, and the other is to use known memory techniques.
 
 <a name=bip39 />
 
