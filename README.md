@@ -36,7 +36,6 @@ $ mnemonic=($(create-mnemonic 128))
 $ echo "${mnemonic[@]}"
 
 $ mnemonic-to-seed "${mnemonic[@]}" > seed
-$ dc -e "$((RANDOM))P" > seed
 
 $ xkey -s /N < seed
 $ ykey -s /N < seed
