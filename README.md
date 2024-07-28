@@ -12,7 +12,7 @@ Bitcoin bash tools
   * [Extended keys](#extended)
   * [Mnemonics](#mnemonics)
     * [BIP-39](#bip39)
-    * [Major system](#major)
+    * [Memory Techniques](#memtechniques)
   * [Addresses](#addresses)
   * [BIP-85](#bip85)
 * [Requirements](#requirements)
@@ -298,7 +298,7 @@ The passphrase can also be given with the `BIP39_PASSPHRASE` environment variabl
 
     $ BIP39_PASSPHRASE=sesame mnemonic-to-seed "${mnemonic[@]}" |xkey -s /N
 
-<a name=major />
+<a name=memtechniques />
 
 #### Memory Techniques
 
