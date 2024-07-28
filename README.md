@@ -235,9 +235,8 @@ as described in bip-0032.
 ### Mnemonics
 
 It is possible to store the keys of a hierarchical deterministic wallet in biological
-memory using mnemonics methods.  Bitcoin-bash-tools offers two methods for this purpose :
-the first one is an implementation of the dedicated BIP, and the other is a method based on
-long known mnemonics techniques.
+memory using mnemonics.  There are at least two ways to do so : the first one
+is to follow the dedicated BIP, and the other is used known memory techniques.
 
 <a name=bip39 />
 
