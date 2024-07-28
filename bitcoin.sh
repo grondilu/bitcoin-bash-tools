@@ -623,39 +623,6 @@ isPublic() ((
   $1 == BIP32_MAINNET_PUBLIC_VERSION_CODE
 ))
 
-pegged-entropy()
-  if (( ${#@} == 0 ))
-  then
-    echo "no peg was provided" >&2
-    return 1
-  elif test ! -t 0
-  then
-    echo "$FUNCNAME will only read input from a terminal" >&2
-    return 2
-  else
-    local peg
-    local -i i c
-    {
-      for peg in "$@"
-      do
-        read -p "$peg $((++i))/${#@}: "
-        if ((REPLY > 99 || REPLY < 0))
-        then
-          echo "input out of range" >&2
-          return 2
-        fi
-        # https://stackoverflow.com/questions/9134638/using-read-without-triggering-a-newline-action-on-terminal
-        echo -en "\033[1A\033[2K" >&2
-        ((c += REPLY))
-        printf "%02d" "$REPLY"
-      done
-      echo " P"
-      echo "checksum is $((c % 100))" >&2
-    } |
-    dc |
-    escape-output-if-needed
-  fi
-
 bip32()
   if
     local header_format='%08X%02X%08X%08X' 

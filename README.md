@@ -36,7 +36,7 @@ $ mnemonic=($(create-mnemonic 128))
 $ echo "${mnemonic[@]}"
 
 $ mnemonic-to-seed "${mnemonic[@]}" > seed
-$ pegged-entropy {1..38} > seed
+$ dc -e "$((RANDOM))P" > seed
 
 $ xkey -s /N < seed
 $ ykey -s /N < seed
@@ -301,34 +301,15 @@ The passphrase can also be given with the `BIP39_PASSPHRASE` environment variabl
 
 <a name=major />
 
-#### Major system
+#### Memory Techniques
 
-As an alternative to bip-39, bitcoin-bash-tools includes a function
-called `pegged-entropy` wich prompts decimal numbers from 0 to 99
-and uses them to generate a byte stream that can then be used as input
-for `bip32`.  The generated extended key can then be used by `bip85`
-to produce all sorts of entropy for various applications.
+An alternative to bip-39 is to use [memory techniques](https://artofmemory.com/).
 
-The numbers are between 0 to 99 to facilitate the use of the so-called
-[major system](https://en.wikipedia.org/wiki/Mnemonic_major_system).
-
-To memorize the sequential order of the numbers, either the
-[method of loci](https://en.wikipedia.org/wiki/Method_of_loci) or the
-[peg system](https://en.wikipedia.org/wiki/Method_of_loci) can be used.
-
-The function takes as argument the pegs to use.  For the method of loci,
-a sequence of integers can be used.
-
-    $ pegged-entropy {1..10}
-
-Pegs do not have to be secret, so they can be saved in a file or in
-a variable in plain text.
-Here is an exemple from http://thememoryinstitute.com/the-peg-system.html :
-
-    $ pegs=(Bun Shoe Tree Door Hive Sticks Heaven Gate Vine Hen)
-    $ pegged-entropy "${pegs[@]}"
-
-This function will escape non-printable characters when writing to a terminal.
+Once you've become familiar with these techniques, you can generate a seed in
+several ways, you just have to make sure you remember your choice of encoding.
+For instance, if you've memorized a long number in decimal, you could either
+use its representation in ASCII or a byte stream generated from it with dc's
+`P` command.
 
 <a name=addresses />
 
