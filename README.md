@@ -303,8 +303,8 @@ The passphrase can also be given with the `BIP39_PASSPHRASE` environment variabl
 
 An alternative to bip-39 is to use [memory techniques](https://artofmemory.com/).
 
-Once you've become familiar with these techniques, you can generate a seed in
-several ways, you just have to make sure you remember your choice of encoding.
+Once you've become familiar with these techniques, you can memorize a seed in
+several ways, you just have to make sure you also remember your choice of encoding.
 For instance, if you've memorized a long number in decimal, you could either
 use its representation in ASCII or a byte stream generated from it with dc's
 `P` command.
