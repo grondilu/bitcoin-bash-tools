@@ -416,7 +416,7 @@ You can specify an optional index :
 * [x] use [Jacobian coordinates](https://en.wikibooks.org/wiki/Cryptography/Prime_Curve/Jacobian_Coordinates)
 * [ ] use a better exponentiation method, for instance using precomputations
 * [ ] always output public keys in ASCII, and private keys in binary
-
+* [ ] get `bitcoinAddress` to generate various addresses from extended keys, picking an appropriate derivation path.
 
 <a name=related />
 
