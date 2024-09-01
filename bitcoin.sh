@@ -1201,4 +1201,4 @@ bitcoinAddress()
   else return 1
   fi
 
-# vi: ft=bash synmaxcol=0
+# vi: synmaxcol=0
