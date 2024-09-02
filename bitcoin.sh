@@ -26,34 +26,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-declare -r secp256k1="
-I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts@]s%[Smddl%x-lm/rl%xLms@]s~
-[[L0s@0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+2 100^ds<d
-14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsm [I1d+d+d*i1
-483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-4Ri]dsgx3Rs@l<*+sG[*l%x]s*[-l%x]s-[l%xSclmSd1Su0Sv0Sr1St[q]SQ[lc
-0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs@LQs@Lc
-s@Lds@Lus@Lvs@Lrl%xLts@]sI[lpd1+4/r|]sRi[lpSm[+lCxq]S0[l1lDxlCxq
-]Sd[0lCxq]SzdS1rdS2r[L0s@L1s@L2s@Lds@Lms@LCs@]SCd0=0rd0=0r=dl1l<
-/l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2
-lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]
-S0dl<~SySx[Lms@L0s@LCs@Lxs@Lys@]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*
-l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rS.0r[rl.lAxr]SP[q]SQ[d0=Qd2%1
-=P2/l.lDxs.lLx]dSLxs@L.s@LLs@LPs@LQs@]sM[[d2%1=_q]s2 2 2 8^^~dsx
-d3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[l<~dlY
-x3R2%rd3R+2%1=_rl<*+]s>[1_3R]sj[3Rd_3Rdl*xd_3RlIxl*x_4Rl*xlIxl*x
-r]sf[[LQs@q]SQ3Rd_4R0=QLQs@[3R0*_3RLQs@q]SQrd_3R0=QLQs@rdd*lm%3R
-d3Rd3R4**lm%3Rd*3*lm%5R5R*2*lm%rdd*lm%4Rd_3R2*l-xd_6Rl-x*3Rd*8*
-l-x3R]s:[_4RSXSYSZ[s@0ddL0s@q]S0d0=0[_4RlZlYlXlPx4R]S+[q]SQ0dd4R
-[d0=Qd2%1=+2/lZlYlXl:xsXsYsZlLx]dSLxLXs@LYs@LZs@s@LLs@L0s@L+s@LQ
-s@]s;[3Rd[s@s@s@Lqs@q]Sq0=qLqs@6Rd[s@4Rs@4Rs@_3RLqs@q]Sq0=qLqs@d
-dl*xd3Rd_4Rl*x6Rd3Rl*x3R6Rd3Rl*x6Rddl*xd3Rd_4Rl*x5d+Rl*x9R3Rl*x4
-Rd_3Rl-x3R6Rd_3Rl-x3R[[s@s@s@s@s@s@0 0 0L1s@L2s@3Q]S2s@0*0=2s@s@
-4Rs@_3Rl:xL1s@L2s@q]S1d0=1L1s@6Rs@6Rs@ddl*xd3Rd3Rl*x4Rddl*x7R6R
-l*xd2l*x5Rd5R_4R_4R+l-xd4Rr5R_3Rl-xl*x5R4Rl*xl-x_5R_5Rl*xl*xr3R]
-sP[[[INFINITY]nLIs@q]SI3Rd0=I_3RLIs@IO_5R_5Rlfx1d+d+d*doi2 100^d
-3Rr2*+_3Rr2%*+[0]nnAPoi]se"
+if [[ ! -v secp256k1 ]]
+then
+  declare -r secp256k1="
+  I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts@]s%[Smddl%x-lm/rl%xLms@]s~
+  [[L0s@0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+2 100^ds<d
+  14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsm [I1d+d+d*i1
+  483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+  79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+  4Ri]dsgx3Rs@l<*+sG[*l%x]s*[-l%x]s-[l%xSclmSd1Su0Sv0Sr1St[q]SQ[lc
+  0=Qldlcl~xlcsdscsqlrlqlu*-ltlqlv*-lulvstsrsvsulXx]dSXxLXs@LQs@Lc
+  s@Lds@Lus@Lvs@Lrl%xLts@]sI[lpd1+4/r|]sRi[lpSm[+lCxq]S0[l1lDxlCxq
+  ]Sd[0lCxq]SzdS1rdS2r[L0s@L1s@L2s@Lds@Lms@LCs@]SCd0=0rd0=0r=dl1l<
+  /l2l</l-xd*l1l<%l2l<%l+xd*+0=zl2l</l1l</l-xlIxl2l<%l1l<%l-xl*xd2
+  lm|l1l</l2l</+l-xd_3Rl1l</rl-xl*xl1l<%l-xrl<*+lCx]sA[lpSm[LCxq]
+  S0dl<~SySx[Lms@L0s@LCs@Lxs@Lys@]SC0=0lxd*3*la+ly2*lIxl*xdd*lx2*
+  l-xd_3Rlxrl-xl*xlyl-xrl<*+lCx]sD[rS.0r[rl.lAxr]SP[q]SQ[d0=Qd2%1
+  =P2/l.lDxs.lLx]dSLxs@L.s@LLs@LPs@LQs@]sM[[d2%1=_q]s2 2 2 8^^~dsx
+  d3lp|rla*+lb+lRxr2=2d2%0=_]sY[2l<*2^+]sU[d2%2+l<*rl</+]sC[l<~dlY
+  x3R2%rd3R+2%1=_rl<*+]s>[1_3R]sj[3Rd_3Rdl*xd_3RlIxl*x_4Rl*xlIxl*x
+  r]sf[[LQs@q]SQ3Rd_4R0=QLQs@[3R0*_3RLQs@q]SQrd_3R0=QLQs@rdd*lm%3R
+  d3Rd3R4**lm%3Rd*3*lm%5R5R*2*lm%rdd*lm%4Rd_3R2*l-xd_6Rl-x*3Rd*8*
+  l-x3R]s:[_4RSXSYSZ[s@0ddL0s@q]S0d0=0[_4RlZlYlXlPx4R]S+[q]SQ0dd4R
+  [d0=Qd2%1=+2/lZlYlXl:xsXsYsZlLx]dSLxLXs@LYs@LZs@s@LLs@L0s@L+s@LQ
+  s@]s;[3Rd[s@s@s@Lqs@q]Sq0=qLqs@6Rd[s@4Rs@4Rs@_3RLqs@q]Sq0=qLqs@d
+  dl*xd3Rd_4Rl*x6Rd3Rl*x3R6Rd3Rl*x6Rddl*xd3Rd_4Rl*x5d+Rl*x9R3Rl*x4
+  Rd_3Rl-x3R6Rd_3Rl-x3R[[s@s@s@s@s@s@0 0 0L1s@L2s@3Q]S2s@0*0=2s@s@
+  4Rs@_3Rl:xL1s@L2s@q]S1d0=1L1s@6Rs@6Rs@ddl*xd3Rd3Rl*x4Rddl*x7R6R
+  l*xd2l*x5Rd5R_4R_4R+l-xd4Rr5R_3Rl-xl*x5R4Rl*xl-x_5R_5Rl*xl*xr3R]
+  sP[[[INFINITY]nLIs@q]SI3Rd0=I_3RLIs@IO_5R_5Rlfx1d+d+d*doi2 100^d
+  3Rr2*+_3Rr2%*+[0]nnAPoi]se"
+fi
 
 # This file requires extended globs to be parsed
 shopt -s extglob
@@ -248,11 +251,14 @@ wif()
 # // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # // THE SOFTWARE.
 
-declare -r bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
-declare -Ai bech32_charset_reverse
-for i in {0..31}
-do bech32_charset_reverse[${bech32_charset:i:1}]=i
-done
+if [[ ! -v bech32_charset ]]
+then
+  declare -r bech32_charset="qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+  declare -Ai bech32_charset_reverse
+  for i in {0..31}
+  do bech32_charset_reverse[${bech32_charset:i:1}]=i
+  done
+fi
 
 bech32()
   if local OPTIND OPTARG o
@@ -1201,4 +1207,4 @@ bitcoinAddress()
   else return 1
   fi
 
-# vi: synmaxcol=0
+# vi: synmaxcol=0 shiftwidth=2
