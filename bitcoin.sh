@@ -27,8 +27,7 @@
 # SOFTWARE.
 
 if [[ ! -v secp256k1 ]]
-then
-  declare -r secp256k1="
+then declare -r secp256k1="
   I16i7sb0sa[[_1*lm1-*lm%q]Std0>tlm%Lts@]s%[Smddl%x-lm/rl%xLms@]s~
   [[L0s@0pq]S0d0=0l<~2%2+l<*+[0]Pp]sE[_1*l%x]s_[+l%x]s+2 100^ds<d
   14551231950B75FC4402DA1732FC9BEBF-sn1000003D1-dspsm [I1d+d+d*i1
@@ -806,9 +805,8 @@ bip32()
 		  {
 		     read left
 		     read right
-		     echo "4d*doi$right ${key^^} $left+ln%p"
+		     echo "4d*doi$right ${key^^} $left+ln%prp"
 		  }
-		  echo rp
 		} | dc
 	      )
 
