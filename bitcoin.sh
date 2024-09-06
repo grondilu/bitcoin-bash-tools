@@ -750,8 +750,6 @@ bip32()
     path="${path#[mM]}"
     if test -n "$path"
     then
-      coproc DC { dc -e "$secp256k1" -; }
-      trap 'echo q >&"${DC[1]}"' EXIT RETURN
       while [[ "$path" =~ ^/(N|[[:digit:]]+h?) ]]
       do  
         path="${path#/${BASH_REMATCH[1]}}"
@@ -768,10 +766,9 @@ bip32()
                $((BIP32_TESTNET_PRIVATE_VERSION_CODE)))
                  version=$BIP32_TESTNET_PUBLIC_VERSION_CODE;;&
                *)
-                #echo -n "$key ..." >&2
-                echo "4d*doilgx${key^^}l;xlex" >&"${DC[1]}"
-                read key <&"${DC[0]}"
-                #echo "done" >&2
+                read key < <(
+		  dc <<<"$secp256k1 4d*doilgx${key^^}l;xlex"
+		)
             esac
             ;;
           +([[:digit:]])h)
@@ -787,28 +784,33 @@ bip32()
 
             if isPrivate "$version"
             then # CKDpriv
-
-              echo "4d*doilgx${key^^}l;xlex" >&"${DC[1]}"
-              read parent_id <&"${DC[0]}"
-              {
-                {
-                  if (( child_number >= (1 << 31) ))
-                  then
-                    printf "\x00"
-                    ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
-                  else
-                    basenc --base16 -d <<<"${parent_id^^[a-f]}"
-                  fi
-                  ser32 $child_number
-                } |
-                openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-                basenc --base16 -w64 |
-                {
-                   read left
-                   read right
-                   echo "4d*doi$right ${key^^} $left+ln%p"
-                }
-              } >&"${DC[1]}"
+	      read parent_id < <(dc <<<"$secp256k1 4d*doilgx${key^^}l;xlex")
+	      {
+		read key
+		read chain_code
+	      } < <(
+		{
+		  echo "$secp256k1"
+		  {
+		    if (( child_number >= (1 << 31) ))
+		    then
+		      printf "\x00"
+		      ser256 "0x${key:2}" || echo "WARNING: ser256 return $?" >&2
+		    else
+		      basenc --base16 -d <<<"${parent_id^^[a-f]}"
+		    fi
+		    ser32 $child_number
+		  } |
+		  openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
+		  basenc --base16 -w64 |
+		  {
+		     read left
+		     read right
+		     echo "4d*doi$right ${key^^} $left+ln%p"
+		  }
+		  echo rp
+		} | dc
+	      )
 
             elif isPublic "$version"
             then # CKDpub
@@ -818,30 +820,34 @@ bip32()
                 echo "extented public key can't produce a hardened child" >&2
                 return 4
               else
-                {
-                  {
-                    basenc --base16 -d <<<"${key^^[a-f]}"
-                    ser32 $child_number
-                  } |
-                  openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
-                  basenc --base16 -w64 |
-                  {
-                     read left
-                     read right
-                     echo "8d+doi$right lgx$left l;x ${key^^}l>x l<~rljx lPxlex 0"
-                  }
-                } >&"${DC[1]}"
+		{
+		  read key
+		  read chain_code
+		} < <(
+		  {
+		    echo "$secp256k1"
+		    {
+		      basenc --base16 -d <<<"${key^^[a-f]}"
+		      ser32 $child_number
+		    } |
+		    openssl dgst -sha512 -mac hmac -macopt hexkey:"$chain_code" -binary |
+		    basenc --base16 -w64 |
+		    {
+		       read left
+		       read right
+		       echo "8d+doi$right lgx$left l;x ${key^^}l>x l<~rljx lPxlex 0"
+		    }
+		    echo rp
+		  } | dc
+		)
               fi
             else
               echo "version is neither private nor public?!" >&2
               return 111
             fi
-            read key <&"${DC[0]}"
             while ((${#key} < 66))
             do key="0$key"
             done
-            echo rp >&"${DC[1]}"
-            read chain_code <&"${DC[0]}"
             while ((${#chain_code} < 64))
             do chain_code="0$chain_code"
             done

@@ -418,7 +418,7 @@ You can specify an optional index :
 * [ ] always output public keys in ASCII, and private keys in binary
 * [ ] get `bitcoinAddress` to generate various addresses from extended keys, picking an appropriate derivation path.
 * [ ] ensure idempotence
-* [ ] get rid of `coproc`
+* [x] get rid of `coproc`
 
 <a name=related />
 
