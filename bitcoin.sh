@@ -835,9 +835,8 @@ bip32()
 		    {
 		       read left
 		       read right
-		       echo "8d+doi$right lgx$left l;x ${key^^}l>x l<~rljx lPxlex 0"
+		       echo "8d+doi$right lgx$left l;x ${key^^}l>x l<~rljx lPxlexp"
 		    }
-		    echo rp
 		  } | dc
 		)
               fi
