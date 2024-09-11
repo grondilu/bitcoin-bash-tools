@@ -337,12 +337,7 @@ hrpExpand() {
   done
 }
 
-verifyChecksum() {
-  local hrp="$1"
-  shift
-  local -i pmod="$(polymod $(hrpExpand "$hrp") "$@")"
-  (( pmod == ${BECH32_CONST:-1} ))
-}
+verifyChecksum() (( "$(polymod $(hrpExpand "$1") "${@:2}")" == ${BECH32_CONST:-1} ))
 
 bech32_create_checksum() {
   local hrp="$1"
