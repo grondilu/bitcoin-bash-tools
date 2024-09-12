@@ -80,11 +80,9 @@ escape-output-if-needed()
   fi
 
 ser32()
-  if
-    local -i i=$1
-    ((i >= 0 && i < 1<<32)) 
+  if (($1 >= 0 && $1 < 1<<32)) 
   then
-    printf "%08X" $i |
+    printf "%08X" $1 |
     basenc --base16 -d
   else return 1
   fi
