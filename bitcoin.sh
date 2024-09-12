@@ -1205,4 +1205,4 @@ bitcoinAddress()
   else return 1
   fi
 
-# vi: synmaxcol=0 shiftwidth=2
+# vi: synmaxcol=0 shiftwidth=2 nowrap
