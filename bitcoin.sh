@@ -99,7 +99,7 @@ ser256()
 
 base58()
   if
-    local base58_chars="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    local -r base58_chars="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     local OPTIND OPTARG o
     getopts hdvc o
   then
