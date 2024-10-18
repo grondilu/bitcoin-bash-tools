@@ -399,6 +399,7 @@ You can specify an optional index :
 - [GNU's Coreutils](https://www.gnu.org/software/coreutils/);
 - [dc](https://en.wikipedia.org/wiki/Dc_\(computer_program\)), the Unix desktop calculator;
 - openssl, the [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) command line tool.
+- Perl and Test::Harness for [TAP](http://testanything.org)
 
 <a name=todo />
 
