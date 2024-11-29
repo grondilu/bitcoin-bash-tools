@@ -148,11 +148,11 @@ base58()
     basenc --base16 "${1:-/dev/stdin}" -w0 |
     if
       read
-      [[ $REPLY =~ ^(0{2}*)([[:xdigit:]]{2}*) ]]
+      [[ $REPLY =~ ^((0{2})*)(([[:xdigit:]]{2})*) ]]
       echo -n "${BASH_REMATCH[1]//00/1}"
-      (( ${#BASH_REMATCH[2]} > 0 ))
+      (( ${#BASH_REMATCH[3]} > 0 ))
     then
-      dc -e "16i0${BASH_REMATCH[2]^^} Ai[58~rd0<x]dsxx+f" |
+      dc -e "16i0${BASH_REMATCH[3]^^} Ai[58~rd0<x]dsxx+f" |
       while read -r
       do echo -n "${base58_chars:REPLY:1}"
       done
